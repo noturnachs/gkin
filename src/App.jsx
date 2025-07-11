@@ -59,7 +59,7 @@ function App() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Liturgy Workflow Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">GKIN RWDH Dienst Dashboard</h1>
             <p className="text-gray-600">Manage document workflow for weekly services</p>
           </div>
           <div className="flex items-center gap-4">
