@@ -55,85 +55,155 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
     });
   };
 
+  // Get day name for the selected date
+  const getDayName = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
   return (
-    <Card className="relative z-20">
-      <CardContent className="p-3 md:p-4">
+    <Card className="relative z-20 border border-gray-300 shadow-md">
+      <CardContent className="p-3 md:p-4 bg-white">
         {/* Desktop View */}
         <div className="hidden md:flex items-center justify-between">
-          <Button variant="outline" size="sm" onClick={goToPrevious} disabled={currentIndex <= 0}>
-            <ChevronLeft className="w-4 h-4" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={goToPrevious} 
+            disabled={currentIndex <= 0}
+            className="border-gray-400 text-gray-700 hover:bg-gray-100 hover:text-gray-900 shadow-sm"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
           </Button>
 
           <div className="flex items-center gap-4">
-            {weeks.map((week) => (
-              <Button
-                key={week.date}
-                variant={selectedWeek === week.date ? "default" : "outline"}
-                size="sm"
-                onClick={() => onWeekChange(week.date)}
-                className="flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                {week.title}
-              </Button>
-            ))}
+            {weeks.map((week) => {
+              const isSelected = selectedWeek === week.date;
+              const isPast = new Date(week.date) < new Date() && !isSelected;
+              const isFuture = new Date(week.date) > new Date() && !isSelected;
+              
+              return (
+                <Button
+                  key={week.date}
+                  variant={isSelected ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onWeekChange(week.date)}
+                  className={`flex items-center gap-2 ${
+                    isSelected 
+                      ? "bg-blue-600 text-white border-blue-700 shadow-md" 
+                      : isPast 
+                        ? "border-gray-300 text-gray-600 hover:bg-gray-50" 
+                        : isFuture 
+                          ? "border-blue-300 text-blue-700 hover:bg-blue-50" 
+                          : "border-gray-400 text-gray-800 hover:bg-gray-50"
+                  }`}
+                >
+                  <Calendar className={`w-4 h-4 ${isSelected ? "text-white" : "text-gray-600"}`} />
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs">{new Date(week.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span className="text-[10px] opacity-80">{new Date(week.date).getFullYear()}</span>
+                  </div>
+                </Button>
+              );
+            })}
           </div>
 
-          <Button variant="outline" size="sm" onClick={goToNext} disabled={currentIndex >= weeks.length - 1}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={goToNext} 
+            disabled={currentIndex >= weeks.length - 1}
+            className="border-gray-400 text-gray-700 hover:bg-gray-100 hover:text-gray-900 shadow-sm"
+          >
             Next
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
         
         {/* Mobile View */}
         <div className="md:hidden">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={goToPrevious} disabled={currentIndex <= 0}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            
-            <div className="relative flex-1 mx-2">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
               <Button 
-                ref={buttonRef}
                 variant="outline" 
-                className="flex items-center justify-center gap-2 w-full"
-                onClick={() => setShowDropdown(!showDropdown)}
+                size="sm" 
+                onClick={goToPrevious} 
+                disabled={currentIndex <= 0}
+                className="border-gray-400 text-gray-700 hover:bg-gray-100 shadow-sm"
               >
-                <Calendar className="w-4 h-4" />
-                <span>{formatShortDate(selectedWeek)}</span>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
               
-              {showDropdown && (
-                <div 
-                  ref={dropdownRef}
-                  className="fixed left-1/2 transform -translate-x-1/2 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50"
-                  style={{
-                    top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + window.scrollY + 5 : 'auto',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
-                  }}
+              <div className="relative flex-1 mx-2">
+                <Button 
+                  ref={buttonRef}
+                  variant="outline" 
+                  className="flex items-center justify-center gap-2 w-full bg-white border-gray-400 text-gray-800 shadow-sm hover:bg-gray-50"
+                  onClick={() => setShowDropdown(!showDropdown)}
                 >
-                  {weeks.map((week) => (
-                    <div 
-                      key={week.date}
-                      className={`p-2 ${selectedWeek === week.date ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-100'} cursor-pointer`}
-                      onClick={() => {
-                        onWeekChange(week.date);
-                        setShowDropdown(false);
-                      }}
-                    >
-                      {new Date(week.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span className="font-medium">{formatShortDate(selectedWeek)}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                </Button>
+                
+                {showDropdown && (
+                  <div 
+                    ref={dropdownRef}
+                    className="fixed left-1/2 transform -translate-x-1/2 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50"
+                    style={{
+                      top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + window.scrollY + 5 : 'auto',
+                      maxHeight: '200px',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    {weeks.map((week) => {
+                      const isSelected = selectedWeek === week.date;
+                      const dayName = getDayName(week.date);
+                      
+                      return (
+                        <div 
+                          key={week.date}
+                          className={`p-3 border-b border-gray-100 last:border-0 ${
+                            isSelected 
+                              ? 'bg-blue-50 border-l-4 border-l-blue-600' 
+                              : 'hover:bg-gray-50 border-l-4 border-l-transparent'
+                          } cursor-pointer flex items-center`}
+                          onClick={() => {
+                            onWeekChange(week.date);
+                            setShowDropdown(false);
+                          }}
+                        >
+                          <div className="flex-1">
+                            <div className={`font-medium ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                              {new Date(week.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                            </div>
+                            <div className="text-xs text-gray-500">{dayName}</div>
+                          </div>
+                          {isSelected && (
+                            <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={goToNext} 
+                disabled={currentIndex >= weeks.length - 1}
+                className="border-gray-400 text-gray-700 hover:bg-gray-100 shadow-sm"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
             
-            <Button variant="outline" size="sm" onClick={goToNext} disabled={currentIndex >= weeks.length - 1}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <div className="text-center text-sm font-medium text-gray-800">
+              {getDayName(selectedWeek)}, {new Date(selectedWeek).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
           </div>
         </div>
       </CardContent>
