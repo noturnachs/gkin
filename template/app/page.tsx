@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Badge } from "./components/ui/badge";
-import { Button } from "./components/ui/button";
-import { Progress } from "./components/ui/progress";
-import { Calendar, FileText, Users, CheckCircle, AlertCircle } from "lucide-react";
-import { WorkflowBoard } from "./components/workflow-board";
-import { WeekSelector } from "./components/week-selector";
-import { ActionPanel } from "./components/action-panel";
-import { NotificationCenter } from "./components/notification-center";
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Calendar, FileText, Users, CheckCircle, AlertCircle, HardDriveIcon as Drive } from "lucide-react"
+import { WorkflowBoard } from "@/components/workflow-board"
+import { WeekSelector } from "@/components/week-selector"
+import { ActionPanel } from "@/components/action-panel"
+import { NotificationCenter } from "@/components/notification-center"
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -16,7 +18,7 @@ const roles = [
   { id: "translation", name: "Translation", color: "bg-green-500" },
   { id: "beamer", name: "Beamer Team", color: "bg-orange-500" },
   { id: "music", name: "Music Team", color: "bg-pink-500" },
-];
+]
 
 const mockServices = [
   {
@@ -43,13 +45,28 @@ const mockServices = [
     assignedTo: "liturgy",
     documents: [{ name: "Liturgy Concept", status: "draft", lastModified: "2024-01-07" }],
   },
-];
+]
 
-function App() {
-  const [selectedRole, setSelectedRole] = useState("liturgy");
-  const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
+export default function Dashboard() {
+  const [selectedRole, setSelectedRole] = useState("liturgy")
+  const [selectedWeek, setSelectedWeek] = useState("2024-01-07")
 
-  const currentService = mockServices.find((s) => s.date === selectedWeek);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-500"
+      case "in-progress":
+        return "bg-blue-500"
+      case "pending":
+        return "bg-yellow-500"
+      case "overdue":
+        return "bg-red-500"
+      default:
+        return "bg-gray-500"
+    }
+  }
+
+  const currentService = mockServices.find((s) => s.date === selectedWeek)
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -63,7 +80,7 @@ function App() {
           <div className="flex items-center gap-4">
             <NotificationCenter />
             <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-              <FileText className="w-4 h-4" />
+              <Drive className="w-4 h-4" />
               Google Drive
             </Button>
           </div>
@@ -209,7 +226,5 @@ function App() {
         )}
       </div>
     </div>
-  );
+  )
 }
-
-export default App;
