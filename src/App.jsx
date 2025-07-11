@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
-import TaskBoard from './components/TaskBoard'
-import RoleFilter from './components/RoleFilter'
+import Dashboard from './components/Dashboard'
 
 function App() {
   const [activeRole, setActiveRole] = useState('all')
   const [activeTab, setActiveTab] = useState('current')
   const [darkMode, setDarkMode] = useState(false)
+  const [notifications, setNotifications] = useState([
+    { id: 1, role: 'liturgy', message: 'Concept document due today', read: false },
+    { id: 2, role: 'pastor', message: 'Document ready for your review', read: false }
+  ])
   
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
@@ -34,14 +37,26 @@ function App() {
     setDarkMode(!darkMode)
   }
   
+  // Mark notification as read
+  const markNotificationAsRead = (id) => {
+    setNotifications(notifications.map(notif => 
+      notif.id === id ? { ...notif, read: true } : notif
+    ))
+  }
+  
   return (
     <div className={`flex h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {/* Sidebar */}
-      <Sidebar darkMode={darkMode} />
+      <Sidebar darkMode={darkMode} activeRole={activeRole} setActiveRole={setActiveRole} />
       
       {/* Main Content */}
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : ''}`}>
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header 
+          darkMode={darkMode} 
+          toggleDarkMode={toggleDarkMode} 
+          notifications={notifications}
+          markNotificationAsRead={markNotificationAsRead}
+        />
         
         {/* Main Dashboard */}
         <main className={`flex-1 overflow-y-auto p-6 ${darkMode ? 'bg-gray-900' : ''}`}>
@@ -77,11 +92,12 @@ function App() {
             </button>
           </div>
           
-          {/* Role Filter */}
-          <RoleFilter activeRole={activeRole} setActiveRole={setActiveRole} darkMode={darkMode} />
-          
-          {/* Task Board */}
-          <TaskBoard activeRole={activeRole} activeTab={activeTab} darkMode={darkMode} />
+          {/* Dashboard */}
+          <Dashboard 
+            activeRole={activeRole} 
+            activeTab={activeTab} 
+            darkMode={darkMode} 
+          />
         </main>
       </div>
     </div>
