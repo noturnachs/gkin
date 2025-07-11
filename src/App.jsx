@@ -136,21 +136,46 @@ function App() {
 
           {/* Role-based Actions */}
           <div>
-            <Card>
+            <Card className="bg-white border border-gray-200">
               <CardHeader>
-                <CardTitle>Role Actions</CardTitle>
-                <CardDescription>Actions available for your role</CardDescription>
+                <CardTitle className="text-gray-900">Role Actions</CardTitle>
+                <CardDescription className="text-gray-600">Actions available for your role</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs value={selectedRole} onValueChange={setSelectedRole}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="liturgy">Liturgy</TabsTrigger>
-                    <TabsTrigger value="pastor">Pastor</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                    <TabsTrigger 
+                      value="liturgy" 
+                      className={selectedRole === "liturgy" ? "bg-white text-blue-700 font-medium shadow-sm" : "text-gray-700"}
+                    >
+                      Liturgy
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="pastor" 
+                      className={selectedRole === "pastor" ? "bg-white text-purple-700 font-medium shadow-sm" : "text-gray-700"}
+                    >
+                      Pastor
+                    </TabsTrigger>
                   </TabsList>
-                  <TabsList className="grid w-full grid-cols-3 mt-2">
-                    <TabsTrigger value="translation">Translation</TabsTrigger>
-                    <TabsTrigger value="beamer">Beamer</TabsTrigger>
-                    <TabsTrigger value="music">Music</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 mt-2 bg-gray-100">
+                    <TabsTrigger 
+                      value="translation" 
+                      className={selectedRole === "translation" ? "bg-white text-green-700 font-medium shadow-sm" : "text-gray-700"}
+                    >
+                      Translation
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="beamer" 
+                      className={selectedRole === "beamer" ? "bg-white text-orange-700 font-medium shadow-sm" : "text-gray-700"}
+                    >
+                      Beamer
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="music" 
+                      className={selectedRole === "music" ? "bg-white text-pink-700 font-medium shadow-sm" : "text-gray-700"}
+                    >
+                      Music
+                    </TabsTrigger>
                   </TabsList>
 
                   {roles.map((role) => (

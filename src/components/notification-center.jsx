@@ -43,12 +43,12 @@ export function NotificationCenter() {
       <Button 
         variant="outline" 
         size="sm" 
-        className="relative bg-transparent"
+        className="relative bg-white border border-gray-300 hover:bg-gray-50"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4 text-gray-700" />
         {unreadCount > 0 && (
-          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600 text-white">
             {unreadCount}
           </Badge>
         )}
@@ -56,24 +56,31 @@ export function NotificationCenter() {
       
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 z-50">
-          <Card className="border shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Notifications</CardTitle>
-              <CardDescription>Recent activity and updates</CardDescription>
+          <Card className="border border-gray-200 bg-white shadow-lg">
+            <CardHeader className="pb-3 bg-white">
+              <CardTitle className="text-sm text-gray-900">Notifications</CardTitle>
+              <CardDescription className="text-gray-600">Recent activity and updates</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 bg-white">
               {notifications.map((notification) => (
-                <div key={notification.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50">
+                <div 
+                  key={notification.id} 
+                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-100 bg-white"
+                >
                   <notification.icon className={`w-4 h-4 mt-0.5 ${notification.color}`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{notification.title}</p>
+                    <p className="text-sm font-medium text-gray-900">{notification.title}</p>
                     <p className="text-xs text-gray-600">{notification.description}</p>
-                    <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                    <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
                   </div>
                 </div>
               ))}
-              <div className="pt-2 border-t">
-                <Button variant="ghost" size="sm" className="w-full text-xs">
+              <div className="pt-2 border-t border-gray-200">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full text-xs text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                >
                   View all notifications
                 </Button>
               </div>

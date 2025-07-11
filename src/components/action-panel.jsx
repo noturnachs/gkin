@@ -48,19 +48,23 @@ export function ActionPanel({ role, service }) {
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-4">
         <div className={`w-3 h-3 rounded-full ${role.color}`} />
-        <span className="font-medium">{role.name}</span>
+        <span className="font-medium text-gray-900">{role.name}</span>
       </div>
 
       {actions.map((action) => (
-        <Card key={action.id} className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card key={action.id} className="cursor-pointer hover:shadow-md transition-shadow bg-white border border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <action.icon className="w-5 h-5 mt-0.5 text-gray-600" />
+              <action.icon className="w-5 h-5 mt-0.5 text-gray-700" />
               <div className="flex-1">
-                <h4 className="font-medium text-sm">{action.title}</h4>
+                <h4 className="font-medium text-sm text-gray-900">{action.title}</h4>
                 <p className="text-xs text-gray-600 mt-1">{action.description}</p>
               </div>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="bg-white text-gray-800 border border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+              >
                 Start
               </Button>
             </div>
@@ -68,14 +72,22 @@ export function ActionPanel({ role, service }) {
         </Card>
       ))}
 
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
         <h4 className="font-medium text-sm text-blue-900 mb-2">Quick Actions</h4>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="text-xs bg-transparent">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50"
+          >
             <Send className="w-3 h-3 mr-1" />
             Send Email
           </Button>
-          <Button size="sm" variant="outline" className="text-xs bg-transparent">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50"
+          >
             <FileText className="w-3 h-3 mr-1" />
             View Docs
           </Button>
