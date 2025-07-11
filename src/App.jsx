@@ -9,6 +9,7 @@ import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
 import { ActionPanel } from "./components/action-panel";
 import { NotificationCenter } from "./components/notification-center";
+import { GlobalChat } from "./components/global-chat";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -232,6 +233,11 @@ function App() {
             </CardContent>
           </Card>
         )}
+
+        {/* Global Chat */}
+        <div className="mt-6">
+          <GlobalChat />
+        </div>
       </div>
     </div>
   );
