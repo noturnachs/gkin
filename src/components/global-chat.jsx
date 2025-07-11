@@ -39,13 +39,13 @@ const initialMessages = [
   },
 ];
 
-// Role colors mapping
+// Enhanced role colors mapping with better contrast
 const roleColors = {
-  liturgy: { bg: "bg-blue-500", text: "text-blue-700", light: "bg-blue-100" },
-  pastor: { bg: "bg-purple-500", text: "text-purple-700", light: "bg-purple-100" },
-  translation: { bg: "bg-green-500", text: "text-green-700", light: "bg-green-100" },
-  beamer: { bg: "bg-orange-500", text: "text-orange-700", light: "bg-orange-100" },
-  music: { bg: "bg-pink-500", text: "text-pink-700", light: "bg-pink-100" },
+  liturgy: { bg: "bg-blue-600", text: "text-blue-800", light: "bg-blue-50", border: "border-blue-200" },
+  pastor: { bg: "bg-purple-600", text: "text-purple-800", light: "bg-purple-50", border: "border-purple-200" },
+  translation: { bg: "bg-green-600", text: "text-green-800", light: "bg-green-50", border: "border-green-200" },
+  beamer: { bg: "bg-orange-600", text: "text-orange-800", light: "bg-orange-50", border: "border-orange-200" },
+  music: { bg: "bg-pink-600", text: "text-pink-800", light: "bg-pink-50", border: "border-pink-200" },
 };
 
 export function GlobalChat({ currentUser = users[0] }) {
@@ -61,7 +61,6 @@ export function GlobalChat({ currentUser = users[0] }) {
   // Scroll to bottom when messages change, but only within the chat container
   useEffect(() => {
     if (chatEndRef.current) {
-      // Use scrollIntoView with a specific container instead of affecting the whole page
       const chatContainer = chatEndRef.current.parentElement;
       if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -189,7 +188,7 @@ export function GlobalChat({ currentUser = users[0] }) {
     return text.split(" ").map((word, index) => {
       if (word.startsWith("@")) {
         const role = word.substring(1).toLowerCase();
-        const color = roleColors[role]?.text || "text-blue-600";
+        const color = roleColors[role]?.text || "text-blue-800";
         
         return (
           <span key={index}>
@@ -202,13 +201,15 @@ export function GlobalChat({ currentUser = users[0] }) {
   };
 
   return (
-    <Card className="border border-gray-200 h-[400px] md:h-[500px] flex flex-col">
-      <CardHeader className="border-b border-gray-200 pb-3">
+    <Card className="border border-gray-200 shadow-sm h-[400px] md:h-[500px] flex flex-col">
+      <CardHeader className="border-b border-gray-200 pb-3 bg-gray-50">
         <CardTitle className="text-gray-900 flex items-center gap-2">
-          <AtSign className="w-4 h-4 text-muted-foreground" />
-          Team Communication
+          <div className="p-1.5 rounded-full bg-blue-100">
+            <AtSign className="w-4 h-4 text-blue-700" />
+          </div>
+          General Chat
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-gray-600">
           Use @role or @name to notify team members
         </CardDescription>
       </CardHeader>
@@ -218,7 +219,7 @@ export function GlobalChat({ currentUser = users[0] }) {
           {Object.entries(groupedMessages).map(([date, dateMessages]) => (
             <div key={date} className="space-y-4">
               <div className="flex justify-center">
-                <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full border border-gray-200 shadow-sm">
                   {formatDate(dateMessages[0].timestamp)}
                 </div>
               </div>
@@ -229,7 +230,7 @@ export function GlobalChat({ currentUser = users[0] }) {
                   className={`flex gap-2 md:gap-3 ${message.sender.id === currentUser.id ? 'justify-end' : ''}`}
                 >
                   {message.sender.id !== currentUser.id && (
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                       <img 
                         src={message.sender.avatar} 
                         alt={message.sender.name}
@@ -241,41 +242,52 @@ export function GlobalChat({ currentUser = users[0] }) {
                   <div 
                     className={`max-w-[75%] md:max-w-[70%] ${
                       message.sender.id === currentUser.id 
-                        ? 'bg-primary text-primary-foreground rounded-t-lg rounded-bl-lg' 
-                        : 'bg-gray-100 text-gray-800 rounded-t-lg rounded-br-lg'
-                    } p-2 md:p-3`}
+                        ? 'bg-blue-600 text-white rounded-t-lg rounded-bl-lg shadow-sm' 
+                        : 'bg-white text-gray-800 rounded-t-lg rounded-br-lg border border-gray-200 shadow-sm'
+                    } p-3`}
                   >
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-center mb-1.5">
                       <span className={`text-xs font-medium ${
                         message.sender.id === currentUser.id 
-                          ? 'text-primary-foreground opacity-90' 
-                          : 'text-gray-600'
+                          ? 'text-blue-100' 
+                          : 'text-gray-700'
                       }`}>
                         {message.sender.id === currentUser.id ? 'You' : message.sender.name}
-                        <span className="text-xs ml-1 opacity-70">
+                        <span className={`text-xs ml-1 ${
+                          message.sender.id === currentUser.id 
+                            ? 'text-blue-200' 
+                            : 'text-gray-500'
+                        }`}>
                           ({message.sender.role})
                         </span>
                       </span>
                       <span className={`text-xs ${
                         message.sender.id === currentUser.id 
-                          ? 'text-primary-foreground opacity-70' 
+                          ? 'text-blue-200' 
                           : 'text-gray-500'
                       } flex items-center gap-1`}>
                         <Clock className="w-3 h-3" />
                         {formatTime(message.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm break-words">{highlightMentions(message.text)}</p>
+                    <p className={`text-sm break-words ${
+                      message.sender.id === currentUser.id 
+                        ? 'text-white' 
+                        : 'text-gray-800'
+                    }`}>
+                      {highlightMentions(message.text)}
+                    </p>
                     {message.mentions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-2">
                         {message.mentions.map((mention, index) => {
-                          const roleColor = roleColors[mention]?.light || "bg-blue-100";
-                          const textColor = roleColors[mention]?.text || "text-blue-700";
+                          const roleColor = roleColors[mention]?.light || "bg-gray-100";
+                          const borderColor = roleColors[mention]?.border || "border-gray-200";
+                          const textColor = roleColors[mention]?.text || "text-gray-800";
                           
                           return (
                             <span 
                               key={index}
-                              className={`text-xs px-2 py-0.5 rounded-full ${roleColor} ${textColor}`}
+                              className={`text-xs px-2 py-0.5 rounded-full ${roleColor} ${textColor} border ${borderColor}`}
                             >
                               @{mention}
                             </span>
@@ -286,7 +298,7 @@ export function GlobalChat({ currentUser = users[0] }) {
                   </div>
                   
                   {message.sender.id === currentUser.id && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                       <img 
                         src={message.sender.avatar} 
                         alt={message.sender.name}
@@ -302,7 +314,7 @@ export function GlobalChat({ currentUser = users[0] }) {
         </div>
       </CardContent>
       
-      <div className="p-3 md:p-4 border-t border-gray-200 relative">
+      <div className="p-3 md:p-4 border-t border-gray-200 bg-white relative">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
@@ -311,39 +323,45 @@ export function GlobalChat({ currentUser = users[0] }) {
               value={newMessage}
               onChange={handleInputChange}
               placeholder="Type a message..."
-              className="w-full px-3 py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 shadow-sm"
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
             />
             
             {showMentionSuggestions && filteredSuggestions.length > 0 && (
-              <div className="absolute bottom-full left-0 mb-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+              <div className="absolute bottom-full left-0 mb-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+                <div className="p-2 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-600">
+                  Suggestions
+                </div>
                 {filteredSuggestions.map((suggestion, index) => {
                   if (suggestion.type === "role") {
-                    const roleColor = roleColors[suggestion.value]?.bg || "bg-blue-500";
+                    const roleColor = roleColors[suggestion.value]?.bg || "bg-blue-600";
+                    const lightColor = roleColors[suggestion.value]?.light || "bg-blue-50";
                     
                     return (
                       <div
                         key={index}
-                        className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                        className="p-2.5 hover:bg-gray-50 cursor-pointer flex items-center gap-2 border-b border-gray-100"
                         onClick={() => applyMention(suggestion)}
                       >
-                        <div className={`w-2 h-2 rounded-full ${roleColor}`}></div>
-                        <span className="font-medium">{suggestion.value}</span>
-                        <Badge variant="outline" className="ml-auto text-xs bg-gray-100">
+                        <div className={`w-6 h-6 rounded-full ${lightColor} flex items-center justify-center`}>
+                          <div className={`w-3 h-3 rounded-full ${roleColor}`}></div>
+                        </div>
+                        <span className="font-medium text-gray-800">{suggestion.value}</span>
+                        <Badge variant="outline" className="ml-auto text-xs bg-gray-50 border-gray-200 text-gray-600">
                           role
                         </Badge>
                       </div>
                     );
                   } else {
-                    const roleColor = roleColors[suggestion.value.role]?.bg || "bg-blue-500";
+                    const roleColor = roleColors[suggestion.value.role]?.bg || "bg-blue-600";
                     
                     return (
                       <div
                         key={index}
-                        className="p-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                        className="p-2.5 hover:bg-gray-50 cursor-pointer flex items-center gap-3 border-b border-gray-100"
                         onClick={() => applyMention(suggestion)}
                       >
-                        <div className="w-6 h-6 rounded-full overflow-hidden">
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
                           <img 
                             src={suggestion.value.avatar} 
                             alt={suggestion.value.name}
@@ -351,8 +369,8 @@ export function GlobalChat({ currentUser = users[0] }) {
                           />
                         </div>
                         <div>
-                          <div className="font-medium">{suggestion.value.name}</div>
-                          <div className="text-xs flex items-center gap-1">
+                          <div className="font-medium text-gray-800">{suggestion.value.name}</div>
+                          <div className="text-xs flex items-center gap-1 text-gray-600">
                             <div className={`w-1.5 h-1.5 rounded-full ${roleColor}`}></div>
                             {suggestion.value.role}
                           </div>
@@ -366,10 +384,9 @@ export function GlobalChat({ currentUser = users[0] }) {
           </div>
           <Button 
             onClick={sendMessage} 
-            size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>
