@@ -2,7 +2,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Bell, Mail, AlertCircle, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const notifications = [
   {
@@ -37,10 +37,61 @@ const notifications = [
 export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.type === "action").length;
+  const buttonRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current && 
+        buttonRef.current && 
+        !dropdownRef.current.contains(event.target) && 
+        !buttonRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Calculate dropdown position
+  const getDropdownPosition = () => {
+    if (!buttonRef.current) return {};
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    
+    // For mobile screens, position the dropdown centered
+    if (windowWidth < 640) {
+      return {
+        position: 'fixed',
+        top: `${buttonRect.bottom + window.scrollY + 5}px`,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 'calc(100% - 32px)', // Full width minus margin
+        maxWidth: '400px'
+      };
+    }
+    
+    // For larger screens, position it to the right of the button
+    return {
+      position: 'absolute',
+      top: '100%',
+      right: '0',
+      marginTop: '8px',
+      width: '320px'
+    };
+  };
 
   return (
-    <div className="relative">
+    <div className="relative z-30">
       <Button 
+        ref={buttonRef}
         variant="outline" 
         size="sm" 
         className="relative bg-white border border-gray-300 hover:bg-gray-50"
@@ -55,7 +106,11 @@ export function NotificationCenter() {
       </Button>
       
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 z-50">
+        <div 
+          ref={dropdownRef}
+          className="z-50 shadow-lg"
+          style={getDropdownPosition()}
+        >
           <Card className="border border-gray-200 bg-white shadow-lg">
             <CardHeader className="pb-3 bg-white">
               <CardTitle className="text-sm text-gray-900">Notifications</CardTitle>
