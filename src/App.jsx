@@ -10,6 +10,7 @@ import { WeekSelector } from "./components/week-selector";
 import { ActionPanel } from "./components/action-panel";
 import { NotificationCenter } from "./components/notification-center";
 import { GlobalChat } from "./components/global-chat";
+import { ServiceAssignments } from "./components/service-assignments";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -122,7 +123,7 @@ function App() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Workflow Board */}
+          {/* Left Column - Workflow Board */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -133,50 +134,73 @@ function App() {
                 <WorkflowBoard service={currentService} />
               </CardContent>
             </Card>
+            
+            {/* Service Details */}
+            {currentService && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    {currentService.title}
+                  </CardTitle>
+                  <CardDescription>
+                    Current progress: Step {currentService.currentStep} of {currentService.totalSteps}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Overall Progress</span>
+                        <span>{Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%</span>
+                      </div>
+                      <Progress value={(currentService.currentStep / currentService.totalSteps) * 100} />
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-2">Documents</h4>
+                      <div className="space-y-2">
+                        {currentService.documents.map((doc, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4" />
+                              <span className="text-sm">{doc.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={doc.status === "completed" ? "default" : "secondary"}>{doc.status}</Badge>
+                              <span className="text-xs text-gray-500">{doc.lastModified}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Role-based Actions */}
-          <div>
-            <Card className="bg-white border border-gray-200">
+          {/* Right Column - Role Actions and Service Assignments */}
+          <div className="space-y-6">
+            {/* Service Assignments - New Component */}
+            <ServiceAssignments selectedDate={selectedWeek} />
+            
+            {/* Role Actions */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">Role Actions</CardTitle>
-                <CardDescription className="text-gray-600">Actions available for your role</CardDescription>
+                <CardTitle>Role Actions</CardTitle>
+                <CardDescription>Actions available for your role</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs value={selectedRole} onValueChange={setSelectedRole}>
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-                    <TabsTrigger 
-                      value="liturgy" 
-                      className={selectedRole === "liturgy" ? "bg-white text-blue-700 font-medium shadow-sm" : "text-gray-700"}
-                    >
-                      Liturgy
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="pastor" 
-                      className={selectedRole === "pastor" ? "bg-white text-purple-700 font-medium shadow-sm" : "text-gray-700"}
-                    >
-                      Pastor
-                    </TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="liturgy">Liturgy</TabsTrigger>
+                    <TabsTrigger value="pastor">Pastor</TabsTrigger>
                   </TabsList>
-                  <TabsList className="grid w-full grid-cols-3 mt-2 bg-gray-100">
-                    <TabsTrigger 
-                      value="translation" 
-                      className={selectedRole === "translation" ? "bg-white text-green-700 font-medium shadow-sm" : "text-gray-700"}
-                    >
-                      Translation
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="beamer" 
-                      className={selectedRole === "beamer" ? "bg-white text-orange-700 font-medium shadow-sm" : "text-gray-700"}
-                    >
-                      Beamer
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="music" 
-                      className={selectedRole === "music" ? "bg-white text-pink-700 font-medium shadow-sm" : "text-gray-700"}
-                    >
-                      Music
-                    </TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 mt-2">
+                    <TabsTrigger value="translation">Translation</TabsTrigger>
+                    <TabsTrigger value="beamer">Beamer</TabsTrigger>
+                    <TabsTrigger value="music">Music</TabsTrigger>
                   </TabsList>
 
                   {roles.map((role) => (
@@ -190,51 +214,7 @@ function App() {
           </div>
         </div>
 
-        {/* Service Details */}
-        {currentService && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                {currentService.title}
-              </CardTitle>
-              <CardDescription>
-                Current progress: Step {currentService.currentStep} of {currentService.totalSteps}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Overall Progress</span>
-                    <span>{Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%</span>
-                  </div>
-                  <Progress value={(currentService.currentStep / currentService.totalSteps) * 100} />
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Documents</h4>
-                  <div className="space-y-2">
-                    {currentService.documents.map((doc, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          <span className="text-sm">{doc.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={doc.status === "completed" ? "default" : "secondary"}>{doc.status}</Badge>
-                          <span className="text-xs text-gray-500">{doc.lastModified}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Global Chat */}
+        {/* Global Chat - placed at the bottom */}
         <div className="mt-6">
           <GlobalChat />
         </div>

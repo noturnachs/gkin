@@ -58,9 +58,15 @@ export function GlobalChat({ currentUser = users[0] }) {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change, but only within the chat container
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatEndRef.current) {
+      // Use scrollIntoView with a specific container instead of affecting the whole page
+      const chatContainer = chatEndRef.current.parentElement;
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }
   }, [messages]);
 
   // Handle input changes and detect @ mentions
