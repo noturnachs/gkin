@@ -222,41 +222,266 @@ function App() {
             
             {/* Service Details */}
             {currentService && (
-              <Card>
-                <CardHeader className="p-4 md:p-6">
-                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                    <FileText className="w-4 h-4 md:w-5 md:h-5" />
-                    {currentService.title}
-                  </CardTitle>
-                  <CardDescription className="text-xs md:text-sm">
-                    Current progress: Step {currentService.currentStep} of {currentService.totalSteps}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 md:p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs md:text-sm mb-2">
-                        <span>Overall Progress</span>
-                        <span>{Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%</span>
+              <Card className="overflow-hidden border border-gray-200 shadow-sm">
+                <CardHeader className="p-4 md:p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-blue-50 rounded-full border border-blue-100">
+                        <FileText className="w-5 h-5 text-blue-600" />
                       </div>
-                      <Progress value={(currentService.currentStep / currentService.totalSteps) * 100} />
+                      <div>
+                        <CardTitle className="text-lg md:text-xl text-gray-900">
+                          {currentService.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs md:text-sm text-gray-600 mt-1">
+                          Service date: {new Date(currentService.date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge 
+                      className={`px-3 py-1 ${
+                        currentService.status === "in-progress" 
+                          ? "bg-amber-50 text-amber-700 border-amber-200" 
+                          : "bg-green-50 text-green-700 border-green-200"
+                      }`}
+                    >
+                      {currentService.status === "in-progress" ? "In Progress" : "Completed"}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-4 md:p-6">
+                  <div className="space-y-6">
+                    {/* Progress Section */}
+                    <div className="bg-white p-4 rounded-lg border border-gray-100">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-gray-900">Workflow Progress</h4>
+                        <div className="text-lg font-bold text-blue-700">
+                          {Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <Progress 
+                          value={(currentService.currentStep / currentService.totalSteps) * 100} 
+                          className="h-2.5 bg-gray-100"
+                        />
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-xs text-gray-600">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                          <span>Step {currentService.currentStep} of {currentService.totalSteps}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Current phase:</span> {
+                            currentService.currentStep === 1 ? "Concept Creation" :
+                            currentService.currentStep === 2 ? "Pastor Review" :
+                            currentService.currentStep === 3 ? "Document Update" :
+                            currentService.currentStep === 4 ? "Final Version" :
+                            currentService.currentStep === 5 ? "Translation" :
+                            currentService.currentStep === 6 ? "Presentation" : "Complete"
+                          }
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Documents Section */}
                     <div>
-                      <h4 className="font-medium mb-2 text-sm md:text-base">Documents</h4>
-                      <div className="space-y-2">
-                        {currentService.documents.map((doc, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs md:text-sm">
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-3 h-3 md:w-4 md:h-4" />
-                              <span>{doc.name}</span>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-gray-600" />
+                          Documents
+                        </h4>
+                        {currentService.documents.length > 0 && (
+                          <Button variant="outline" size="sm" className="text-xs h-7 px-2 border-gray-200 text-gray-700">
+                            View All
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {currentService.documents.length > 0 ? (
+                        <div className="space-y-2">
+                          {currentService.documents.map((doc, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-sm transition-all"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-md ${
+                                  doc.type === "concept" ? "bg-blue-50" :
+                                  doc.type === "pastor" ? "bg-purple-50" :
+                                  doc.type === "beamer" ? "bg-orange-50" : "bg-gray-50"
+                                }`}>
+                                  <FileText className={`w-4 h-4 ${
+                                    doc.type === "concept" ? "text-blue-600" :
+                                    doc.type === "pastor" ? "text-purple-600" :
+                                    doc.type === "beamer" ? "text-orange-600" : "text-gray-600"
+                                  }`} />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-sm text-gray-900">{doc.name}</div>
+                                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                                    <span>Last modified: {doc.lastModified}</span>
+                                    {doc.link && (
+                                      <a 
+                                        href={doc.link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline flex items-center gap-0.5"
+                                      >
+                                        Open
+                                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                                          <path d="M15 3h6v6"></path>
+                                          <path d="M10 14L21 3"></path>
+                                        </svg>
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge 
+                                  className={`${
+                                    doc.status === "completed" 
+                                      ? "bg-green-50 text-green-700 border-green-200" 
+                                      : doc.status === "in-progress"
+                                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                                      : "bg-gray-100 text-gray-700 border-gray-200"
+                                  }`}
+                                >
+                                  {doc.status}
+                                </Badge>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-gray-700">
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="19" cy="12" r="1"></circle>
+                                    <circle cx="5" cy="12" r="1"></circle>
+                                  </svg>
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={doc.status === "completed" ? "default" : "secondary"}>{doc.status}</Badge>
-                              <span className="text-gray-500 text-xs">{doc.lastModified}</span>
-                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center">
+                          <div className="p-3 bg-gray-100 rounded-full mb-3">
+                            <FileText className="w-6 h-6 text-gray-500" />
                           </div>
-                        ))}
+                          <h4 className="text-gray-700 font-medium mb-1">No documents yet</h4>
+                          <p className="text-gray-500 text-sm mb-3">
+                            Documents will appear here once they are created
+                          </p>
+                          {/* Only show create button for authorized roles */}
+                          {(
+                            (currentService.currentStep === 1 && user.role.id === "liturgy") ||
+                            (currentService.currentStep === 2 && user.role.id === "pastor") ||
+                            (currentService.currentStep === 6 && user.role.id === "beamer")
+                          ) && (
+                            <Button 
+                              size="sm" 
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => handleStartAction(currentService.currentStep)}
+                            >
+                              {user.role.id === "liturgy" ? "Create Concept" : 
+                               user.role.id === "pastor" ? "Upload Review" : 
+                               "Upload Presentation"}
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Document Permissions Info */}
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M12 16v-4"></path>
+                          <path d="M12 8h.01"></path>
+                        </svg>
+                        Document Permissions
+                      </h4>
+                      <p className="text-xs text-blue-700 mb-3">
+                        Only specific roles can create or upload documents at different workflow stages
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
+                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                          <span className="text-xs text-gray-800">
+                            <span className="font-medium">Liturgy Maker:</span> Concept & Final
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
+                          <div className="w-2 h-2 rounded-full bg-purple-600"></div>
+                          <span className="text-xs text-gray-800">
+                            <span className="font-medium">Pastor:</span> Review Documents
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
+                          <div className="w-2 h-2 rounded-full bg-orange-600"></div>
+                          <span className="text-xs text-gray-800">
+                            <span className="font-medium">Beamer:</span> Presentations
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Assigned Team Members */}
+                    <div className="bg-white p-4 rounded-lg border border-gray-100">
+                      <h4 className="font-medium text-gray-900 mb-3">Assigned Team</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {["liturgy", "pastor", "translation", "beamer", "music"].map((role, index) => {
+                          const isActive = currentService.assignedTo === role;
+                          const canCreateDocs = ["liturgy", "pastor", "beamer"].includes(role);
+                          const roleColor = {
+                            liturgy: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+                            pastor: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+                            translation: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+                            beamer: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+                            music: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+                          }[role];
+                          
+                          return (
+                            <div 
+                              key={index} 
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${
+                                isActive 
+                                  ? `${roleColor.bg} ${roleColor.text} ${roleColor.border}` 
+                                  : "bg-gray-50 text-gray-600 border-gray-200"
+                              }`}
+                            >
+                              <div className={`w-1.5 h-1.5 rounded-full ${
+                                isActive ? roleColor.text.replace("text", "bg") : "bg-gray-400"
+                              }`}></div>
+                              <span className="text-xs font-medium capitalize">{role}</span>
+                              {isActive && (
+                                <span className="text-xs">
+                                  (Current)
+                                </span>
+                              )}
+                              {canCreateDocs && (
+                                <svg className="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 5v14"></path>
+                                  <path d="M5 12h14"></path>
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 5v14"></path>
+                          <path d="M5 12h14"></path>
+                        </svg>
+                        <span>Indicates roles that can create/upload documents</span>
                       </div>
                     </div>
                   </div>
