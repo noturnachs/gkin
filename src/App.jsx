@@ -123,9 +123,13 @@ function App() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Workflow Board */}
+          {/* Left Column - Service Assignments and Workflow Board */}
           <div className="lg:col-span-2">
-            <Card>
+            {/* Service Assignments - At top */}
+            <ServiceAssignments selectedDate={selectedWeek} />
+            
+            {/* Workflow Board - Below Service Assignments */}
+            <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Workflow Progress</CardTitle>
                 <CardDescription>Track document progress through all stages</CardDescription>
@@ -180,12 +184,12 @@ function App() {
             )}
           </div>
 
-          {/* Right Column - Role Actions and Service Assignments */}
+          {/* Right Column - Global Chat and Role Actions (switched positions) */}
           <div className="space-y-6">
-            {/* Service Assignments - New Component */}
-            <ServiceAssignments selectedDate={selectedWeek} />
+            {/* Global Chat - Now at the top of right column */}
+            <GlobalChat />
             
-            {/* Role Actions */}
+            {/* Role Actions - with improved button highlighting */}
             <Card>
               <CardHeader>
                 <CardTitle>Role Actions</CardTitle>
@@ -193,14 +197,84 @@ function App() {
               </CardHeader>
               <CardContent>
                 <Tabs value={selectedRole} onValueChange={setSelectedRole}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="liturgy">Liturgy</TabsTrigger>
-                    <TabsTrigger value="pastor">Pastor</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
+                    <TabsTrigger 
+                      value="liturgy" 
+                      className={`transition-all duration-200 ${
+                        selectedRole === "liturgy" 
+                          ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedRole === "liturgy" && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        )}
+                        Liturgy
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="pastor" 
+                      className={`transition-all duration-200 ${
+                        selectedRole === "pastor" 
+                          ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedRole === "pastor" && (
+                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        )}
+                        Pastor
+                      </div>
+                    </TabsTrigger>
                   </TabsList>
-                  <TabsList className="grid w-full grid-cols-3 mt-2">
-                    <TabsTrigger value="translation">Translation</TabsTrigger>
-                    <TabsTrigger value="beamer">Beamer</TabsTrigger>
-                    <TabsTrigger value="music">Music</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 mt-2 bg-gray-100 p-1">
+                    <TabsTrigger 
+                      value="translation" 
+                      className={`transition-all duration-200 ${
+                        selectedRole === "translation" 
+                          ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedRole === "translation" && (
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        )}
+                        Translation
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="beamer" 
+                      className={`transition-all duration-200 ${
+                        selectedRole === "beamer" 
+                          ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedRole === "beamer" && (
+                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                        )}
+                        Beamer
+                      </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="music" 
+                      className={`transition-all duration-200 ${
+                        selectedRole === "music" 
+                          ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500" 
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {selectedRole === "music" && (
+                          <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                        )}
+                        Music
+                      </div>
+                    </TabsTrigger>
                   </TabsList>
 
                   {roles.map((role) => (
@@ -212,11 +286,6 @@ function App() {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Global Chat - placed at the bottom */}
-        <div className="mt-6">
-          <GlobalChat />
         </div>
       </div>
     </div>
