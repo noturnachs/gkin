@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* Dark mode transition */
+:root {
+  --transition-duration: 0.3s;
+}
+
+* {
+  transition: background-color var(--transition-duration) ease,
+              border-color var(--transition-duration) ease,
+              color var(--transition-duration) ease;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1e2c3a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2b3f52;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3a5269;
+}

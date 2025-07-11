@@ -1,6 +1,6 @@
 import TaskCard from './TaskCard';
 
-const TaskBoard = ({ activeRole, activeTab }) => {
+const TaskBoard = ({ activeRole, activeTab, darkMode }) => {
   // Mock data - in a real app this would come from your backend
   const tasks = [
     {
@@ -90,18 +90,35 @@ const TaskBoard = ({ activeRole, activeTab }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
       {Object.entries(columns).map(([status, column]) => (
-        <div key={status} className="bg-gray-50 rounded-lg overflow-hidden shadow-sm border border-gray-200">
-          <div className="bg-white px-4 py-3 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700">{column.title}</h3>
+        <div 
+          key={status} 
+          className={`${
+            darkMode 
+              ? 'bg-gray-800 border-gray-700' 
+              : 'bg-gray-50 border-gray-200'
+          } rounded-lg overflow-hidden shadow-sm border`}
+        >
+          <div className={`${
+            darkMode 
+              ? 'bg-[#1e2c3a] border-gray-700' 
+              : 'bg-white border-gray-200'
+          } px-4 py-3 border-b`}>
+            <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+              {column.title}
+            </h3>
           </div>
           <div className="p-3 max-h-[calc(100vh-240px)] overflow-y-auto">
             {column.tasks.length > 0 ? (
               column.tasks.map(task => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard key={task.id} task={task} darkMode={darkMode} />
               ))
             ) : (
-              <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-400">No tasks</p>
+              <div className={`flex items-center justify-center h-20 border-2 border-dashed ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              } rounded-lg`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  No tasks
+                </p>
               </div>
             )}
           </div>

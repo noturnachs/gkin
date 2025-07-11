@@ -1,4 +1,4 @@
-const RoleFilter = ({ activeRole, setActiveRole }) => {
+const RoleFilter = ({ activeRole, setActiveRole, darkMode }) => {
   const roles = [
     { id: 'all', name: 'All Roles' },
     { id: 'liturgy', name: 'Liturgy Maker' },
@@ -17,8 +17,12 @@ const RoleFilter = ({ activeRole, setActiveRole }) => {
             onClick={() => setActiveRole(role.id)}
             className={`px-3 py-1.5 text-sm font-medium rounded-md ${
               activeRole === role.id
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                ? darkMode
+                  ? 'bg-[#2b3f52] text-blue-300'
+                  : 'bg-indigo-100 text-indigo-700'
+                : darkMode
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
             }`}
           >
             {role.name}
