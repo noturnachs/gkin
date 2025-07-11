@@ -117,53 +117,6 @@ function App() {
           <WeekSelector selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
         </div>
 
-        {/* Overview Cards - Responsive Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Active Services</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold">2</div>
-              <p className="text-xs text-muted-foreground">Services in workflow</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Pending Actions</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">Actions requiring attention</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Team Members</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">Active team roles</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Completion Rate</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-              <div className="text-xl md:text-2xl font-bold">75%</div>
-              <p className="text-xs text-muted-foreground">This week's progress</p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Mobile Chat Toggle */}
         {showChat && (
           <div className="md:hidden mb-4">
@@ -234,7 +187,7 @@ function App() {
             )}
           </div>
 
-          {/* Right Column - Global Chat and Role Actions (switched positions) */}
+          {/* Right Column - Global Chat and Role Actions */}
           <div className="space-y-4 md:space-y-6">
             {/* Global Chat - Now at the top of right column (hidden on mobile) */}
             <div className="hidden md:block">
@@ -344,6 +297,56 @@ function App() {
                     </TabsContent>
                   ))}
                 </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Metrics Cards - Moved to the bottom */}
+        <div className="mt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Service Metrics</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">Active Services</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">2</div>
+                <p className="text-xs text-muted-foreground">Services in workflow</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">Pending Actions</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">3</div>
+                <p className="text-xs text-muted-foreground">Actions requiring attention</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">Team Members</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">5</div>
+                <p className="text-xs text-muted-foreground">Active team roles</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium">Completion Rate</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">75%</div>
+                <p className="text-xs text-muted-foreground">This week's progress</p>
               </CardContent>
             </Card>
           </div>
