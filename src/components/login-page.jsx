@@ -95,7 +95,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md border border-gray-300 shadow-lg">
         <CardHeader className="text-center border-b border-gray-200 bg-white">
-          <CardTitle className="text-2xl font-bold text-gray-900">Liturgy Workflow</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-900">GKIN RWDH Dienst Dashboard</CardTitle>
           <CardDescription className="text-gray-600">Sign in to continue</CardDescription>
         </CardHeader>
         

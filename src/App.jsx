@@ -75,7 +75,21 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
+    // Redirect to login page
+    navigate('/login');
   };
+
+  // If user is null, redirect to login
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  // If no user is logged in, don't render the main app
+  if (!user) {
+    return null; // Return null while redirecting
+  }
 
   // Handle starting an action
   const handleStartAction = (stepId) => {
