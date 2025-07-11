@@ -11,6 +11,7 @@ import { ActionPanel } from "./components/action-panel";
 import { NotificationCenter } from "./components/notification-center";
 import { GlobalChat } from "./components/global-chat";
 import { ServiceAssignments } from "./components/service-assignments";
+import { LoginPage } from "./components/login-page";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -48,22 +49,44 @@ const mockServices = [
 ];
 
 function App() {
+  const [user, setUser] = useState(null);
   const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
   const [showChat, setShowChat] = useState(false);
 
   const currentService = mockServices.find((s) => s.date === selectedWeek);
 
+  // Handle user login
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setSelectedRole(userData.role.id);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setUser(null);
+  };
+
+  // If no user is logged in, show the login page
+  if (!user) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header - Responsive */}
+        {/* Header - Responsive with user info */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Liturgy Workflow</h1>
             <p className="text-gray-600 text-sm md:text-base">Manage document workflow for weekly services</p>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-300 text-sm">
+              <div className={`w-2 h-2 rounded-full ${user.role.color}`}></div>
+              <span className="font-medium text-gray-800">{user.username}</span>
+              <span className="text-gray-500">({user.role.name})</span>
+            </div>
             <NotificationCenter />
             <Button 
               variant="outline" 
@@ -71,6 +94,13 @@ function App() {
             >
               <FileText className="w-4 h-4" />
               <span className="hidden md:inline">Google Drive</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="bg-white text-gray-700 hover:bg-gray-100"
+              onClick={handleLogout}
+            >
+              Logout
             </Button>
             <Button
               variant="outline"
@@ -306,7 +336,11 @@ function App() {
 
                   {roles.map((role) => (
                     <TabsContent key={role.id} value={role.id} className="mt-4">
-                      <ActionPanel role={role} service={currentService} />
+                      <ActionPanel 
+                        role={role} 
+                        service={currentService} 
+                        currentUserRole={user.role.id} 
+                      />
                     </TabsContent>
                   ))}
                 </Tabs>
