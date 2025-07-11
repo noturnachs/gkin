@@ -1,6 +1,8 @@
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { FileText, Upload, MessageSquare, Send, CheckCircle, Edit, Lock } from "lucide-react";
+import { useState } from "react";
+import { DocumentCreator } from "./document-creator";
 
 const roleActions = {
   liturgy: [
@@ -9,42 +11,93 @@ const roleActions = {
       title: "Create Concept Document",
       icon: FileText,
       description: "Start new liturgy concept",
+      step: 1
     },
-    { id: "update-document", title: "Update Document", icon: Edit, description: "Apply pastor feedback" },
-    { id: "finalize", title: "Create Final Version", icon: CheckCircle, description: "Prepare final document" },
-    { id: "send-translation", title: "Send to Translation", icon: Send, description: "Forward to translation team" },
+    { 
+      id: "update-document", 
+      title: "Update Document", 
+      icon: Edit, 
+      description: "Apply pastor feedback",
+      step: 3
+    },
+    { 
+      id: "finalize-document", 
+      title: "Finalize Document", 
+      icon: CheckCircle, 
+      description: "Complete final version",
+      step: 4
+    }
   ],
   pastor: [
-    { id: "review", title: "Review Document", icon: FileText, description: "Review liturgy concept" },
-    { id: "add-comments", title: "Add Comments", icon: MessageSquare, description: "Provide feedback" },
-    { id: "approve", title: "Approve Document", icon: CheckCircle, description: "Approve for next step" },
+    {
+      id: "review-concept",
+      title: "Review Concept",
+      icon: Edit,
+      description: "Review liturgy concept",
+      step: 2
+    }
   ],
   translation: [
-    { id: "translate", title: "Translate Document", icon: FileText, description: "Translate liturgy content" },
     {
-      id: "upload-translation",
-      title: "Upload Translation",
-      icon: Upload,
-      description: "Upload completed translation",
-    },
-    { id: "send-beamer", title: "Send to Beamer Team", icon: Send, description: "Forward to beamer team" },
+      id: "translate-document",
+      title: "Translate Document",
+      icon: MessageSquare,
+      description: "Translate final document",
+      step: 5
+    }
   ],
   beamer: [
-    { id: "prepare-slides", title: "Prepare Slides", icon: FileText, description: "Create presentation slides" },
-    { id: "upload-slides", title: "Upload Slides", icon: Upload, description: "Upload completed slides" },
-    { id: "mark-complete", title: "Mark Complete", icon: CheckCircle, description: "Mark workflow as complete" },
+    {
+      id: "create-slides",
+      title: "Create Slides",
+      icon: Upload,
+      description: "Create presentation slides",
+      step: 6
+    }
   ],
   music: [
-    { id: "review-music", title: "Review Music List", icon: FileText, description: "Review selected music" },
-    { id: "prepare-music", title: "Prepare Music", icon: FileText, description: "Prepare musical arrangements" },
-    { id: "confirm-ready", title: "Confirm Ready", icon: CheckCircle, description: "Confirm music is ready" },
-  ],
+    {
+      id: "prepare-music",
+      title: "Prepare Music",
+      icon: Send,
+      description: "Prepare music sheets",
+      step: 6
+    }
+  ]
 };
 
-export function ActionPanel({ role, service, currentUserRole }) {
+// Using the newer implementation that matches what App.jsx expects
+export function ActionPanel({ role, service, currentUserRole, onStartAction }) {
   const actions = roleActions[role.id] || [];
   const isCurrentUserRole = currentUserRole === role.id;
+  const [activeAction, setActiveAction] = useState(null);
 
+  const handleActionClick = (actionId) => {
+    if (isCurrentUserRole && onStartAction) {
+      if (actionId === "create-concept") {
+        onStartAction(1); // Step ID 1 for Concept Creation
+      }
+      // Handle other actions as needed
+    }
+  };
+
+  const handleActionComplete = (data) => {
+    // Here you would typically send this data to your backend
+    console.log("Action completed:", activeAction, data);
+    
+    // For now, just close the action UI
+    setActiveAction(null);
+    
+    // Show success notification (you could implement this)
+    alert(`Document ${data ? "created successfully!" : "creation cancelled."}`);
+  };
+
+  // If there's an active action, show the appropriate component
+  if (activeAction === "create-concept") {
+    return <DocumentCreator onComplete={handleActionComplete} />;
+  }
+
+  // Otherwise show the regular action panel
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-4">
@@ -63,6 +116,7 @@ export function ActionPanel({ role, service, currentUserRole }) {
           className={`cursor-pointer hover:shadow-md transition-shadow bg-white border ${
             isCurrentUserRole ? 'border-gray-200' : 'border-gray-100'
           }`}
+          onClick={() => handleActionClick(action.id)}
         >
           <CardContent className="p-4">
             <div className="flex items-start gap-3">

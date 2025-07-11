@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Progress } from "./components/ui/progress";
-import { Calendar, FileText, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { Calendar, FileText, Users, CheckCircle, AlertCircle, Edit, Clock } from "lucide-react";
 import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
 import { ActionPanel } from "./components/action-panel";
@@ -12,6 +12,8 @@ import { NotificationCenter } from "./components/notification-center";
 import { GlobalChat } from "./components/global-chat";
 import { ServiceAssignments } from "./components/service-assignments";
 import { LoginPage } from "./components/login-page";
+import { WelcomeBanner } from "./components/welcome-banner";
+import { DocumentCreator } from "./components/document-creator";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -21,20 +23,17 @@ const roles = [
   { id: "music", name: "Music Team", color: "bg-pink-500" },
 ];
 
+// Update the mockServices data
 const mockServices = [
   {
     id: 1,
     date: "2024-01-07",
     title: "Sunday Service - January 7",
     status: "in-progress",
-    currentStep: 3,
+    currentStep: 1, // Set to 1 for "Concept Creation"
     totalSteps: 7,
-    assignedTo: "translation",
-    documents: [
-      { name: "Liturgy Concept", status: "completed", lastModified: "2024-01-05" },
-      { name: "Pastor Review", status: "completed", lastModified: "2024-01-06" },
-      { name: "Final Liturgy", status: "in-progress", lastModified: "2024-01-07" },
-    ],
+    assignedTo: "liturgy",
+    documents: [], // Start with empty documents
   },
   {
     id: 2,
@@ -44,7 +43,7 @@ const mockServices = [
     currentStep: 1,
     totalSteps: 7,
     assignedTo: "liturgy",
-    documents: [{ name: "Liturgy Concept", status: "draft", lastModified: "2024-01-07" }],
+    documents: [],
   },
 ];
 
@@ -53,6 +52,8 @@ function App() {
   const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
   const [showChat, setShowChat] = useState(false);
+  const [showDocumentCreator, setShowDocumentCreator] = useState(false);
+  const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
 
   const currentService = mockServices.find((s) => s.date === selectedWeek);
 
@@ -67,9 +68,59 @@ function App() {
     setUser(null);
   };
 
+  // Handle starting an action
+  const handleStartAction = (stepId) => {
+    if (stepId === 1) {
+      setShowDocumentCreator(true);
+    }
+    // Handle other step actions as needed
+  };
+
+  // Handle document creation completion
+  const handleDocumentComplete = (documentData) => {
+    setShowDocumentCreator(false);
+    
+    if (documentData) {
+      // Update the current service with the new document
+      const updatedServices = mockServices.map(service => {
+        if (service.date === selectedWeek) {
+          return {
+            ...service,
+            documents: [
+              ...service.documents,
+              {
+                id: Date.now(),
+                name: documentData.title,
+                link: documentData.link,
+                status: "in-progress",
+                lastModified: new Date().toLocaleDateString(),
+                type: "concept"
+              }
+            ],
+            currentStep: 2, // Move to next step (Pastor Review)
+            assignedTo: "pastor" // Assign to pastor for review
+          };
+        }
+        return service;
+      });
+      
+      // In a real app, you would update your state through proper state management
+      // For this mockup, we're directly modifying the mockServices array
+      mockServices.splice(0, mockServices.length, ...updatedServices);
+      
+      // Show success message
+      alert("Document created successfully! Pastor has been notified for review.");
+    }
+  };
+
   // If no user is logged in, show the login page
   if (!user) {
     return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // If document creator is active, show that
+  if (showDocumentCreator) {
+    return <DocumentCreator onComplete={handleDocumentComplete} />;
   }
 
   return (
@@ -117,6 +168,16 @@ function App() {
           <WeekSelector selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
         </div>
 
+        {/* Welcome Banner - for first-time users */}
+        {!welcomeBannerDismissed && user.role.id === "liturgy" && currentService?.currentStep === 1 && (
+          <WelcomeBanner 
+            userName={user.username}
+            roleName={user.role.name}
+            onStartAction={handleStartAction}
+            onDismiss={() => setWelcomeBannerDismissed(true)}
+          />
+        )}
+
         {/* Mobile Chat Toggle */}
         {showChat && (
           <div className="md:hidden mb-4">
@@ -138,7 +199,11 @@ function App() {
                 <CardDescription className="text-xs md:text-sm">Track document progress through all stages</CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6">
-                <WorkflowBoard service={currentService} />
+                <WorkflowBoard 
+                  service={currentService} 
+                  currentUserRole={user.role.id}
+                  onStartAction={handleStartAction}
+                />
               </CardContent>
             </Card>
             
@@ -292,7 +357,8 @@ function App() {
                       <ActionPanel 
                         role={role} 
                         service={currentService} 
-                        currentUserRole={user.role.id} 
+                        currentUserRole={user.role.id}
+                        onStartAction={handleStartAction}
                       />
                     </TabsContent>
                   ))}
