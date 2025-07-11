@@ -202,7 +202,7 @@ export function GlobalChat({ currentUser = users[0] }) {
   };
 
   return (
-    <Card className="border border-gray-200 h-[500px] flex flex-col">
+    <Card className="border border-gray-200 h-[400px] md:h-[500px] flex flex-col">
       <CardHeader className="border-b border-gray-200 pb-3">
         <CardTitle className="text-gray-900 flex items-center gap-2">
           <AtSign className="w-4 h-4 text-muted-foreground" />
@@ -214,7 +214,7 @@ export function GlobalChat({ currentUser = users[0] }) {
       </CardHeader>
       
       <CardContent className="flex-1 overflow-y-auto p-0">
-        <div className="p-4 space-y-6">
+        <div className="p-3 md:p-4 space-y-4 md:space-y-6">
           {Object.entries(groupedMessages).map(([date, dateMessages]) => (
             <div key={date} className="space-y-4">
               <div className="flex justify-center">
@@ -226,10 +226,10 @@ export function GlobalChat({ currentUser = users[0] }) {
               {dateMessages.map((message) => (
                 <div 
                   key={message.id} 
-                  className={`flex gap-3 ${message.sender.id === currentUser.id ? 'justify-end' : ''}`}
+                  className={`flex gap-2 md:gap-3 ${message.sender.id === currentUser.id ? 'justify-end' : ''}`}
                 >
                   {message.sender.id !== currentUser.id && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-full overflow-hidden flex-shrink-0">
                       <img 
                         src={message.sender.avatar} 
                         alt={message.sender.name}
@@ -239,11 +239,11 @@ export function GlobalChat({ currentUser = users[0] }) {
                   )}
                   
                   <div 
-                    className={`max-w-[70%] ${
+                    className={`max-w-[75%] md:max-w-[70%] ${
                       message.sender.id === currentUser.id 
                         ? 'bg-primary text-primary-foreground rounded-t-lg rounded-bl-lg' 
                         : 'bg-gray-100 text-gray-800 rounded-t-lg rounded-br-lg'
-                    } p-3`}
+                    } p-2 md:p-3`}
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span className={`text-xs font-medium ${
@@ -302,7 +302,7 @@ export function GlobalChat({ currentUser = users[0] }) {
         </div>
       </CardContent>
       
-      <div className="p-4 border-t border-gray-200 relative">
+      <div className="p-3 md:p-4 border-t border-gray-200 relative">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
@@ -310,8 +310,8 @@ export function GlobalChat({ currentUser = users[0] }) {
               type="text"
               value={newMessage}
               onChange={handleInputChange}
-              placeholder="Type a message... Use @ to mention"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Type a message..."
+              className="w-full px-3 py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
             />
             

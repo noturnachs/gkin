@@ -50,111 +50,131 @@ const mockServices = [
 function App() {
   const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
+  const [showChat, setShowChat] = useState(false);
 
   const currentService = mockServices.find((s) => s.date === selectedWeek);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 p-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        {/* Header - Responsive */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">GKIN RWDH Dienst Dashboard</h1>
-            <p className="text-gray-600">Manage document workflow for weekly services</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Liturgy Workflow</h1>
+            <p className="text-gray-600 text-sm md:text-base">Manage document workflow for weekly services</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <NotificationCenter />
-            <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 bg-white text-sm md:text-base"
+            >
               <FileText className="w-4 h-4" />
-              Google Drive
+              <span className="hidden md:inline">Google Drive</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="md:hidden flex items-center gap-2 bg-white"
+              onClick={() => setShowChat(!showChat)}
+            >
+              <span>{showChat ? "Hide Chat" : "Show Chat"}</span>
             </Button>
           </div>
         </div>
 
-        {/* Week Selector */}
-        <WeekSelector selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+        {/* Week Selector - Responsive */}
+        <div className="overflow-x-auto">
+          <WeekSelector selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+        </div>
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Overview Cards - Responsive Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Services</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Active Services</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">2</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">2</div>
               <p className="text-xs text-muted-foreground">Services in workflow</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Pending Actions</CardTitle>
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">3</div>
               <p className="text-xs text-muted-foreground">Actions requiring attention</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Team Members</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">5</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">5</div>
               <p className="text-xs text-muted-foreground">Active team roles</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Completion Rate</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">75%</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">75%</div>
               <p className="text-xs text-muted-foreground">This week's progress</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Mobile Chat Toggle */}
+        {showChat && (
+          <div className="md:hidden mb-4">
+            <GlobalChat />
+          </div>
+        )}
+
+        {/* Main Content - Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Left Column - Service Assignments and Workflow Board */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Service Assignments - At top */}
             <ServiceAssignments selectedDate={selectedWeek} />
             
             {/* Workflow Board - Below Service Assignments */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Workflow Progress</CardTitle>
-                <CardDescription>Track document progress through all stages</CardDescription>
+            <Card>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-lg md:text-xl">Workflow Progress</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Track document progress through all stages</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 md:p-6">
                 <WorkflowBoard service={currentService} />
               </CardContent>
             </Card>
             
             {/* Service Details */}
             {currentService && (
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
+              <Card>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                    <FileText className="w-4 h-4 md:w-5 md:h-5" />
                     {currentService.title}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs md:text-sm">
                     Current progress: Step {currentService.currentStep} of {currentService.totalSteps}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 md:p-6">
                   <div className="space-y-4">
                     <div>
-                      <div className="flex justify-between text-sm mb-2">
+                      <div className="flex justify-between text-xs md:text-sm mb-2">
                         <span>Overall Progress</span>
                         <span>{Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%</span>
                       </div>
@@ -162,17 +182,17 @@ function App() {
                     </div>
 
                     <div>
-                      <h4 className="font-medium mb-2">Documents</h4>
+                      <h4 className="font-medium mb-2 text-sm md:text-base">Documents</h4>
                       <div className="space-y-2">
                         {currentService.documents.map((doc, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs md:text-sm">
                             <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4" />
-                              <span className="text-sm">{doc.name}</span>
+                              <FileText className="w-3 h-3 md:w-4 md:h-4" />
+                              <span>{doc.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant={doc.status === "completed" ? "default" : "secondary"}>{doc.status}</Badge>
-                              <span className="text-xs text-gray-500">{doc.lastModified}</span>
+                              <span className="text-gray-500 text-xs">{doc.lastModified}</span>
                             </div>
                           </div>
                         ))}
@@ -185,97 +205,104 @@ function App() {
           </div>
 
           {/* Right Column - Global Chat and Role Actions (switched positions) */}
-          <div className="space-y-6">
-            {/* Global Chat - Now at the top of right column */}
-            <GlobalChat />
+          <div className="space-y-4 md:space-y-6">
+            {/* Global Chat - Now at the top of right column (hidden on mobile) */}
+            <div className="hidden md:block">
+              <GlobalChat />
+            </div>
             
-            {/* Role Actions - with improved button highlighting */}
+            {/* Role Actions - Now below the chat */}
             <Card>
-              <CardHeader>
-                <CardTitle>Role Actions</CardTitle>
-                <CardDescription>Actions available for your role</CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-lg md:text-xl">Role Actions</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Actions available for your role</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 md:p-6">
                 <Tabs value={selectedRole} onValueChange={setSelectedRole}>
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
-                    <TabsTrigger 
-                      value="liturgy" 
-                      className={`transition-all duration-200 ${
-                        selectedRole === "liturgy" 
-                          ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500" 
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {selectedRole === "liturgy" && (
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        )}
-                        Liturgy
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="pastor" 
-                      className={`transition-all duration-200 ${
-                        selectedRole === "pastor" 
-                          ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500" 
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {selectedRole === "pastor" && (
-                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                        )}
-                        Pastor
-                      </div>
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsList className="grid w-full grid-cols-3 mt-2 bg-gray-100 p-1">
-                    <TabsTrigger 
-                      value="translation" 
-                      className={`transition-all duration-200 ${
-                        selectedRole === "translation" 
-                          ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500" 
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {selectedRole === "translation" && (
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        )}
-                        Translation
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="beamer" 
-                      className={`transition-all duration-200 ${
-                        selectedRole === "beamer" 
-                          ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500" 
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {selectedRole === "beamer" && (
-                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                        )}
-                        Beamer
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="music" 
-                      className={`transition-all duration-200 ${
-                        selectedRole === "music" 
-                          ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500" 
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {selectedRole === "music" && (
-                          <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                        )}
-                        Music
-                      </div>
-                    </TabsTrigger>
-                  </TabsList>
+                  <div className="overflow-x-auto -mx-3 px-3">
+                    <TabsList className="w-full grid grid-cols-2 bg-gray-100 p-1 min-w-[300px]">
+                      <TabsTrigger 
+                        value="liturgy" 
+                        className={`transition-all duration-200 ${
+                          selectedRole === "liturgy" 
+                            ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedRole === "liturgy" && (
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          )}
+                          Liturgy
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="pastor" 
+                        className={`transition-all duration-200 ${
+                          selectedRole === "pastor" 
+                            ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedRole === "pastor" && (
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                          )}
+                          Pastor
+                        </div>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                  
+                  <div className="overflow-x-auto -mx-3 px-3 mt-2">
+                    <TabsList className="w-full grid grid-cols-3 bg-gray-100 p-1 min-w-[300px]">
+                      <TabsTrigger 
+                        value="translation" 
+                        className={`transition-all duration-200 ${
+                          selectedRole === "translation" 
+                            ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedRole === "translation" && (
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          )}
+                          <span className="text-xs md:text-sm">Translation</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="beamer" 
+                        className={`transition-all duration-200 ${
+                          selectedRole === "beamer" 
+                            ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedRole === "beamer" && (
+                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                          )}
+                          <span className="text-xs md:text-sm">Beamer</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="music" 
+                        className={`transition-all duration-200 ${
+                          selectedRole === "music" 
+                            ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedRole === "music" && (
+                            <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                          )}
+                          <span className="text-xs md:text-sm">Music</span>
+                        </div>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
 
                   {roles.map((role) => (
                     <TabsContent key={role.id} value={role.id} className="mt-4">
