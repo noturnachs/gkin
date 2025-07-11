@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
 import { FileText, Upload, File, X, Check, Edit, Save, ArrowLeft, FileCode, ExternalLink, Loader2 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
-export function DocumentCreator({ onComplete, currentService }) {
+export function DocumentCreator() {
+  const navigate = useNavigate();
   const [documentTitle, setDocumentTitle] = useState("");
   const [isCreatingDoc, setIsCreatingDoc] = useState(false);
   const [googleDocLink, setGoogleDocLink] = useState("");
@@ -29,23 +31,24 @@ export function DocumentCreator({ onComplete, currentService }) {
   };
   
   // Function to handle completion
-  const handleComplete = () => {
+  const handleComplete = (documentData) => {
     setIsSubmitting(true);
     
     // Simulate saving the document link
     setTimeout(() => {
-      onComplete && onComplete({
-        title: documentTitle,
-        link: googleDocLink,
-        date: new Date().toISOString()
-      });
-      setIsSubmitting(false);
+      if (documentData) {
+        // Update the current service with the new document
+        // In a real app, you would use an API call or context
+        // For now, we'll just navigate back
+        alert("Document created successfully! Pastor has been notified for review.");
+      }
+      navigate('/');
     }, 1000);
   };
-
+  
   // Function to handle cancel
   const handleCancel = () => {
-    onComplete && onComplete(null);
+    navigate('/');
   };
 
   return (

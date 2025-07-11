@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { FileText, Users, Music, Video, BookOpen } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const roles = [
   { 
@@ -56,10 +57,19 @@ const roles = [
   }
 ];
 
-export function LoginPage({ onLogin }) {
+export function LoginPage() {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const user = localStorage.getItem('currentUser');
+    if (user) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleLogin = () => {
     if (!selectedRole || !username.trim()) return;
@@ -74,7 +84,9 @@ export function LoginPage({ onLogin }) {
         role: selectedRole  // Store the entire role object
       };
       
-      onLogin(user);
+      // Save user to localStorage
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      navigate('/');
       setIsLoading(false);
     }, 800);
   };

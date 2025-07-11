@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Badge } from "./components/ui/badge";
@@ -48,7 +49,12 @@ const mockServices = [
 ];
 
 function App() {
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState(() => {
+    // Try to get user from localStorage on initial load
+    const savedUser = localStorage.getItem('currentUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
   const [showChat, setShowChat] = useState(false);
@@ -57,21 +63,24 @@ function App() {
 
   const currentService = mockServices.find((s) => s.date === selectedWeek);
 
-  // Handle user login
+  // Handle user login with localStorage
   const handleLogin = (userData) => {
+    // Save user to state and localStorage
     setUser(userData);
+    localStorage.setItem('currentUser', JSON.stringify(userData));
     setSelectedRole(userData.role.id);
   };
 
-  // Handle logout
+  // Handle logout with localStorage
   const handleLogout = () => {
     setUser(null);
+    localStorage.removeItem('currentUser');
   };
 
   // Handle starting an action
   const handleStartAction = (stepId) => {
     if (stepId === 1) {
-      setShowDocumentCreator(true);
+      navigate('/create-document');
     }
     // Handle other step actions as needed
   };
@@ -112,16 +121,6 @@ function App() {
       alert("Document created successfully! Pastor has been notified for review.");
     }
   };
-
-  // If no user is logged in, show the login page
-  if (!user) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  // If document creator is active, show that
-  if (showDocumentCreator) {
-    return <DocumentCreator onComplete={handleDocumentComplete} />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
