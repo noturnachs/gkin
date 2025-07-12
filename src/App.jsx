@@ -1,11 +1,25 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Progress } from "./components/ui/progress";
-import { Calendar, FileText, Users, CheckCircle, AlertCircle, Edit, Clock } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  Users,
+  CheckCircle,
+  AlertCircle,
+  Edit,
+  Clock,
+} from "lucide-react";
 import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
 import { ActionPanel } from "./components/action-panel";
@@ -52,7 +66,7 @@ function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     // Try to get user from localStorage on initial load
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem("currentUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [selectedRole, setSelectedRole] = useState("liturgy");
@@ -60,6 +74,7 @@ function App() {
   const [showChat, setShowChat] = useState(false);
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const currentService = mockServices.find((s) => s.date === selectedWeek);
 
@@ -67,22 +82,22 @@ function App() {
   const handleLogin = (userData) => {
     // Save user to state and localStorage
     setUser(userData);
-    localStorage.setItem('currentUser', JSON.stringify(userData));
+    localStorage.setItem("currentUser", JSON.stringify(userData));
     setSelectedRole(userData.role.id);
   };
 
   // Handle logout with localStorage
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem("currentUser");
     // Redirect to login page
-    navigate('/login');
+    navigate("/login");
   };
 
   // If user is null, redirect to login
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [user, navigate]);
 
@@ -94,7 +109,7 @@ function App() {
   // Handle starting an action
   const handleStartAction = (stepId) => {
     if (stepId === 1) {
-      navigate('/create-document');
+      navigate("/create-document");
     }
     // Handle other step actions as needed
   };
@@ -102,10 +117,10 @@ function App() {
   // Handle document creation completion
   const handleDocumentComplete = (documentData) => {
     setShowDocumentCreator(false);
-    
+
     if (documentData) {
       // Update the current service with the new document
-      const updatedServices = mockServices.map(service => {
+      const updatedServices = mockServices.map((service) => {
         if (service.date === selectedWeek) {
           return {
             ...service,
@@ -117,22 +132,24 @@ function App() {
                 link: documentData.link,
                 status: "in-progress",
                 lastModified: new Date().toLocaleDateString(),
-                type: "concept"
-              }
+                type: "concept",
+              },
             ],
             currentStep: 2, // Move to next step (Pastor Review)
-            assignedTo: "pastor" // Assign to pastor for review
+            assignedTo: "pastor", // Assign to pastor for review
           };
         }
         return service;
       });
-      
+
       // In a real app, you would update your state through proper state management
       // For this mockup, we're directly modifying the mockServices array
       mockServices.splice(0, mockServices.length, ...updatedServices);
-      
+
       // Show success message
-      alert("Document created successfully! Pastor has been notified for review.");
+      alert(
+        "Document created successfully! Pastor has been notified for review."
+      );
     }
   };
 
@@ -142,54 +159,181 @@ function App() {
         {/* Header - Responsive with user info */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Liturgy Workflow</h1>
-            <p className="text-gray-600 text-sm md:text-base">Manage document workflow for weekly services</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Liturgy Workflow
+            </h1>
+            <p className="text-gray-600 text-sm md:text-base">
+              Manage document workflow for weekly services
+            </p>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-300 text-sm">
+
+          {/* Mobile view: User info and dropdown menu */}
+          <div className="md:hidden">
+            {/* User info button that toggles menu */}
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 bg-white w-full justify-between"
+              onClick={() =>
+                setShowMobileMenu && setShowMobileMenu((prev) => !prev)
+              }
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${user.role.color}`}
+                ></div>
+                <span className="font-medium text-gray-800">
+                  {user.username}
+                </span>
+                <span className="text-gray-500 text-xs">
+                  ({user.role.name})
+                </span>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path
+                  d={showMobileMenu ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"}
+                ></path>
+              </svg>
+            </Button>
+
+            {/* Dropdown menu */}
+            {showMobileMenu && (
+              <div className="flex flex-col gap-3 mt-2 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                {/* Actions section */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Resources
+                  </h4>
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-start gap-2 bg-white w-full"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Google Drive</span>
+                  </Button>
+                </div>
+
+                {/* Notifications section */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Notifications
+                  </h4>
+                  <div className="flex justify-center">
+                    <NotificationCenter />
+                  </div>
+                </div>
+
+                {/* Account section */}
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Account
+                  </h4>
+                  <Button
+                    variant="outline"
+                    className="w-full bg-white text-gray-700 hover:bg-gray-100 justify-start"
+                    onClick={handleLogout}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop view: Reorganized horizontal layout */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Notifications first */}
+            <div className="order-1">
+              <NotificationCenter />
+            </div>
+
+            {/* Google Drive button */}
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 bg-white order-2"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Google Drive</span>
+            </Button>
+
+            {/* User info pill - moved to the right */}
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-300 order-3">
               <div className={`w-2 h-2 rounded-full ${user.role.color}`}></div>
               <span className="font-medium text-gray-800">{user.username}</span>
               <span className="text-gray-500">({user.role.name})</span>
             </div>
-            <NotificationCenter />
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 bg-white text-sm md:text-base"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden md:inline">Google Drive</span>
-            </Button>
+
+            {/* Logout button - last */}
             <Button
               variant="outline"
-              className="bg-white text-gray-700 hover:bg-gray-100"
+              className="bg-white text-gray-700 hover:bg-gray-100 order-4"
               onClick={handleLogout}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
               Logout
-            </Button>
-            <Button
-              variant="outline"
-              className="md:hidden flex items-center gap-2 bg-white"
-              onClick={() => setShowChat(!showChat)}
-            >
-              <span>{showChat ? "Hide Chat" : "Show Chat"}</span>
             </Button>
           </div>
         </div>
 
         {/* Week Selector - Responsive */}
         <div className="overflow-x-auto">
-          <WeekSelector selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+          <WeekSelector
+            selectedWeek={selectedWeek}
+            onWeekChange={setSelectedWeek}
+          />
         </div>
 
         {/* Welcome Banner - for first-time users */}
-        {!welcomeBannerDismissed && user.role.id === "liturgy" && currentService?.currentStep === 1 && (
-          <WelcomeBanner 
-            userName={user.username}
-            roleName={user.role.name}
-            onStartAction={handleStartAction}
-            onDismiss={() => setWelcomeBannerDismissed(true)}
-          />
-        )}
+        {!welcomeBannerDismissed &&
+          user.role.id === "liturgy" &&
+          currentService?.currentStep === 1 && (
+            <WelcomeBanner
+              userName={user.username}
+              roleName={user.role.name}
+              onStartAction={handleStartAction}
+              onDismiss={() => setWelcomeBannerDismissed(true)}
+            />
+          )}
 
         {/* Mobile Chat Toggle */}
         {showChat && (
@@ -204,22 +348,26 @@ function App() {
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Service Assignments - At top */}
             <ServiceAssignments selectedDate={selectedWeek} />
-            
+
             {/* Workflow Board - Below Service Assignments */}
             <Card>
               <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-lg md:text-xl">Workflow Progress</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Track document progress through all stages</CardDescription>
+                <CardTitle className="text-lg md:text-xl">
+                  Workflow Progress
+                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Track document progress through all stages
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6">
-                <WorkflowBoard 
-                  service={currentService} 
+                <WorkflowBoard
+                  service={currentService}
                   currentUserRole={user.role.id}
                   onStartAction={handleStartAction}
                 />
               </CardContent>
             </Card>
-            
+
             {/* Service Details */}
             {currentService && (
               <Card className="overflow-hidden border border-gray-200 shadow-sm">
@@ -234,59 +382,85 @@ function App() {
                           {currentService.title}
                         </CardTitle>
                         <CardDescription className="text-xs md:text-sm text-gray-600 mt-1">
-                          Service date: {new Date(currentService.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          Service date:{" "}
+                          {new Date(currentService.date).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge 
+                    <Badge
                       className={`px-3 py-1 ${
-                        currentService.status === "in-progress" 
-                          ? "bg-amber-50 text-amber-700 border-amber-200" 
+                        currentService.status === "in-progress"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
                           : "bg-green-50 text-green-700 border-green-200"
                       }`}
                     >
-                      {currentService.status === "in-progress" ? "In Progress" : "Completed"}
+                      {currentService.status === "in-progress"
+                        ? "In Progress"
+                        : "Completed"}
                     </Badge>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="p-4 md:p-6">
                   <div className="space-y-6">
                     {/* Progress Section */}
                     <div className="bg-white p-4 rounded-lg border border-gray-100">
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-900">Workflow Progress</h4>
+                        <h4 className="font-medium text-gray-900">
+                          Workflow Progress
+                        </h4>
                         <div className="text-lg font-bold text-blue-700">
-                          {Math.round((currentService.currentStep / currentService.totalSteps) * 100)}%
+                          {Math.round(
+                            (currentService.currentStep /
+                              currentService.totalSteps) *
+                              100
+                          )}
+                          %
                         </div>
                       </div>
-                      
+
                       <div className="mb-4">
-                        <Progress 
-                          value={(currentService.currentStep / currentService.totalSteps) * 100} 
+                        <Progress
+                          value={
+                            (currentService.currentStep /
+                              currentService.totalSteps) *
+                            100
+                          }
                           className="h-2.5 bg-gray-100"
                         />
                       </div>
-                      
+
                       <div className="flex justify-between items-center text-xs text-gray-600">
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                          <span>Step {currentService.currentStep} of {currentService.totalSteps}</span>
+                          <span>
+                            Step {currentService.currentStep} of{" "}
+                            {currentService.totalSteps}
+                          </span>
                         </div>
                         <div>
-                          <span className="font-medium">Current phase:</span> {
-                            currentService.currentStep === 1 ? "Concept Creation" :
-                            currentService.currentStep === 2 ? "Pastor Review" :
-                            currentService.currentStep === 3 ? "Document Update" :
-                            currentService.currentStep === 4 ? "Final Version" :
-                            currentService.currentStep === 5 ? "Translation" :
-                            currentService.currentStep === 6 ? "Presentation" : "Complete"
-                          }
+                          <span className="font-medium">Current phase:</span>{" "}
+                          {currentService.currentStep === 1
+                            ? "Concept Creation"
+                            : currentService.currentStep === 2
+                            ? "Pastor Review"
+                            : currentService.currentStep === 3
+                            ? "Document Update"
+                            : currentService.currentStep === 4
+                            ? "Final Version"
+                            : currentService.currentStep === 5
+                            ? "Translation"
+                            : currentService.currentStep === 6
+                            ? "Presentation"
+                            : "Complete"}
                         </div>
                       </div>
                     </div>
@@ -299,44 +473,70 @@ function App() {
                           Documents
                         </h4>
                         {currentService.documents.length > 0 && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 px-2 border-gray-200 text-gray-700">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7 px-2 border-gray-200 text-gray-700"
+                          >
                             View All
                           </Button>
                         )}
                       </div>
-                      
+
                       {currentService.documents.length > 0 ? (
                         <div className="space-y-2">
                           {currentService.documents.map((doc, index) => (
-                            <div 
-                              key={index} 
+                            <div
+                              key={index}
                               className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-sm transition-all"
                             >
                               <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-md ${
-                                  doc.type === "concept" ? "bg-blue-50" :
-                                  doc.type === "pastor" ? "bg-purple-50" :
-                                  doc.type === "beamer" ? "bg-orange-50" : "bg-gray-50"
-                                }`}>
-                                  <FileText className={`w-4 h-4 ${
-                                    doc.type === "concept" ? "text-blue-600" :
-                                    doc.type === "pastor" ? "text-purple-600" :
-                                    doc.type === "beamer" ? "text-orange-600" : "text-gray-600"
-                                  }`} />
+                                <div
+                                  className={`p-2 rounded-md ${
+                                    doc.type === "concept"
+                                      ? "bg-blue-50"
+                                      : doc.type === "pastor"
+                                      ? "bg-purple-50"
+                                      : doc.type === "beamer"
+                                      ? "bg-orange-50"
+                                      : "bg-gray-50"
+                                  }`}
+                                >
+                                  <FileText
+                                    className={`w-4 h-4 ${
+                                      doc.type === "concept"
+                                        ? "text-blue-600"
+                                        : doc.type === "pastor"
+                                        ? "text-purple-600"
+                                        : doc.type === "beamer"
+                                        ? "text-orange-600"
+                                        : "text-gray-600"
+                                    }`}
+                                  />
                                 </div>
                                 <div>
-                                  <div className="font-medium text-sm text-gray-900">{doc.name}</div>
+                                  <div className="font-medium text-sm text-gray-900">
+                                    {doc.name}
+                                  </div>
                                   <div className="text-xs text-gray-500 flex items-center gap-2">
-                                    <span>Last modified: {doc.lastModified}</span>
+                                    <span>
+                                      Last modified: {doc.lastModified}
+                                    </span>
                                     {doc.link && (
-                                      <a 
-                                        href={doc.link} 
-                                        target="_blank" 
+                                      <a
+                                        href={doc.link}
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline flex items-center gap-0.5"
                                       >
                                         Open
-                                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <svg
+                                          className="w-3 h-3"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                        >
                                           <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
                                           <path d="M15 3h6v6"></path>
                                           <path d="M10 14L21 3"></path>
@@ -347,10 +547,10 @@ function App() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                <Badge 
+                                <Badge
                                   className={`${
-                                    doc.status === "completed" 
-                                      ? "bg-green-50 text-green-700 border-green-200" 
+                                    doc.status === "completed"
+                                      ? "bg-green-50 text-green-700 border-green-200"
                                       : doc.status === "in-progress"
                                       ? "bg-amber-50 text-amber-700 border-amber-200"
                                       : "bg-gray-100 text-gray-700 border-gray-200"
@@ -358,8 +558,18 @@ function App() {
                                 >
                                   {doc.status}
                                 </Badge>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-gray-700">
-                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-gray-700"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  >
                                     <circle cx="12" cy="12" r="1"></circle>
                                     <circle cx="19" cy="12" r="1"></circle>
                                     <circle cx="5" cy="12" r="1"></circle>
@@ -374,34 +584,47 @@ function App() {
                           <div className="p-3 bg-gray-100 rounded-full mb-3">
                             <FileText className="w-6 h-6 text-gray-500" />
                           </div>
-                          <h4 className="text-gray-700 font-medium mb-1">No documents yet</h4>
+                          <h4 className="text-gray-700 font-medium mb-1">
+                            No documents yet
+                          </h4>
                           <p className="text-gray-500 text-sm mb-3">
                             Documents will appear here once they are created
                           </p>
                           {/* Only show create button for authorized roles */}
-                          {(
-                            (currentService.currentStep === 1 && user.role.id === "liturgy") ||
-                            (currentService.currentStep === 2 && user.role.id === "pastor") ||
-                            (currentService.currentStep === 6 && user.role.id === "beamer")
-                          ) && (
-                            <Button 
-                              size="sm" 
+                          {((currentService.currentStep === 1 &&
+                            user.role.id === "liturgy") ||
+                            (currentService.currentStep === 2 &&
+                              user.role.id === "pastor") ||
+                            (currentService.currentStep === 6 &&
+                              user.role.id === "beamer")) && (
+                            <Button
+                              size="sm"
                               className="bg-blue-600 hover:bg-blue-700 text-white"
-                              onClick={() => handleStartAction(currentService.currentStep)}
+                              onClick={() =>
+                                handleStartAction(currentService.currentStep)
+                              }
                             >
-                              {user.role.id === "liturgy" ? "Create Concept" : 
-                               user.role.id === "pastor" ? "Upload Review" : 
-                               "Upload Presentation"}
+                              {user.role.id === "liturgy"
+                                ? "Create Concept"
+                                : user.role.id === "pastor"
+                                ? "Upload Review"
+                                : "Upload Presentation"}
                             </Button>
                           )}
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Document Permissions Info */}
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                       <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <circle cx="12" cy="12" r="10"></circle>
                           <path d="M12 16v-4"></path>
                           <path d="M12 8h.01"></path>
@@ -409,65 +632,111 @@ function App() {
                         Document Permissions
                       </h4>
                       <p className="text-xs text-blue-700 mb-3">
-                        Only specific roles can create or upload documents at different workflow stages
+                        Only specific roles can create or upload documents at
+                        different workflow stages
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
                           <div className="w-2 h-2 rounded-full bg-blue-600"></div>
                           <span className="text-xs text-gray-800">
-                            <span className="font-medium">Liturgy Maker:</span> Concept & Final
+                            <span className="font-medium">Liturgy Maker:</span>{" "}
+                            Concept & Final
                           </span>
                         </div>
                         <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
                           <div className="w-2 h-2 rounded-full bg-purple-600"></div>
                           <span className="text-xs text-gray-800">
-                            <span className="font-medium">Pastor:</span> Review Documents
+                            <span className="font-medium">Pastor:</span> Review
+                            Documents
                           </span>
                         </div>
                         <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
                           <div className="w-2 h-2 rounded-full bg-orange-600"></div>
                           <span className="text-xs text-gray-800">
-                            <span className="font-medium">Beamer:</span> Presentations
+                            <span className="font-medium">Beamer:</span>{" "}
+                            Presentations
                           </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Assigned Team Members */}
                     <div className="bg-white p-4 rounded-lg border border-gray-100">
-                      <h4 className="font-medium text-gray-900 mb-3">Assigned Team</h4>
+                      <h4 className="font-medium text-gray-900 mb-3">
+                        Assigned Team
+                      </h4>
                       <div className="flex flex-wrap gap-2">
-                        {["liturgy", "pastor", "translation", "beamer", "music"].map((role, index) => {
+                        {[
+                          "liturgy",
+                          "pastor",
+                          "translation",
+                          "beamer",
+                          "music",
+                        ].map((role, index) => {
                           const isActive = currentService.assignedTo === role;
-                          const canCreateDocs = ["liturgy", "pastor", "beamer"].includes(role);
+                          const canCreateDocs = [
+                            "liturgy",
+                            "pastor",
+                            "beamer",
+                          ].includes(role);
                           const roleColor = {
-                            liturgy: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-                            pastor: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
-                            translation: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
-                            beamer: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-                            music: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+                            liturgy: {
+                              bg: "bg-blue-50",
+                              text: "text-blue-700",
+                              border: "border-blue-200",
+                            },
+                            pastor: {
+                              bg: "bg-purple-50",
+                              text: "text-purple-700",
+                              border: "border-purple-200",
+                            },
+                            translation: {
+                              bg: "bg-green-50",
+                              text: "text-green-700",
+                              border: "border-green-200",
+                            },
+                            beamer: {
+                              bg: "bg-orange-50",
+                              text: "text-orange-700",
+                              border: "border-orange-200",
+                            },
+                            music: {
+                              bg: "bg-pink-50",
+                              text: "text-pink-700",
+                              border: "border-pink-200",
+                            },
                           }[role];
-                          
+
                           return (
-                            <div 
-                              key={index} 
+                            <div
+                              key={index}
                               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${
-                                isActive 
-                                  ? `${roleColor.bg} ${roleColor.text} ${roleColor.border}` 
+                                isActive
+                                  ? `${roleColor.bg} ${roleColor.text} ${roleColor.border}`
                                   : "bg-gray-50 text-gray-600 border-gray-200"
                               }`}
                             >
-                              <div className={`w-1.5 h-1.5 rounded-full ${
-                                isActive ? roleColor.text.replace("text", "bg") : "bg-gray-400"
-                              }`}></div>
-                              <span className="text-xs font-medium capitalize">{role}</span>
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  isActive
+                                    ? roleColor.text.replace("text", "bg")
+                                    : "bg-gray-400"
+                                }`}
+                              ></div>
+                              <span className="text-xs font-medium capitalize">
+                                {role}
+                              </span>
                               {isActive && (
-                                <span className="text-xs">
-                                  (Current)
-                                </span>
+                                <span className="text-xs">(Current)</span>
                               )}
                               {canCreateDocs && (
-                                <svg className="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg
+                                  className="w-3 h-3 text-gray-500"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
                                   <path d="M12 5v14"></path>
                                   <path d="M5 12h14"></path>
                                 </svg>
@@ -477,11 +746,19 @@ function App() {
                         })}
                       </div>
                       <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M12 5v14"></path>
                           <path d="M5 12h14"></path>
                         </svg>
-                        <span>Indicates roles that can create/upload documents</span>
+                        <span>
+                          Indicates roles that can create/upload documents
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -496,22 +773,26 @@ function App() {
             <div className="hidden md:block">
               <GlobalChat />
             </div>
-            
+
             {/* Role Actions - Now below the chat */}
             <Card>
               <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-lg md:text-xl">Role Actions</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Actions available for your role</CardDescription>
+                <CardTitle className="text-lg md:text-xl">
+                  Role Actions
+                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Actions available for your role
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6">
                 <Tabs value={selectedRole} onValueChange={setSelectedRole}>
                   <div className="overflow-x-auto -mx-3 px-3">
                     <TabsList className="w-full grid grid-cols-2 bg-gray-100 p-1 min-w-[300px]">
-                      <TabsTrigger 
-                        value="liturgy" 
+                      <TabsTrigger
+                        value="liturgy"
                         className={`transition-all duration-200 ${
-                          selectedRole === "liturgy" 
-                            ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500" 
+                          selectedRole === "liturgy"
+                            ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -522,11 +803,11 @@ function App() {
                           Liturgy
                         </div>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="pastor" 
+                      <TabsTrigger
+                        value="pastor"
                         className={`transition-all duration-200 ${
-                          selectedRole === "pastor" 
-                            ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500" 
+                          selectedRole === "pastor"
+                            ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -539,14 +820,14 @@ function App() {
                       </TabsTrigger>
                     </TabsList>
                   </div>
-                  
+
                   <div className="overflow-x-auto -mx-3 px-3 mt-2">
                     <TabsList className="w-full grid grid-cols-3 bg-gray-100 p-1 min-w-[300px]">
-                      <TabsTrigger 
-                        value="translation" 
+                      <TabsTrigger
+                        value="translation"
                         className={`transition-all duration-200 ${
-                          selectedRole === "translation" 
-                            ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500" 
+                          selectedRole === "translation"
+                            ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -554,14 +835,16 @@ function App() {
                           {selectedRole === "translation" && (
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                           )}
-                          <span className="text-xs md:text-sm">Translation</span>
+                          <span className="text-xs md:text-sm">
+                            Translation
+                          </span>
                         </div>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="beamer" 
+                      <TabsTrigger
+                        value="beamer"
                         className={`transition-all duration-200 ${
-                          selectedRole === "beamer" 
-                            ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500" 
+                          selectedRole === "beamer"
+                            ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -572,11 +855,11 @@ function App() {
                           <span className="text-xs md:text-sm">Beamer</span>
                         </div>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="music" 
+                      <TabsTrigger
+                        value="music"
                         className={`transition-all duration-200 ${
-                          selectedRole === "music" 
-                            ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500" 
+                          selectedRole === "music"
+                            ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500"
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -592,9 +875,9 @@ function App() {
 
                   {roles.map((role) => (
                     <TabsContent key={role.id} value={role.id} className="mt-4">
-                      <ActionPanel 
-                        role={role} 
-                        service={currentService} 
+                      <ActionPanel
+                        role={role}
+                        service={currentService}
                         currentUserRole={user.role.id}
                         onStartAction={handleStartAction}
                       />
@@ -608,49 +891,67 @@ function App() {
 
         {/* Metrics Cards - Moved to the bottom */}
         <div className="mt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">Service Metrics</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-3">
+            Service Metrics
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-                <CardTitle className="text-xs md:text-sm font-medium">Active Services</CardTitle>
+                <CardTitle className="text-xs md:text-sm font-medium">
+                  Active Services
+                </CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                 <div className="text-xl md:text-2xl font-bold">2</div>
-                <p className="text-xs text-muted-foreground">Services in workflow</p>
+                <p className="text-xs text-muted-foreground">
+                  Services in workflow
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-                <CardTitle className="text-xs md:text-sm font-medium">Pending Actions</CardTitle>
+                <CardTitle className="text-xs md:text-sm font-medium">
+                  Pending Actions
+                </CardTitle>
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                 <div className="text-xl md:text-2xl font-bold">3</div>
-                <p className="text-xs text-muted-foreground">Actions requiring attention</p>
+                <p className="text-xs text-muted-foreground">
+                  Actions requiring attention
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-                <CardTitle className="text-xs md:text-sm font-medium">Team Members</CardTitle>
+                <CardTitle className="text-xs md:text-sm font-medium">
+                  Team Members
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                 <div className="text-xl md:text-2xl font-bold">5</div>
-                <p className="text-xs text-muted-foreground">Active team roles</p>
+                <p className="text-xs text-muted-foreground">
+                  Active team roles
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:pb-2">
-                <CardTitle className="text-xs md:text-sm font-medium">Completion Rate</CardTitle>
+                <CardTitle className="text-xs md:text-sm font-medium">
+                  Completion Rate
+                </CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                 <div className="text-xl md:text-2xl font-bold">75%</div>
-                <p className="text-xs text-muted-foreground">This week's progress</p>
+                <p className="text-xs text-muted-foreground">
+                  This week's progress
+                </p>
               </CardContent>
             </Card>
           </div>
