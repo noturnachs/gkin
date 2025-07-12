@@ -1,10 +1,21 @@
 import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
-const Card = forwardRef(({ className, ...props }, ref) => (
+const Card = forwardRef(({ className, variant = "default", ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
+    className={cn(
+      "rounded-lg border-2 bg-card text-card-foreground shadow-md transition-all duration-200",
+      {
+        "border-gray-200 hover:border-gray-300 hover:shadow-lg":
+          variant === "default",
+        "border-blue-200 hover:border-blue-300": variant === "primary",
+        "border-green-200 hover:border-green-300": variant === "success",
+        "border-red-200 hover:border-red-300": variant === "error",
+        "border-yellow-200 hover:border-yellow-300": variant === "warning",
+      },
+      className
+    )}
     {...props}
   />
 ));
@@ -22,7 +33,10 @@ CardHeader.displayName = "CardHeader";
 const CardTitle = forwardRef(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className
+    )}
     {...props}
   />
 ));
@@ -51,4 +65,11 @@ const CardFooter = forwardRef(({ className, ...props }, ref) => (
 ));
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }; 
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+};
