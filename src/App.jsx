@@ -30,6 +30,7 @@ import { LoginPage } from "./components/login-page";
 import { WelcomeBanner } from "./components/welcome-banner";
 import { DocumentCreator } from "./components/document-creator";
 import { Footer } from "./components/ui/footer";
+import { Header } from "./components/header";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -157,166 +158,16 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header - Responsive with user info */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
-          <div>
-            <h1 className="text-lg md:text-2xl lg:text-3xl font-bold text-gray-900">
-              Liturgy Workflow
-            </h1>
-            <p className="text-xs md:text-sm lg:text-base text-gray-600">
-              Manage document workflow for weekly services
-            </p>
-          </div>
-
-          {/* Mobile view: User info and dropdown menu */}
-          <div className="md:hidden">
-            {/* User info button that toggles menu */}
-            <Button
-              variant="outline"
-              className="flex items-center gap-1.5 bg-white w-full justify-between py-1 px-2.5 h-8 min-h-0"
-              onClick={() =>
-                setShowMobileMenu && setShowMobileMenu((prev) => !prev)
-              }
-            >
-              <div className="flex items-center gap-1.5">
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${user.role.color}`}
-                ></div>
-                <span className="font-medium text-xs text-gray-800">
-                  {user.username}
-                </span>
-                <span className="text-[10px] text-gray-500">
-                  ({user.role.name})
-                </span>
-              </div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path
-                  d={showMobileMenu ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"}
-                ></path>
-              </svg>
-            </Button>
-
-            {/* Dropdown menu */}
-            {showMobileMenu && (
-              <div className="flex flex-col gap-2 mt-1.5 bg-white p-2.5 rounded-md border border-gray-200 shadow-sm">
-                {/* Resources section */}
-                <div className="space-y-1">
-                  <h4 className="text-[10px] uppercase font-semibold text-gray-500 tracking-wider px-0.5">
-                    Resources
-                  </h4>
-                  <Button
-                    variant="outline"
-                    className="flex items-center justify-start gap-1.5 bg-white w-full h-7 min-h-0 text-xs px-2"
-                  >
-                    <FileText className="w-3 h-3" />
-                    <span>Google Drive</span>
-                  </Button>
-                </div>
-
-                {/* Notifications section */}
-                <div className="space-y-1">
-                  <h4 className="text-[10px] uppercase font-semibold text-gray-500 tracking-wider px-0.5">
-                    Notifications
-                  </h4>
-                  <div className="flex justify-center scale-90 origin-left">
-                    <NotificationCenter />
-                  </div>
-                </div>
-
-                {/* Account section */}
-                <div className="space-y-1 pt-1.5 border-t border-gray-100">
-                  <h4 className="text-[10px] uppercase font-semibold text-gray-500 tracking-wider px-0.5">
-                    Account
-                  </h4>
-                  <Button
-                    variant="outline"
-                    className="w-full bg-white text-gray-700 hover:bg-gray-100 justify-start h-7 min-h-0 text-xs px-2"
-                    onClick={handleLogout}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1.5"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16 17 21 12 16 7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Logout
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop view: Reorganized horizontal layout */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-4">
-            {/* Notifications first */}
-            <div className="order-1">
-              <NotificationCenter />
-            </div>
-
-            {/* Google Drive button */}
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 bg-white order-2 text-sm lg:text-base h-9 lg:h-10"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Google Drive</span>
-            </Button>
-
-            {/* User info pill - moved to the right */}
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-300 order-3">
-              <div className={`w-2 h-2 rounded-full ${user.role.color}`}></div>
-              <span className="font-medium text-sm text-gray-800">
-                {user.username}
-              </span>
-              <span className="text-xs text-gray-500">({user.role.name})</span>
-            </div>
-
-            {/* Logout button - last */}
-            <Button
-              variant="outline"
-              className="bg-white text-gray-700 hover:bg-gray-100 order-4 text-sm lg:text-base h-9 lg:h-10"
-              onClick={handleLogout}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-2"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              <span>Logout</span>
-            </Button>
-          </div>
-        </div>
+        <Header
+          title="Liturgy Workflow"
+          subtitle="Manage document workflow for weekly services"
+          user={user}
+          onLogout={handleLogout}
+          showGoogleDrive={true}
+          showNotifications={true}
+          showUserInfo={true}
+          showLogout={true}
+        />
 
         {/* Week Selector - Responsive */}
         <div className="overflow-x-auto">
