@@ -2,19 +2,83 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { ChevronLeft, ChevronRight, Calendar, ChevronDown } from "lucide-react";
-
-const weeks = [
-  { date: "2024-01-07", title: "January 7, 2024", status: "active" },
-  { date: "2024-01-14", title: "January 14, 2024", status: "upcoming" },
-  { date: "2024-01-21", title: "January 21, 2024", status: "upcoming" },
-  { date: "2024-01-28", title: "January 28, 2024", status: "upcoming" },
-];
+import { getUpcomingSundays } from "../lib/date-utils";
 
 export function WeekSelector({ selectedWeek, onWeekChange }) {
-  const currentIndex = weeks.findIndex((w) => w.date === selectedWeek);
+  const [weeks, setWeeks] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
+
+  // Use the shared utility to get weeks
+  useEffect(() => {
+    // Force refresh of sundays to ensure we get the corrected calculation
+    const sundays = getUpcomingSundays();
+
+    // Verify all dates are Sundays
+    const verifiedSundays = sundays.map((sunday) => {
+      const date = new Date(sunday.dateString);
+      if (date.getDay() !== 0) {
+        // Fix the date to be a Sunday
+        const adjustment = date.getDay() === 6 ? 1 : 7 - date.getDay();
+        date.setDate(date.getDate() + adjustment);
+        return {
+          ...sunday,
+          date: date,
+          dateString: date.toISOString().split("T")[0],
+          title: date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+        };
+      }
+      return sunday;
+    });
+
+    setWeeks(verifiedSundays);
+
+    // Set initial selected week if not already set
+    if (verifiedSundays.length > 0 && !selectedWeek) {
+      // Find the first upcoming Sunday (not in the past)
+      const upcomingSunday = verifiedSundays.find(
+        (week) => week.status === "active" || week.status === "upcoming"
+      );
+
+      // If found, use it; otherwise fall back to the first week
+      if (upcomingSunday) {
+        onWeekChange(upcomingSunday.dateString);
+      } else {
+        onWeekChange(verifiedSundays[0].dateString);
+      }
+    }
+  }, [selectedWeek, onWeekChange]);
+
+  // Handle selectedWeek changes separately
+  useEffect(() => {
+    if (
+      weeks.length > 0 &&
+      !weeks.some((w) => w.dateString === selectedWeek) &&
+      selectedWeek
+    ) {
+      // If the selected week isn't in our list, select the first upcoming week
+      const upcomingWeek = weeks.find(
+        (w) => w.status === "active" || w.status === "upcoming"
+      );
+      if (upcomingWeek) {
+        onWeekChange(upcomingWeek.dateString);
+      } else {
+        // Fallback to the first week
+        onWeekChange(weeks[0].dateString);
+      }
+    }
+  }, [selectedWeek, weeks, onWeekChange]);
+
+  // Find the current index - with safety check
+  const currentIndex =
+    selectedWeek && weeks.length > 0
+      ? weeks.findIndex((w) => w.dateString === selectedWeek)
+      : 0;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -37,13 +101,13 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
-      onWeekChange(weeks[currentIndex - 1].date);
+      onWeekChange(weeks[currentIndex - 1].dateString);
     }
   };
 
   const goToNext = () => {
     if (currentIndex < weeks.length - 1) {
-      onWeekChange(weeks[currentIndex + 1].date);
+      onWeekChange(weeks[currentIndex + 1].dateString);
     }
   };
 
@@ -60,6 +124,61 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", { weekday: "long" });
   };
+
+  // Calculate days until this Sunday
+  const getDaysUntil = (dateString) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(dateString);
+
+    // Ensure we're comparing dates without time
+    targetDate.setHours(0, 0, 0, 0);
+
+    // Calculate difference in days
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Tomorrow";
+    if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
+    return `in ${diffDays} days`;
+  };
+
+  // Simple loading state - with a safety check to prevent infinite loading
+  if (weeks.length === 0) {
+    return (
+      <Card className="relative z-20 rounded-xl" variant="primary">
+        <CardContent className="p-3 md:p-4 flex items-center justify-center">
+          <div className="text-sm text-gray-600">Loading calendar...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If we have weeks but no valid selection, use the first upcoming week
+  if (currentIndex === -1 && weeks.length > 0) {
+    // Find the first upcoming Sunday
+    const upcomingWeek = weeks.find(
+      (w) => w.status === "active" || w.status === "upcoming"
+    );
+
+    // This ensures we always have a valid selection
+    setTimeout(
+      () =>
+        onWeekChange(
+          upcomingWeek ? upcomingWeek.dateString : weeks[0].dateString
+        ),
+      0
+    );
+
+    return (
+      <Card className="relative z-20 rounded-xl" variant="primary">
+        <CardContent className="p-3 md:p-4 flex items-center justify-center">
+          <div className="text-sm text-gray-600">Setting up calendar...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="relative z-20 rounded-xl" variant="primary">
@@ -78,17 +197,25 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
           </Button>
 
           <div className="flex items-center gap-4">
-            {weeks.map((week) => {
-              const isSelected = selectedWeek === week.date;
-              const isPast = new Date(week.date) < new Date() && !isSelected;
-              const isFuture = new Date(week.date) > new Date() && !isSelected;
+            {weeks.slice(0, 4).map((week) => {
+              const isSelected = selectedWeek === week.dateString;
+              const isPast = week.status === "past";
+              const isFuture = week.status === "upcoming";
+              const isToday = getDaysUntil(week.dateString) === "Today";
+
+              // Debug info
+              const date = new Date(week.dateString);
+              const isSunday = date.getDay() === 0;
+              if (!isSunday) {
+                console.warn("Non-Sunday date in week selector:", date);
+              }
 
               return (
                 <Button
-                  key={week.date}
+                  key={week.dateString}
                   variant={isSelected ? "default" : "outline"}
                   size="sm"
-                  onClick={() => onWeekChange(week.date)}
+                  onClick={() => onWeekChange(week.dateString)}
                   className={`flex items-center gap-2 transition-all duration-200 ${
                     isSelected
                       ? "bg-blue-600 text-white border-blue-700 shadow-md hover:bg-blue-700"
@@ -105,14 +232,14 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
                     }`}
                   />
                   <div className="flex flex-col items-start">
-                    <span className="text-xs">
-                      {new Date(week.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                    <span className="text-xs flex items-center gap-1">
+                      {formatShortDate(week.dateString)}
+                      {isToday && (
+                        <span className="bg-green-500 w-1.5 h-1.5 rounded-full"></span>
+                      )}
                     </span>
                     <span className="text-[10px] opacity-80">
-                      {new Date(week.date).getFullYear()}
+                      {isToday ? "Today" : getDaysUntil(week.dateString)}
                     </span>
                   </div>
                 </Button>
@@ -155,12 +282,14 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
                 >
                   <Calendar className="w-4 h-4 text-blue-600" />
                   <span className="font-medium">
-                    {formatShortDate(selectedWeek)}
+                    {selectedWeek
+                      ? formatShortDate(selectedWeek)
+                      : "Select Week"}
                   </span>
                   <ChevronDown className="w-4 h-4 text-gray-600" />
                 </Button>
 
-                {showDropdown && (
+                {showDropdown && weeks.length > 0 && (
                   <div
                     ref={dropdownRef}
                     className="fixed left-1/2 transform -translate-x-1/2 mt-1 w-64 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-50 hover:border-gray-300 transition-all duration-200"
@@ -175,41 +304,40 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
                     }}
                   >
                     {weeks.map((week) => {
-                      const isSelected = selectedWeek === week.date;
-                      const dayName = getDayName(week.date);
+                      const isSelected = selectedWeek === week.dateString;
+                      const dayName = getDayName(week.dateString);
+                      const isToday = getDaysUntil(week.dateString) === "Today";
 
                       return (
                         <div
-                          key={week.date}
-                          className={`p-3 border-b border-gray-100 last:border-0 transition-all duration-200 ${
-                            isSelected
-                              ? "bg-blue-50 border-l-4 border-l-blue-600"
-                              : "hover:bg-gray-50 border-l-4 border-l-transparent hover:border-l-gray-300"
-                          } cursor-pointer flex items-center`}
+                          key={week.dateString}
+                          className={`p-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between ${
+                            isSelected ? "bg-blue-50" : ""
+                          }`}
                           onClick={() => {
-                            onWeekChange(week.date);
+                            onWeekChange(week.dateString);
                             setShowDropdown(false);
                           }}
                         >
-                          <div className="flex-1">
-                            <div
-                              className={`font-medium ${
-                                isSelected ? "text-blue-700" : "text-gray-800"
-                              }`}
-                            >
-                              {new Date(week.date).toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {dayName}
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-blue-600" />
+                            <div>
+                              <div className="text-sm font-medium flex items-center gap-1">
+                                {formatShortDate(week.dateString)}
+                                {isToday && (
+                                  <span className="bg-green-500 text-white text-[8px] px-1 rounded-full">
+                                    Today
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {dayName}
+                              </div>
                             </div>
                           </div>
-                          {isSelected && (
-                            <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                          )}
+                          <div className="text-xs text-gray-500">
+                            {getDaysUntil(week.dateString)}
+                          </div>
                         </div>
                       );
                     })}
@@ -226,15 +354,6 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
-            </div>
-
-            <div className="text-center text-sm font-medium text-gray-800">
-              {getDayName(selectedWeek)},{" "}
-              {new Date(selectedWeek).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
             </div>
           </div>
         </div>

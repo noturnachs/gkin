@@ -31,6 +31,13 @@ import { WelcomeBanner } from "./components/welcome-banner";
 import { DocumentCreator } from "./components/document-creator";
 import { Footer } from "./components/ui/footer";
 import { Header } from "./components/header";
+import {
+  generateServiceData,
+  getDefaultSelectedWeek,
+  getUpcomingSundays,
+  formatDate,
+  getStatusColor,
+} from "./lib/date-utils";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -38,30 +45,6 @@ const roles = [
   { id: "translation", name: "Translation", color: "bg-green-500" },
   { id: "beamer", name: "Beamer Team", color: "bg-orange-500" },
   { id: "music", name: "Music Team", color: "bg-pink-500" },
-];
-
-// Update the mockServices data
-const mockServices = [
-  {
-    id: 1,
-    date: "2024-01-07",
-    title: "Sunday Service - January 7",
-    status: "in-progress",
-    currentStep: 1, // Set to 1 for "Concept Creation"
-    totalSteps: 7,
-    assignedTo: "liturgy",
-    documents: [], // Start with empty documents
-  },
-  {
-    id: 2,
-    date: "2024-01-14",
-    title: "Sunday Service - January 14",
-    status: "pending",
-    currentStep: 1,
-    totalSteps: 7,
-    assignedTo: "liturgy",
-    documents: [],
-  },
 ];
 
 function App() {
@@ -72,13 +55,39 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [selectedRole, setSelectedRole] = useState("liturgy");
-  const [selectedWeek, setSelectedWeek] = useState("2024-01-07");
+  const [selectedWeek, setSelectedWeek] = useState(getDefaultSelectedWeek());
   const [showChat, setShowChat] = useState(false);
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [mockServices, setMockServices] = useState(generateServiceData());
 
-  const currentService = mockServices.find((s) => s.date === selectedWeek);
+  // Initialize services using the shared date utility
+  useEffect(() => {
+    const sundays = getUpcomingSundays(4);
+
+    const services = sundays.map((sunday, index) => ({
+      id: index + 1,
+      date: sunday.dateString,
+      title: `Sunday Service - ${sunday.title}`,
+      status: index === 0 ? "in-progress" : "pending",
+      currentStep: index === 0 ? 1 : 0,
+      totalSteps: 7,
+      assignedTo: "liturgy",
+      documents: [], // Start with empty documents
+    }));
+
+    setMockServices(services);
+
+    // Set the initial selected week to the first Sunday
+    if (services.length > 0) {
+      setSelectedWeek(services[0].date);
+    }
+  }, []);
+
+  const currentService = selectedWeek
+    ? mockServices.find((s) => s.date === selectedWeek)
+    : null;
 
   // Handle user login with localStorage
   const handleLogin = (userData) => {
@@ -146,7 +155,7 @@ function App() {
 
       // In a real app, you would update your state through proper state management
       // For this mockup, we're directly modifying the mockServices array
-      mockServices.splice(0, mockServices.length, ...updatedServices);
+      setMockServices(updatedServices);
 
       // Show success message
       alert(
