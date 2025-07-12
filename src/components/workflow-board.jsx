@@ -112,7 +112,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         <FileText className="w-3 h-3 mr-1 hidden sm:inline" />
                         <span className="sm:hidden">Create</span>
                         <span className="hidden sm:inline">
-                          Create Document
+                          Upload Concept Doc
                         </span>
                       </>
                     ) : (
