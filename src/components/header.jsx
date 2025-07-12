@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import {
-  FileText,
-  BookOpen,
-  Calendar,
-  Users,
-  Settings,
-  Home,
-} from "lucide-react";
+import { FileText } from "lucide-react";
 import { NotificationCenter, NotificationPanel } from "./notification-center";
 
 export function Header({
@@ -26,27 +19,6 @@ export function Header({
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   // Add state for user dropdown
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-
-  // Icon logic
-  const getHeaderIcon = () => {
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes("liturgy") || titleLower.includes("workflow")) {
-      return <BookOpen className="w-6 h-6" />;
-    } else if (
-      titleLower.includes("calendar") ||
-      titleLower.includes("schedule")
-    ) {
-      return <Calendar className="w-6 h-6" />;
-    } else if (titleLower.includes("team") || titleLower.includes("users")) {
-      return <Users className="w-6 h-6" />;
-    } else if (
-      titleLower.includes("admin") ||
-      titleLower.includes("settings")
-    ) {
-      return <Settings className="w-6 h-6" />;
-    }
-    return <Home className="w-6 h-6" />;
-  };
 
   // Color logic
   const textColors =
@@ -78,18 +50,11 @@ export function Header({
       <div className="flex flex-col gap-3 md:hidden">
         {/* Top row: Title and menu button */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
-              {getHeaderIcon()}
-            </div>
-            <div>
-              <h1 className={`text-lg font-bold ${textColors.title}`}>
-                {title}
-              </h1>
-              {subtitle && (
-                <p className={`text-xs ${textColors.subtitle}`}>{subtitle}</p>
-              )}
-            </div>
+          <div>
+            <h1 className={`text-lg font-bold ${textColors.title}`}>{title}</h1>
+            {subtitle && (
+              <p className={`text-xs ${textColors.subtitle}`}>{subtitle}</p>
+            )}
           </div>
           {/* User menu button */}
           {showUserInfo && (
@@ -184,18 +149,11 @@ export function Header({
       {/* Desktop Layout */}
       <div className="hidden md:flex items-center justify-between gap-4">
         {/* Left: Title and subtitle */}
-        <div className="flex items-center gap-4">
-          <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
-            {getHeaderIcon()}
-          </div>
-          <div>
-            <h1 className={`text-2xl font-bold ${textColors.title}`}>
-              {title}
-            </h1>
-            {subtitle && (
-              <p className={`text-sm ${textColors.subtitle}`}>{subtitle}</p>
-            )}
-          </div>
+        <div>
+          <h1 className={`text-2xl font-bold ${textColors.title}`}>{title}</h1>
+          {subtitle && (
+            <p className={`text-sm ${textColors.subtitle}`}>{subtitle}</p>
+          )}
         </div>
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
