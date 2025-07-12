@@ -373,32 +373,34 @@ function App() {
             {/* Service Details */}
             {currentService && (
               <Card className="overflow-hidden border border-gray-200 shadow-sm">
-                <CardHeader className="p-4 md:p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-blue-50 rounded-full border border-blue-100">
-                        <FileText className="w-5 h-5 text-blue-600" />
+                <CardHeader className="p-3 sm:p-4 md:p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="p-1.5 sm:p-2 md:p-2.5 bg-blue-50 rounded-full border border-blue-100">
+                        <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-blue-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg md:text-xl text-gray-900">
+                        <CardTitle className="text-base sm:text-lg md:text-xl text-gray-900">
                           {currentService.title}
                         </CardTitle>
-                        <CardDescription className="text-xs md:text-sm text-gray-600 mt-1">
+                        <CardDescription className="text-[10px] sm:text-xs md:text-sm text-gray-600 mt-0.5 sm:mt-1">
                           Service date:{" "}
-                          {new Date(currentService.date).toLocaleDateString(
-                            "en-US",
-                            {
-                              weekday: "long",
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
+                          <span className="inline-block">
+                            {new Date(currentService.date).toLocaleDateString(
+                              "en-US",
+                              {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )}
+                          </span>
                         </CardDescription>
                       </div>
                     </div>
                     <Badge
-                      className={`px-3 py-1 ${
+                      className={`px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs mt-1 sm:mt-0 self-start sm:self-auto ${
                         currentService.status === "in-progress"
                           ? "bg-amber-50 text-amber-700 border-amber-200"
                           : "bg-green-50 text-green-700 border-green-200"
@@ -411,15 +413,15 @@ function App() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-4 md:p-6">
-                  <div className="space-y-6">
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Progress Section */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-100">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-900">
+                    <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100">
+                      <div className="flex justify-between items-center mb-2 sm:mb-3">
+                        <h4 className="text-sm sm:text-base font-medium text-gray-900">
                           Workflow Progress
                         </h4>
-                        <div className="text-lg font-bold text-blue-700">
+                        <div className="text-base sm:text-lg font-bold text-blue-700">
                           {Math.round(
                             (currentService.currentStep /
                               currentService.totalSteps) *
@@ -429,56 +431,58 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="mb-4">
+                      <div className="mb-3 sm:mb-4">
                         <Progress
                           value={
                             (currentService.currentStep /
                               currentService.totalSteps) *
                             100
                           }
-                          className="h-2.5 bg-gray-100"
+                          className="h-2 sm:h-2.5 bg-gray-100"
                         />
                       </div>
 
-                      <div className="flex justify-between items-center text-xs text-gray-600">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 text-[10px] sm:text-xs text-gray-600">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-600"></div>
                           <span>
                             Step {currentService.currentStep} of{" "}
                             {currentService.totalSteps}
                           </span>
                         </div>
-                        <div>
+                        <div className="flex flex-wrap items-center gap-1">
                           <span className="font-medium">Current phase:</span>{" "}
-                          {currentService.currentStep === 1
-                            ? "Concept Creation"
-                            : currentService.currentStep === 2
-                            ? "Pastor Review"
-                            : currentService.currentStep === 3
-                            ? "Document Update"
-                            : currentService.currentStep === 4
-                            ? "Final Version"
-                            : currentService.currentStep === 5
-                            ? "Translation"
-                            : currentService.currentStep === 6
-                            ? "Presentation"
-                            : "Complete"}
+                          <span>
+                            {currentService.currentStep === 1
+                              ? "Concept Creation"
+                              : currentService.currentStep === 2
+                              ? "Pastor Review"
+                              : currentService.currentStep === 3
+                              ? "Document Update"
+                              : currentService.currentStep === 4
+                              ? "Final Version"
+                              : currentService.currentStep === 5
+                              ? "Translation"
+                              : currentService.currentStep === 6
+                              ? "Presentation"
+                              : "Complete"}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Documents Section */}
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-600" />
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h4 className="text-sm sm:text-base font-medium text-gray-900 flex items-center gap-1.5 sm:gap-2">
+                          <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
                           Documents
                         </h4>
                         {currentService.documents.length > 0 && (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs h-7 px-2 border-gray-200 text-gray-700"
+                            className="text-[10px] sm:text-xs h-6 sm:h-7 px-1.5 sm:px-2 border-gray-200 text-gray-700"
                           >
                             View All
                           </Button>
@@ -490,11 +494,11 @@ function App() {
                           {currentService.documents.map((doc, index) => (
                             <div
                               key={index}
-                              className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-sm transition-all"
+                              className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-sm transition-all"
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                 <div
-                                  className={`p-2 rounded-md ${
+                                  className={`p-1.5 sm:p-2 rounded-md ${
                                     doc.type === "concept"
                                       ? "bg-blue-50"
                                       : doc.type === "pastor"
@@ -505,7 +509,7 @@ function App() {
                                   }`}
                                 >
                                   <FileText
-                                    className={`w-4 h-4 ${
+                                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                                       doc.type === "concept"
                                         ? "text-blue-600"
                                         : doc.type === "pastor"
@@ -516,12 +520,12 @@ function App() {
                                     }`}
                                   />
                                 </div>
-                                <div>
-                                  <div className="font-medium text-sm text-gray-900">
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-xs sm:text-sm text-gray-900 truncate">
                                     {doc.name}
                                   </div>
-                                  <div className="text-xs text-gray-500 flex items-center gap-2">
-                                    <span>
+                                  <div className="text-[10px] sm:text-xs text-gray-500 flex flex-wrap items-center gap-1 sm:gap-2">
+                                    <span className="truncate max-w-[120px] sm:max-w-none">
                                       Last modified: {doc.lastModified}
                                     </span>
                                     {doc.link && (
@@ -533,7 +537,7 @@ function App() {
                                       >
                                         Open
                                         <svg
-                                          className="w-3 h-3"
+                                          className="w-2.5 h-2.5 sm:w-3 sm:h-3"
                                           viewBox="0 0 24 24"
                                           fill="none"
                                           stroke="currentColor"
@@ -548,9 +552,9 @@ function App() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3 ml-2">
                                 <Badge
-                                  className={`${
+                                  className={`text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 ${
                                     doc.status === "completed"
                                       ? "bg-green-50 text-green-700 border-green-200"
                                       : doc.status === "in-progress"
@@ -563,10 +567,10 @@ function App() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-gray-700"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-full text-gray-500 hover:text-gray-700"
                                 >
                                   <svg
-                                    className="w-4 h-4"
+                                    className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -582,14 +586,14 @@ function App() {
                           ))}
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center">
-                          <div className="p-3 bg-gray-100 rounded-full mb-3">
-                            <FileText className="w-6 h-6 text-gray-500" />
+                        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center">
+                          <div className="p-2 sm:p-3 bg-gray-100 rounded-full mb-2 sm:mb-3">
+                            <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                           </div>
-                          <h4 className="text-gray-700 font-medium mb-1">
+                          <h4 className="text-sm sm:text-base text-gray-700 font-medium mb-1">
                             No documents yet
                           </h4>
-                          <p className="text-gray-500 text-sm mb-3">
+                          <p className="text-[10px] sm:text-xs text-gray-500 mb-2 sm:mb-3">
                             Documents will appear here once they are created
                           </p>
                           {/* Only show create button for authorized roles */}
@@ -601,7 +605,7 @@ function App() {
                               user.role.id === "beamer")) && (
                             <Button
                               size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm h-8 sm:h-9"
                               onClick={() =>
                                 handleStartAction(currentService.currentStep)
                               }
@@ -618,10 +622,10 @@ function App() {
                     </div>
 
                     {/* Document Permissions Info */}
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4">
+                      <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
                         <svg
-                          className="w-4 h-4"
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -633,28 +637,28 @@ function App() {
                         </svg>
                         Document Permissions
                       </h4>
-                      <p className="text-xs text-blue-700 mb-3">
+                      <p className="text-[10px] sm:text-xs text-blue-700 mb-2 sm:mb-3">
                         Only specific roles can create or upload documents at
                         different workflow stages
                       </p>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
-                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                          <span className="text-xs text-gray-800">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 bg-white p-1.5 sm:p-2 rounded border border-blue-200">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-600"></div>
+                          <span className="text-[10px] sm:text-xs text-gray-800">
                             <span className="font-medium">Liturgy Maker:</span>{" "}
                             Concept & Final
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
-                          <div className="w-2 h-2 rounded-full bg-purple-600"></div>
-                          <span className="text-xs text-gray-800">
+                        <div className="flex items-center gap-1.5 sm:gap-2 bg-white p-1.5 sm:p-2 rounded border border-blue-200">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-600"></div>
+                          <span className="text-[10px] sm:text-xs text-gray-800">
                             <span className="font-medium">Pastor:</span> Review
                             Documents
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
-                          <div className="w-2 h-2 rounded-full bg-orange-600"></div>
-                          <span className="text-xs text-gray-800">
+                        <div className="flex items-center gap-1.5 sm:gap-2 bg-white p-1.5 sm:p-2 rounded border border-blue-200">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-600"></div>
+                          <span className="text-[10px] sm:text-xs text-gray-800">
                             <span className="font-medium">Beamer:</span>{" "}
                             Presentations
                           </span>
@@ -663,11 +667,11 @@ function App() {
                     </div>
 
                     {/* Assigned Team Members */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-100">
-                      <h4 className="font-medium text-gray-900 mb-3">
+                    <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100">
+                      <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">
                         Assigned Team
                       </h4>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {[
                           "liturgy",
                           "pastor",
@@ -712,28 +716,30 @@ function App() {
                           return (
                             <div
                               key={index}
-                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${
+                              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border ${
                                 isActive
                                   ? `${roleColor.bg} ${roleColor.text} ${roleColor.border}`
                                   : "bg-gray-50 text-gray-600 border-gray-200"
                               }`}
                             >
                               <div
-                                className={`w-1.5 h-1.5 rounded-full ${
+                                className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${
                                   isActive
                                     ? roleColor.text.replace("text", "bg")
                                     : "bg-gray-400"
                                 }`}
                               ></div>
-                              <span className="text-xs font-medium capitalize">
+                              <span className="text-[10px] sm:text-xs font-medium capitalize">
                                 {role}
                               </span>
                               {isActive && (
-                                <span className="text-xs">(Current)</span>
+                                <span className="text-[9px] sm:text-[10px]">
+                                  (Current)
+                                </span>
                               )}
                               {canCreateDocs && (
                                 <svg
-                                  className="w-3 h-3 text-gray-500"
+                                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500"
                                   viewBox="0 0 24 24"
                                   fill="none"
                                   stroke="currentColor"
@@ -747,9 +753,9 @@ function App() {
                           );
                         })}
                       </div>
-                      <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                      <div className="mt-1.5 sm:mt-2 text-[9px] sm:text-xs text-gray-500 flex items-center gap-1">
                         <svg
-                          className="w-3 h-3"
+                          className="w-2.5 h-2.5 sm:w-3 sm:h-3"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
