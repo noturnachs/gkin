@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
-import { ActionPanel } from "./components/action-panel";
 import { NotificationCenter } from "./components/notification-center";
 import { GlobalChat } from "./components/global-chat";
 import { ServiceAssignments } from "./components/service-assignments";
@@ -39,6 +38,7 @@ import {
   formatDate,
   getStatusColor,
 } from "./lib/date-utils";
+import { RecentUpdates } from "./components/recent-updates";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -55,7 +55,6 @@ function App() {
     const savedUser = localStorage.getItem("currentUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState(getDefaultSelectedWeek());
   const [showChat, setShowChat] = useState(true); // Change from false to true
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
@@ -119,7 +118,7 @@ function App() {
     // Save user to state and localStorage
     setUser(userData);
     localStorage.setItem("currentUser", JSON.stringify(userData));
-    setSelectedRole(userData.role.id);
+    // setSelectedRole(userData.role.id); // Removed as per edit hint
   };
 
   // Handle logout with localStorage
@@ -666,116 +665,18 @@ function App() {
               <GlobalChat />
             </div>
 
-            {/* Role Actions - Now below the chat */}
+            {/* Recent Updates - Replacing Notifications */}
             <Card>
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-lg md:text-xl">
-                  Role Actions
+                  Recent Updates
                 </CardTitle>
                 <CardDescription className="text-xs md:text-sm">
-                  Actions available for your role
+                  Latest activity and workflow changes
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6">
-                <Tabs value={selectedRole} onValueChange={setSelectedRole}>
-                  <div className="overflow-x-auto -mx-3 px-3">
-                    <TabsList className="w-full grid grid-cols-2 bg-gray-100 p-1 min-w-[300px]">
-                      <TabsTrigger
-                        value="liturgy"
-                        className={`transition-all duration-200 ${
-                          selectedRole === "liturgy"
-                            ? "bg-white text-blue-700 font-medium shadow-sm border-b-2 border-blue-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedRole === "liturgy" && (
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          )}
-                          Liturgy
-                        </div>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="pastor"
-                        className={`transition-all duration-200 ${
-                          selectedRole === "pastor"
-                            ? "bg-white text-purple-700 font-medium shadow-sm border-b-2 border-purple-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedRole === "pastor" && (
-                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                          )}
-                          Pastor
-                        </div>
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  <div className="overflow-x-auto -mx-3 px-3 mt-2">
-                    <TabsList className="w-full grid grid-cols-3 bg-gray-100 p-1 min-w-[300px]">
-                      <TabsTrigger
-                        value="translation"
-                        className={`transition-all duration-200 ${
-                          selectedRole === "translation"
-                            ? "bg-white text-green-700 font-medium shadow-sm border-b-2 border-green-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedRole === "translation" && (
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          )}
-                          <span className="text-xs md:text-sm">
-                            Translation
-                          </span>
-                        </div>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="beamer"
-                        className={`transition-all duration-200 ${
-                          selectedRole === "beamer"
-                            ? "bg-white text-orange-700 font-medium shadow-sm border-b-2 border-orange-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedRole === "beamer" && (
-                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                          )}
-                          <span className="text-xs md:text-sm">Beamer</span>
-                        </div>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="music"
-                        className={`transition-all duration-200 ${
-                          selectedRole === "music"
-                            ? "bg-white text-pink-700 font-medium shadow-sm border-b-2 border-pink-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedRole === "music" && (
-                            <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                          )}
-                          <span className="text-xs md:text-sm">Music</span>
-                        </div>
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  {roles.map((role) => (
-                    <TabsContent key={role.id} value={role.id} className="mt-4">
-                      <ActionPanel
-                        role={role}
-                        service={currentService}
-                        currentUserRole={user.role.id}
-                        onStartAction={handleStartAction}
-                      />
-                    </TabsContent>
-                  ))}
-                </Tabs>
+                <RecentUpdates limit={4} />
               </CardContent>
             </Card>
           </div>
