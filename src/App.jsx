@@ -29,6 +29,7 @@ import { ServiceAssignments } from "./components/service-assignments";
 import { LoginPage } from "./components/login-page";
 import { WelcomeBanner } from "./components/welcome-banner";
 import { DocumentCreator } from "./components/document-creator";
+import { Footer } from "./components/ui/footer";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -964,6 +965,9 @@ function App() {
             </Card>
           </div>
         </div>
+
+        {/* Footer component */}
+        <Footer />
       </div>
     </div>
   );
