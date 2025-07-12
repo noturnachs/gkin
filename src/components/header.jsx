@@ -24,6 +24,8 @@ export function Header({
 }) {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  // Add state for user dropdown
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Icon logic
   const getHeaderIcon = () => {
@@ -91,18 +93,31 @@ export function Header({
           </div>
           {/* User menu button */}
           {showUserInfo && (
-            <Button
-              variant="outline"
-              className="ml-2"
-              onClick={() => setShowMobileMenu((prev) => !prev)}
+            <div
+              className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-300"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
             >
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                  {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <span className="text-xs font-medium">{user?.username}</span>
+              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                {user?.username?.charAt(0)?.toUpperCase() || "U"}
               </div>
-            </Button>
+              <span className="text-xs font-medium">{user?.username}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`transition-transform duration-200 ${
+                  showMobileMenu ? "rotate-180" : ""
+                }`}
+              >
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </div>
           )}
         </div>
         {/* Actions row */}
@@ -200,6 +215,7 @@ export function Header({
               )}
             </div>
           )}
+
           {showGoogleDrive && (
             <Button
               variant="outline"
@@ -209,23 +225,79 @@ export function Header({
               Google Drive
             </Button>
           )}
+
+          {/* Combined User Info & Logout */}
           {showUserInfo && user && (
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-300">
-              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                {user.username.charAt(0).toUpperCase()}
+            <div className="relative">
+              <div
+                className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-300 cursor-pointer hover:bg-gray-50"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+              >
+                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                <span className="font-medium text-sm text-gray-800">
+                  {user.username}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {user.role?.name || "Role"}
+                </span>
+
+                {/* Add a dropdown arrow */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`ml-1 transition-transform duration-200 ${
+                    showUserDropdown ? "rotate-180" : ""
+                  }`}
+                >
+                  <path d="M6 9l6 6 6-6"></path>
+                </svg>
               </div>
-              <span className="font-medium text-sm text-gray-800">
-                {user.username}
-              </span>
-              <span className="text-xs text-gray-500">
-                {user.role?.name || "Role"}
-              </span>
+
+              {/* User dropdown menu */}
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <div className="font-medium text-sm">{user.username}</div>
+                    <div className="text-xs text-gray-500">
+                      {user.role?.name || "Role"}
+                    </div>
+                  </div>
+                  {showLogout && (
+                    <div
+                      className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
+                      onClick={onLogout}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      Logout
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-          {showLogout && (
-            <Button variant="outline" className="text-sm" onClick={onLogout}>
-              Logout
-            </Button>
           )}
         </div>
       </div>
