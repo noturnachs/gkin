@@ -20,6 +20,8 @@ import {
   Edit,
   Clock,
   MessageCircle,
+  Mail,
+  Upload,
 } from "lucide-react";
 import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
@@ -39,6 +41,7 @@ import {
   getStatusColor,
 } from "./lib/date-utils";
 import { RecentUpdates } from "./components/recent-updates";
+import { EmailComposerPage } from "./components/email-composer-page";
 
 const roles = [
   { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
@@ -61,6 +64,7 @@ function App() {
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mockServices, setMockServices] = useState(generateServiceData());
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
 
   // Initialize services using the shared date utility
   useEffect(() => {
@@ -298,57 +302,63 @@ function App() {
 
                 <CardContent className="p-3 sm:p-4 md:p-6">
                   <div className="space-y-4 sm:space-y-6">
-                    {/* Progress Section */}
-                    <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100">
-                      <div className="flex justify-between items-center mb-2 sm:mb-3">
+                    {/* Progress Section - Simplified */}
+                    <div className="bg-white p-4 rounded-lg border border-gray-100">
+                      <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm sm:text-base font-medium text-gray-900">
-                          Workflow Progress
+                          Current Progress
                         </h4>
-                        <div className="text-base sm:text-lg font-bold text-blue-700">
-                          {Math.round(
-                            (currentService.currentStep /
-                              currentService.totalSteps) *
-                              100
-                          )}
-                          %
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                            Step {currentService.currentStep}/
+                            {currentService.totalSteps}
+                          </Badge>
+                          <span className="text-base font-bold text-blue-700">
+                            {Math.round(
+                              (currentService.currentStep /
+                                currentService.totalSteps) *
+                                100
+                            )}
+                            %
+                          </span>
                         </div>
                       </div>
 
-                      <div className="mb-3 sm:mb-4">
+                      {/* Progress bar */}
+                      <div className="mb-3">
                         <Progress
                           value={
                             (currentService.currentStep /
                               currentService.totalSteps) *
                             100
                           }
-                          className="h-2 sm:h-2.5 bg-gray-100"
+                          className="h-2.5 bg-gray-100"
                         />
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 text-[10px] sm:text-xs text-gray-600">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-600"></div>
-                          <span>
-                            Step {currentService.currentStep} of{" "}
-                            {currentService.totalSteps}
-                          </span>
+                      {/* Current phase - simplified */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="p-1.5 rounded-full bg-blue-50 border border-blue-100">
+                          {currentService.currentStep < 7 ? (
+                            <Clock className="w-4 h-4 text-blue-600" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <span className="font-medium">Current phase:</span>{" "}
-                          <span>
-                            {currentService.currentStep === 1
-                              ? "Concept Creation"
-                              : currentService.currentStep === 2
-                              ? "Pastor Review"
-                              : currentService.currentStep === 3
-                              ? "Document Update"
-                              : currentService.currentStep === 4
-                              ? "Final Version"
-                              : currentService.currentStep === 5
-                              ? "Translation"
-                              : currentService.currentStep === 6
-                              ? "Presentation"
-                              : "Complete"}
+                        <div>
+                          <span className="font-medium">Current phase: </span>
+                          <span className="text-blue-700">
+                            {currentService.currentStep === 1 &&
+                              "Concept Creation"}
+                            {currentService.currentStep === 2 &&
+                              "Pastor Review"}
+                            {currentService.currentStep === 3 &&
+                              "Document Update"}
+                            {currentService.currentStep === 4 &&
+                              "Final Version"}
+                            {currentService.currentStep === 5 && "Translation"}
+                            {currentService.currentStep === 6 && "Presentation"}
+                            {currentService.currentStep === 7 && "Complete"}
                           </span>
                         </div>
                       </div>
@@ -504,6 +514,171 @@ function App() {
                       )}
                     </div>
 
+                    {/* Quick Actions - Role-specific and Context-aware */}
+                    <div className="bg-white p-4 rounded-lg border border-gray-100">
+                      <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-3">
+                        Quick Actions
+                      </h4>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {/* Liturgy Maker Actions - Context Aware with proper disabling */}
+                        {user.role.id === "liturgy" && (
+                          <>
+                            {/* Create Document - Only enabled at step 1 and if no documents exist */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                              onClick={() => handleStartAction(1)}
+                              disabled={
+                                currentService?.currentStep !== 1 ||
+                                (currentService?.documents &&
+                                  currentService.documents.length > 0)
+                              }
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Create Document</span>
+                            </Button>
+
+                            {/* Update Document - Only enabled at step 3 */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                              disabled={currentService?.currentStep !== 3}
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>Update Document</span>
+                            </Button>
+
+                            {/* Finalize Document - Only enabled at step 4 */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                              disabled={currentService?.currentStep !== 4}
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Finalize Document</span>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Pastor Actions - With proper disabling */}
+                        {user.role.id === "pastor" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100"
+                              disabled={currentService?.currentStep !== 2}
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Review Document</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100"
+                              disabled={currentService?.currentStep !== 2}
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>Add Comments</span>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Translation Team Actions - With proper disabling */}
+                        {user.role.id === "translation" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
+                              disabled={currentService?.currentStep !== 5}
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Translate Document</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-green-700 border-green-200 bg-green-50 hover:bg-green-100"
+                              disabled={currentService?.currentStep !== 5}
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Mark Complete</span>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Beamer Team Actions - With proper disabling */}
+                        {user.role.id === "beamer" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-orange-700 border-orange-200 bg-orange-50 hover:bg-orange-100"
+                              disabled={currentService?.currentStep !== 6}
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Create Slides</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-orange-700 border-orange-200 bg-orange-50 hover:bg-orange-100"
+                              disabled={currentService?.currentStep !== 6}
+                            >
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Upload Presentation</span>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Music Team Actions - With proper disabling */}
+                        {user.role.id === "music" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-pink-700 border-pink-200 bg-pink-50 hover:bg-pink-100"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>View Music List</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-9 flex items-center justify-center gap-1.5 text-pink-700 border-pink-200 bg-pink-50 hover:bg-pink-100"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Confirm Songs</span>
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Common Actions for All Roles */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs h-9 flex items-center justify-center gap-1.5"
+                          onClick={() =>
+                            navigate("/compose-email", {
+                              state: {
+                                recipients: ["team@church.org"],
+                                serviceTitle: currentService?.title,
+                                defaultSubject: `Regarding ${currentService?.title}`,
+                              },
+                            })
+                          }
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>Send Email</span>
+                        </Button>
+                      </div>
+                    </div>
+
                     {/* Document Permissions Info */}
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4">
                       <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
@@ -546,110 +721,6 @@ function App() {
                             Presentations
                           </span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Assigned Team Members */}
-                    <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100">
-                      <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">
-                        Assigned Team
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                        {[
-                          "liturgy",
-                          "pastor",
-                          "translation",
-                          "beamer",
-                          "music",
-                        ].map((role, index) => {
-                          const isActive = currentService.assignedTo === role;
-                          const canCreateDocs = [
-                            "liturgy",
-                            "pastor",
-                            "beamer",
-                          ].includes(role);
-                          const roleColor = {
-                            liturgy: {
-                              bg: "bg-blue-50",
-                              text: "text-blue-700",
-                              border: "border-blue-200",
-                            },
-                            pastor: {
-                              bg: "bg-purple-50",
-                              text: "text-purple-700",
-                              border: "border-purple-200",
-                            },
-                            translation: {
-                              bg: "bg-green-50",
-                              text: "text-green-700",
-                              border: "border-green-200",
-                            },
-                            beamer: {
-                              bg: "bg-orange-50",
-                              text: "text-orange-700",
-                              border: "border-orange-200",
-                            },
-                            music: {
-                              bg: "bg-pink-50",
-                              text: "text-pink-700",
-                              border: "border-pink-200",
-                            },
-                          }[role];
-
-                          return (
-                            <div
-                              key={index}
-                              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border ${
-                                isActive
-                                  ? `${roleColor.bg} ${roleColor.text} ${roleColor.border}`
-                                  : "bg-gray-50 text-gray-600 border-gray-200"
-                              }`}
-                            >
-                              <div
-                                className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${
-                                  isActive
-                                    ? roleColor.text.replace("text", "bg")
-                                    : "bg-gray-400"
-                                }`}
-                              ></div>
-                              <span className="text-[10px] sm:text-xs font-medium capitalize">
-                                {role}
-                              </span>
-                              {isActive && (
-                                <span className="text-[9px] sm:text-[10px]">
-                                  (Current)
-                                </span>
-                              )}
-                              {canCreateDocs && (
-                                <svg
-                                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                >
-                                  <path d="M12 5v14"></path>
-                                  <path d="M5 12h14"></path>
-                                </svg>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="mt-1.5 sm:mt-2 text-[9px] sm:text-xs text-gray-500 flex items-center gap-1">
-                        <svg
-                          className="w-2.5 h-2.5 sm:w-3 sm:h-3"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12 5v14"></path>
-                          <path d="M5 12h14"></path>
-                        </svg>
-                        <span>
-                          Indicates roles that can create/upload documents
-                        </span>
                       </div>
                     </div>
                   </div>
