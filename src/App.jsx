@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Edit,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { WorkflowBoard } from "./components/workflow-board";
 import { WeekSelector } from "./components/week-selector";
@@ -56,7 +57,7 @@ function App() {
   });
   const [selectedRole, setSelectedRole] = useState("liturgy");
   const [selectedWeek, setSelectedWeek] = useState(getDefaultSelectedWeek());
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true); // Change from false to true
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -222,12 +223,10 @@ function App() {
             />
           )}
 
-        {/* Mobile Chat Toggle */}
-        {showChat && (
-          <div className="md:hidden mb-4">
-            <GlobalChat />
-          </div>
-        )}
+        {/* Mobile Chat - Always visible */}
+        <div className="md:hidden">
+          <GlobalChat />
+        </div>
 
         {/* Main Content - Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
