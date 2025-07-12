@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -85,9 +85,33 @@ function App() {
     }
   }, []);
 
-  const currentService = selectedWeek
-    ? mockServices.find((s) => s.date === selectedWeek)
-    : null;
+  // Find the current service based on the selected week
+  // This needs to be more robust to handle date mismatches
+  const currentService = useMemo(() => {
+    if (!selectedWeek || mockServices.length === 0) return null;
+
+    // Try direct match first
+    let service = mockServices.find((s) => s.date === selectedWeek);
+
+    // If no direct match, find the closest date
+    if (!service) {
+      const selectedDateTime = new Date(selectedWeek).getTime();
+
+      service = mockServices.reduce((closest, current) => {
+        const currentTime = new Date(current.date).getTime();
+        const closestTime = closest
+          ? new Date(closest.date).getTime()
+          : Infinity;
+
+        const currentDiff = Math.abs(currentTime - selectedDateTime);
+        const closestDiff = Math.abs(closestTime - selectedDateTime);
+
+        return currentDiff < closestDiff ? current : closest;
+      }, null);
+    }
+
+    return service;
+  }, [selectedWeek, mockServices]);
 
   // Handle user login with localStorage
   const handleLogin = (userData) => {
