@@ -37,19 +37,9 @@ import {
   generateServiceData,
   getDefaultSelectedWeek,
   getUpcomingSundays,
-  formatDate,
-  getStatusColor,
 } from "./lib/date-utils";
 import { RecentUpdates } from "./components/recent-updates";
 import { EmailComposerPage } from "./components/email-composer-page";
-
-const roles = [
-  { id: "liturgy", name: "Liturgy Maker", color: "bg-blue-500" },
-  { id: "pastor", name: "Pastor", color: "bg-purple-500" },
-  { id: "translation", name: "Translation", color: "bg-green-500" },
-  { id: "beamer", name: "Beamer Team", color: "bg-orange-500" },
-  { id: "music", name: "Music Team", color: "bg-pink-500" },
-];
 
 function App() {
   const navigate = useNavigate();
@@ -59,12 +49,8 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [selectedWeek, setSelectedWeek] = useState(getDefaultSelectedWeek());
-  const [showChat, setShowChat] = useState(true); // Change from false to true
-  const [showDocumentCreator, setShowDocumentCreator] = useState(false);
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mockServices, setMockServices] = useState(generateServiceData());
-  const [showEmailComposer, setShowEmailComposer] = useState(false);
 
   // Initialize services using the shared date utility
   useEffect(() => {
@@ -117,14 +103,6 @@ function App() {
     return service;
   }, [selectedWeek, mockServices]);
 
-  // Handle user login with localStorage
-  const handleLogin = (userData) => {
-    // Save user to state and localStorage
-    setUser(userData);
-    localStorage.setItem("currentUser", JSON.stringify(userData));
-    // setSelectedRole(userData.role.id); // Removed as per edit hint
-  };
-
   // Handle logout with localStorage
   const handleLogout = () => {
     setUser(null);
@@ -154,43 +132,6 @@ function App() {
   };
 
   // Handle document creation completion
-  const handleDocumentComplete = (documentData) => {
-    setShowDocumentCreator(false);
-
-    if (documentData) {
-      // Update the current service with the new document
-      const updatedServices = mockServices.map((service) => {
-        if (service.date === selectedWeek) {
-          return {
-            ...service,
-            documents: [
-              ...service.documents,
-              {
-                id: Date.now(),
-                name: documentData.title,
-                link: documentData.link,
-                status: "in-progress",
-                lastModified: new Date().toLocaleDateString(),
-                type: "concept",
-              },
-            ],
-            currentStep: 2, // Move to next step (Pastor Review)
-            assignedTo: "pastor", // Assign to pastor for review
-          };
-        }
-        return service;
-      });
-
-      // In a real app, you would update your state through proper state management
-      // For this mockup, we're directly modifying the mockServices array
-      setMockServices(updatedServices);
-
-      // Show success message
-      alert(
-        "Document created successfully! Pastor has been notified for review."
-      );
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
