@@ -666,7 +666,7 @@ function App() {
                           onClick={() =>
                             navigate("/compose-email", {
                               state: {
-                                recipients: ["team@church.org"],
+                                recipients: [], // Empty array to allow user input
                                 serviceTitle: currentService?.title,
                                 defaultSubject: `Regarding ${currentService?.title}`,
                               },

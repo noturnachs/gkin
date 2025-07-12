@@ -8,6 +8,7 @@ import {
   AlertCircle,
   User,
   Users,
+  Plus,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -37,14 +38,16 @@ export function EmailComposerPage() {
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
   const [bcc, setBcc] = useState([]);
-  const [newRecipient, setNewRecipient] = useState("");
+  const [newToRecipient, setNewToRecipient] = useState("");
+  const [newCcRecipient, setNewCcRecipient] = useState("");
+  const [newBccRecipient, setNewBccRecipient] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     // Extract data from state if available
     if (location.state) {
       const { recipients, serviceTitle, defaultSubject } = location.state;
-      if (recipients) setRecipients(recipients);
+      if (recipients && Array.isArray(recipients)) setRecipients(recipients);
       if (serviceTitle) setServiceTitle(serviceTitle);
       if (defaultSubject) {
         setDefaultSubject(defaultSubject);
@@ -54,6 +57,11 @@ export function EmailComposerPage() {
   }, [location]);
 
   const handleSend = () => {
+    if (recipients.length === 0) {
+      setError("Please add at least one recipient");
+      return;
+    }
+
     if (!subject.trim()) {
       setError("Please enter a subject");
       return;
@@ -103,25 +111,41 @@ export function EmailComposerPage() {
     setAttachments(attachments.filter((attachment) => attachment.id !== id));
   };
 
-  const addRecipient = (type) => {
-    if (!newRecipient.trim() || !newRecipient.includes("@")) {
+  const validateEmail = (email) => {
+    return email.trim() !== "" && email.includes("@");
+  };
+
+  const addRecipient = (type, email) => {
+    const emailToAdd =
+      type === "to"
+        ? newToRecipient
+        : type === "cc"
+        ? newCcRecipient
+        : newBccRecipient;
+
+    if (!validateEmail(emailToAdd)) {
       setError("Please enter a valid email address");
       return;
     }
 
     setError("");
 
-    if (type === "cc") {
-      setCc([...cc, newRecipient.trim()]);
+    if (type === "to") {
+      setRecipients([...recipients, emailToAdd.trim()]);
+      setNewToRecipient("");
+    } else if (type === "cc") {
+      setCc([...cc, emailToAdd.trim()]);
+      setNewCcRecipient("");
     } else if (type === "bcc") {
-      setBcc([...bcc, newRecipient.trim()]);
+      setBcc([...bcc, emailToAdd.trim()]);
+      setNewBccRecipient("");
     }
-
-    setNewRecipient("");
   };
 
   const removeRecipient = (email, type) => {
-    if (type === "cc") {
+    if (type === "to") {
+      setRecipients(recipients.filter((recipient) => recipient !== email));
+    } else if (type === "cc") {
       setCc(cc.filter((recipient) => recipient !== email));
     } else if (type === "bcc") {
       setBcc(bcc.filter((recipient) => recipient !== email));
@@ -142,9 +166,13 @@ export function EmailComposerPage() {
             <CardTitle className="text-lg text-gray-900">
               Compose Email
             </CardTitle>
-            {serviceTitle && (
-              <p className="text-xs text-blue-600 mt-1">Re: {serviceTitle}</p>
-            )}
+            <p className="text-xs text-blue-600 mt-1 truncate max-w-[300px]">
+              {subject
+                ? subject
+                : serviceTitle
+                ? `Re: ${serviceTitle}`
+                : "New Email"}
+            </p>
           </div>
           <Button
             variant="ghost"
@@ -191,20 +219,42 @@ export function EmailComposerPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-gray-50 min-h-[40px]">
-              {recipients.length > 0 ? (
-                recipients.map((recipient, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+              {recipients.map((recipient, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+                >
+                  <User className="h-3 w-3" />
+                  {recipient}
+                  <button
+                    type="button"
+                    onClick={() => removeRecipient(recipient, "to")}
+                    className="ml-1 text-blue-700 hover:text-blue-900"
                   >
-                    <User className="h-3 w-3" />
-                    {recipient}
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-sm text-gray-500">Add recipients</span>
-              )}
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              <div className="flex flex-1 min-w-[150px] items-center">
+                <input
+                  type="email"
+                  value={newToRecipient}
+                  onChange={(e) => setNewToRecipient(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addRecipient("to")}
+                  placeholder="Enter email address"
+                  className="w-full border-none bg-transparent text-sm focus:outline-none text-gray-700"
+                />
+                {newToRecipient && (
+                  <button
+                    type="button"
+                    onClick={() => addRecipient("to")}
+                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -230,15 +280,24 @@ export function EmailComposerPage() {
                     </button>
                   </Badge>
                 ))}
-                <div className="flex-1 min-w-[150px]">
+                <div className="flex flex-1 min-w-[150px] items-center">
                   <input
                     type="email"
-                    value={newRecipient}
-                    onChange={(e) => setNewRecipient(e.target.value)}
+                    value={newCcRecipient}
+                    onChange={(e) => setNewCcRecipient(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addRecipient("cc")}
                     placeholder="Enter email address"
                     className="w-full border-none bg-transparent text-sm focus:outline-none text-gray-700"
                   />
+                  {newCcRecipient && (
+                    <button
+                      type="button"
+                      onClick={() => addRecipient("cc")}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -266,15 +325,24 @@ export function EmailComposerPage() {
                     </button>
                   </Badge>
                 ))}
-                <div className="flex-1 min-w-[150px]">
+                <div className="flex flex-1 min-w-[150px] items-center">
                   <input
                     type="email"
-                    value={newRecipient}
-                    onChange={(e) => setNewRecipient(e.target.value)}
+                    value={newBccRecipient}
+                    onChange={(e) => setNewBccRecipient(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addRecipient("bcc")}
                     placeholder="Enter email address"
                     className="w-full border-none bg-transparent text-sm focus:outline-none text-gray-700"
                   />
+                  {newBccRecipient && (
+                    <button
+                      type="button"
+                      onClick={() => addRecipient("bcc")}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -382,7 +450,12 @@ export function EmailComposerPage() {
               Cancel
             </Button>
             <Button
-              disabled={!subject.trim() || !message.trim() || sending}
+              disabled={
+                recipients.length === 0 ||
+                !subject.trim() ||
+                !message.trim() ||
+                sending
+              }
               onClick={handleSend}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
