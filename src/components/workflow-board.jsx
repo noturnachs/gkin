@@ -112,6 +112,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     service?.taskStatuses?.qrcode || "pending"
   );
 
+  // Add these states for document tracking
+  const [completedTasks, setCompletedTasks] = useState(
+    service?.taskStatuses || {}
+  );
+
   // Add these states for both modals
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isSermonModalOpen, setIsSermonModalOpen] = useState(false);
@@ -165,14 +170,24 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     }));
   };
 
+  // Update the getTaskStatus function to use our local state
   const getTaskStatus = (taskId) => {
     // Special handling for qrcode task to use local state
     if (taskId === "qrcode") {
       return qrCodeStatus;
     }
 
-    if (!service || !service.taskStatuses) return "pending";
-    return service.taskStatuses[taskId] || "pending";
+    // Check our local completedTasks state first
+    if (completedTasks && completedTasks[taskId]) {
+      return completedTasks[taskId];
+    }
+
+    // Fall back to service data if available
+    if (service && service.taskStatuses) {
+      return service.taskStatuses[taskId] || "pending";
+    }
+
+    return "pending";
   };
 
   // Check if the current user can work on this category
@@ -208,6 +223,17 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     // Here you would handle the saved sermon
     console.log("Sermon submitted:", sermonData);
 
+    // Update the local completed tasks state
+    setCompletedTasks((prev) => ({
+      ...prev,
+      sermon: "completed",
+      // Store the actual sermon data if needed
+      sermonData: sermonData,
+    }));
+
+    // Close the sermon modal
+    setIsSermonModalOpen(false);
+
     // Update the service status for this task if needed
     if (onStartAction) {
       onStartAction(`sermon-completed`);
@@ -221,6 +247,17 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   const handleDocumentSubmit = (documentData) => {
     // Here you would handle the saved document
     console.log("Document submitted:", documentData);
+
+    // Update the local completed tasks state
+    setCompletedTasks((prev) => ({
+      ...prev,
+      [documentData.documentType]: "completed",
+      // Store the actual document data if needed
+      [`${documentData.documentType}Data`]: documentData,
+    }));
+
+    // Close the document modal
+    setIsDocumentModalOpen(false);
 
     // Update the service status for this task if needed
     if (onStartAction) {
@@ -250,6 +287,44 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
       // For other actions, use the original handler
       onStartAction && onStartAction(taskId);
     }
+  };
+
+  // Handle document viewing
+  const handleViewDocument = (taskId) => {
+    console.log(`Viewing document: ${taskId}`);
+
+    // Define example document URLs for each document type
+    const documentLinks = {
+      concept:
+        "https://docs.google.com/document/d/1example-concept-document/edit",
+      sermon:
+        "https://docs.google.com/document/d/1example-sermon-document/edit",
+      final: "https://docs.google.com/document/d/1example-final-document/edit",
+      qrcode: "https://example.com/qr-code-image.png",
+    };
+
+    // Get the document name for the alert
+    const documentTypes = {
+      concept: "Concept Document",
+      final: "Final Liturgy",
+      sermon: "Sermon",
+      qrcode: "QR Code",
+    };
+
+    // Get the document URL
+    const documentUrl = documentLinks[taskId];
+
+    if (documentUrl) {
+      // Open the document in a new tab
+      window.open(documentUrl, "_blank");
+      alert(`Opening ${documentTypes[taskId] || taskId} in a new tab`);
+    } else {
+      // Fallback to just showing an alert
+      alert(`Opening ${documentTypes[taskId] || taskId} for viewing`);
+    }
+
+    // If you need to call the parent handler
+    onStartAction && onStartAction(`view-${taskId}`);
   };
 
   // Helper function to log role information for debugging
@@ -340,7 +415,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         </div>
 
                         {/* Action buttons and status badges container - consistent height */}
-                        <div className="w-full mt-auto flex flex-col justify-end min-h-[32px]">
+                        <div className="w-full mt-auto flex flex-col justify-end min-h-[32px] space-y-2">
                           {/* Liturgy Maker tasks */}
                           {(task.id === "concept" ||
                             task.id === "sermon" ||
@@ -352,7 +427,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 !isCompleted && (
                                   <Button
                                     size="sm"
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-7"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
                                     onClick={() => handleActionStart(task.id)}
                                   >
                                     {task.actionLabel}
@@ -365,40 +440,28 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 !isCompleted && (
                                   <Button
                                     size="sm"
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
                                     onClick={() => handleActionStart(task.id)}
                                   >
                                     {task.actionLabel}
                                   </Button>
                                 )}
 
-                              {/* For Liturgy Maker - if completed, show download/view link */}
-                              {isLiturgyMaker && isCompleted && (
+                              {/* Document viewing section - show for everyone when completed */}
+                              {isCompleted && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
-                                  onClick={() =>
-                                    onStartAction &&
-                                    onStartAction(`view-${task.id}`)
-                                  }
+                                  className={`w-full ${
+                                    isLiturgyMaker || isPastor
+                                      ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
+                                      : "border border-gray-300 text-blue-600 hover:bg-gray-50"
+                                  } text-xs py-1 h-8 rounded-md font-medium`}
+                                  onClick={() => handleViewDocument(task.id)}
                                 >
-                                  View Document
-                                </Button>
-                              )}
-
-                              {/* For non-Liturgy Makers - if completed, show download/view link */}
-                              {!isLiturgyMaker && isCompleted && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
-                                  onClick={() =>
-                                    onStartAction &&
-                                    onStartAction(`view-${task.id}`)
-                                  }
-                                >
-                                  View Document
+                                  {task.id === "sermon"
+                                    ? "View Sermon"
+                                    : "View Document"}
                                 </Button>
                               )}
                             </>
@@ -406,11 +469,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
                           {/* QR Code special handling for Treasurer */}
                           {isQrCodeTask &&
-                            ((typeof currentUserRole === "object" &&
-                              (currentUserRole.id === "treasurer" ||
-                                (currentUserRole.role &&
-                                  currentUserRole.role.id === "treasurer"))) ||
-                              currentUserRole === "treasurer") &&
+                            hasRole("treasurer") &&
                             !isCompleted && (
                               <Button
                                 size="sm"
@@ -418,7 +477,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                   isActive
                                     ? "bg-emerald-600 hover:bg-emerald-700"
                                     : "bg-emerald-500 hover:bg-emerald-600"
-                                } text-white text-xs py-1 h-7`}
+                                } text-white text-xs py-1 h-8 rounded-md`}
                                 onClick={() =>
                                   handleQrCodeAction(
                                     isActive ? "complete" : "upload"
@@ -428,6 +487,18 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 {isActive ? "Finish Upload" : task.actionLabel}
                               </Button>
                             )}
+
+                          {/* QR Code viewing when completed */}
+                          {isQrCodeTask && isCompleted && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs py-1 h-8 rounded-md font-medium"
+                              onClick={() => handleViewDocument("qrcode")}
+                            >
+                              View QR Code
+                            </Button>
+                          )}
 
                           {/* Other tasks active handling */}
                           {!isQrCodeTask &&
@@ -440,7 +511,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                             isCurrentUserCategory && (
                               <Button
                                 size="sm"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
                                 onClick={() =>
                                   onStartAction && onStartAction(task.id)
                                 }
@@ -453,7 +524,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           {!isActive && !isCompleted && (
                             <Badge
                               variant="secondary"
-                              className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200"
+                              className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
                             >
                               Pending
                             </Badge>
@@ -463,13 +534,13 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                             !isCompleted &&
                             !isQrCodeTask &&
                             !hasRole(task.restrictedTo) && (
-                              <Badge className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                              <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 rounded-md animate-pulse">
                                 In Progress
                               </Badge>
                             )}
 
                           {isCompleted && (
-                            <Badge className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-green-500 text-white">
+                            <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-green-500 text-white rounded-md font-medium">
                               Completed
                             </Badge>
                           )}
