@@ -279,7 +279,6 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
             >
               <category.icon className="w-5 h-5" />
               <div className="flex-1 font-medium">{category.name}</div>
-              <div className="text-sm opacity-75">{category.role}</div>
               {isCategoryExpanded ? (
                 <ChevronDown className="w-4 h-4" />
               ) : (
