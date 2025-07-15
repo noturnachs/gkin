@@ -339,139 +339,142 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         <div className="font-medium text-sm mb-1">
                           {task.name}
                         </div>
-                        {/* <div className="text-xs text-gray-500 mb-2">
-                          {task.description}
-                        </div> */}
 
-                        {/* Standard action button for Liturgy Maker tasks - with more compact styling */}
-                        {(task.id === "concept" ||
-                          task.id === "sermon" ||
-                          task.id === "final") && (
-                          <>
-                            {/* For Pastor - show sermon creation button */}
-                            {task.id === "sermon" &&
-                              hasRole("pastor") &&
-                              !isCompleted && (
-                                <Button
-                                  size="sm"
-                                  className="w-full mt-auto bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-7"
-                                  onClick={() => handleActionStart(task.id)}
-                                >
-                                  {task.actionLabel}
-                                </Button>
-                              )}
-
-                            {/* For Liturgy Maker - show action button */}
-                            {(task.id === "concept" || task.id === "final") &&
-                              hasRole("liturgy") &&
-                              !isCompleted && (
-                                <Button
-                                  size="sm"
-                                  className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
-                                  onClick={() => handleActionStart(task.id)}
-                                >
-                                  {task.actionLabel}
-                                </Button>
-                              )}
-
-                            {/* For Liturgy Maker - if completed, show download/view link */}
-                            {isLiturgyMaker && isCompleted && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
-                                onClick={() =>
-                                  onStartAction &&
-                                  onStartAction(`view-${task.id}`)
-                                }
-                              >
-                                View Document
-                              </Button>
-                            )}
-
-                            {/* For non-Liturgy Makers - if completed, show download/view link */}
-                            {!isLiturgyMaker && isCompleted && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
-                                onClick={() =>
-                                  onStartAction &&
-                                  onStartAction(`view-${task.id}`)
-                                }
-                              >
-                                View Document
-                              </Button>
-                            )}
-                          </>
-                        )}
-
-                        {/* QR Code special handling for Treasurer - more compact styling */}
-                        {isQrCodeTask &&
-                          ((typeof currentUserRole === "object" &&
-                            (currentUserRole.id === "treasurer" ||
-                              (currentUserRole.role &&
-                                currentUserRole.role.id === "treasurer"))) ||
-                            currentUserRole === "treasurer") &&
-                          !isCompleted && (
-                            <Button
-                              size="sm"
-                              className={`w-full mt-auto ${
-                                isActive
-                                  ? "bg-emerald-600 hover:bg-emerald-700"
-                                  : "bg-emerald-500 hover:bg-emerald-600"
-                              } text-white text-xs py-1 h-7`}
-                              onClick={() =>
-                                handleQrCodeAction(
-                                  isActive ? "complete" : "upload"
-                                )
-                              }
-                            >
-                              {isActive ? "Finish Upload" : task.actionLabel}
-                            </Button>
-                          )}
-
-                        {/* Other tasks active handling - more compact styling */}
-                        {!isQrCodeTask &&
-                          !(
-                            task.id === "concept" ||
+                        {/* Action buttons and status badges container - consistent height */}
+                        <div className="w-full mt-auto flex flex-col justify-end min-h-[32px]">
+                          {/* Liturgy Maker tasks */}
+                          {(task.id === "concept" ||
                             task.id === "sermon" ||
-                            task.id === "final"
-                          ) &&
-                          isActive &&
-                          isCurrentUserCategory && (
-                            <Button
-                              size="sm"
-                              className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
-                              onClick={() =>
-                                onStartAction && onStartAction(task.id)
-                              }
-                            >
-                              {task.actionLabel}
-                            </Button>
+                            task.id === "final") && (
+                            <>
+                              {/* For Pastor - show sermon creation button */}
+                              {task.id === "sermon" &&
+                                hasRole("pastor") &&
+                                !isCompleted && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-7"
+                                    onClick={() => handleActionStart(task.id)}
+                                  >
+                                    {task.actionLabel}
+                                  </Button>
+                                )}
+
+                              {/* For Liturgy Maker - show action button */}
+                              {(task.id === "concept" || task.id === "final") &&
+                                hasRole("liturgy") &&
+                                !isCompleted && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
+                                    onClick={() => handleActionStart(task.id)}
+                                  >
+                                    {task.actionLabel}
+                                  </Button>
+                                )}
+
+                              {/* For Liturgy Maker - if completed, show download/view link */}
+                              {isLiturgyMaker && isCompleted && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
+                                  onClick={() =>
+                                    onStartAction &&
+                                    onStartAction(`view-${task.id}`)
+                                  }
+                                >
+                                  View Document
+                                </Button>
+                              )}
+
+                              {/* For non-Liturgy Makers - if completed, show download/view link */}
+                              {!isLiturgyMaker && isCompleted && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
+                                  onClick={() =>
+                                    onStartAction &&
+                                    onStartAction(`view-${task.id}`)
+                                  }
+                                >
+                                  View Document
+                                </Button>
+                              )}
+                            </>
                           )}
 
-                        {/* Consistent status badge rendering */}
-                        {!isActive && !isCompleted && (
-                          <Badge
-                            variant="secondary"
-                            className="mt-auto text-xs px-2 bg-gray-100 text-gray-700 border border-gray-200"
-                          >
-                            Pending
-                          </Badge>
-                        )}
+                          {/* QR Code special handling for Treasurer */}
+                          {isQrCodeTask &&
+                            ((typeof currentUserRole === "object" &&
+                              (currentUserRole.id === "treasurer" ||
+                                (currentUserRole.role &&
+                                  currentUserRole.role.id === "treasurer"))) ||
+                              currentUserRole === "treasurer") &&
+                            !isCompleted && (
+                              <Button
+                                size="sm"
+                                className={`w-full ${
+                                  isActive
+                                    ? "bg-emerald-600 hover:bg-emerald-700"
+                                    : "bg-emerald-500 hover:bg-emerald-600"
+                                } text-white text-xs py-1 h-7`}
+                                onClick={() =>
+                                  handleQrCodeAction(
+                                    isActive ? "complete" : "upload"
+                                  )
+                                }
+                              >
+                                {isActive ? "Finish Upload" : task.actionLabel}
+                              </Button>
+                            )}
 
-                        {isActive && !isCompleted && (
-                          <Badge className="mt-auto text-xs px-2 bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
-                            In Progress
-                          </Badge>
-                        )}
+                          {/* Other tasks active handling */}
+                          {!isQrCodeTask &&
+                            !(
+                              task.id === "concept" ||
+                              task.id === "sermon" ||
+                              task.id === "final"
+                            ) &&
+                            isActive &&
+                            isCurrentUserCategory && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
+                                onClick={() =>
+                                  onStartAction && onStartAction(task.id)
+                                }
+                              >
+                                {task.actionLabel}
+                              </Button>
+                            )}
 
-                        {isCompleted && (
-                          <Badge className="mt-auto text-xs px-2 bg-green-500 text-white">
-                            Completed
-                          </Badge>
-                        )}
+                          {/* Consistent status badges */}
+                          {!isActive && !isCompleted && (
+                            <Badge
+                              variant="secondary"
+                              className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200"
+                            >
+                              Pending
+                            </Badge>
+                          )}
+
+                          {isActive &&
+                            !isCompleted &&
+                            !isQrCodeTask &&
+                            !hasRole(task.restrictedTo) && (
+                              <Badge className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                                In Progress
+                              </Badge>
+                            )}
+
+                          {isCompleted && (
+                            <Badge className="w-full mx-auto text-xs px-2 py-1 h-7 flex items-center justify-center bg-green-500 text-white">
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
