@@ -13,11 +13,13 @@ import {
   ChevronDown,
   ChevronRight,
   DollarSign,
+  Mail,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { DocumentCreatorModal } from "./document-creator-modal";
 import { SermonCreatorModal } from "./sermon-creator-modal";
+import { SendToPastorModal } from "./send-to-pastor-modal"; // We'll create this new component
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -121,6 +123,10 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isSermonModalOpen, setIsSermonModalOpen] = useState(false);
   const [currentDocumentType, setCurrentDocumentType] = useState("concept");
+
+  // Add state for the send to pastor modal
+  const [isSendToPastorModalOpen, setIsSendToPastorModalOpen] = useState(false);
+  const [currentDocumentToSend, setCurrentDocumentToSend] = useState(null);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -266,6 +272,31 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
     // Show a success message
     alert(`${documentData.documentTitle} has been saved successfully!`);
+  };
+
+  // Handle sending document to pastor
+  const handleSendToPastor = (taskId) => {
+    console.log(`Preparing to send document: ${taskId} to pastor`);
+    setCurrentDocumentToSend(taskId);
+    setIsSendToPastorModalOpen(true);
+  };
+
+  // Handle submission from send to pastor modal
+  const handleSendToPastorSubmit = (emailData) => {
+    console.log("Sending document to pastor:", emailData);
+
+    // Here you would typically make an API call to send the email
+
+    // Show success message
+    alert(`Document sent to ${emailData.email}!`);
+
+    // Close the modal
+    setIsSendToPastorModalOpen(false);
+
+    // Update the status if needed
+    if (onStartAction) {
+      onStartAction(`${currentDocumentToSend}-sent-to-pastor`);
+    }
   };
 
   // Update your handleActionStart function to use the new helper
@@ -449,20 +480,36 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
                               {/* Document viewing section - show for everyone when completed */}
                               {isCompleted && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className={`w-full ${
-                                    isLiturgyMaker || isPastor
-                                      ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
-                                      : "border border-gray-300 text-blue-600 hover:bg-gray-50"
-                                  } text-xs py-1 h-8 rounded-md font-medium`}
-                                  onClick={() => handleViewDocument(task.id)}
-                                >
-                                  {task.id === "sermon"
-                                    ? "View Sermon"
-                                    : "View Document"}
-                                </Button>
+                                <div className="space-y-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className={`w-full ${
+                                      isLiturgyMaker || isPastor
+                                        ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
+                                        : "border border-gray-300 text-blue-600 hover:bg-gray-50"
+                                    } text-xs py-1 h-8 rounded-md font-medium`}
+                                    onClick={() => handleViewDocument(task.id)}
+                                  >
+                                    {task.id === "sermon"
+                                      ? "View Sermon"
+                                      : "View Document"}
+                                  </Button>
+
+                                  {/* Send to Pastor button - only show for concept documents and for liturgy makers */}
+                                  {task.id === "concept" && isLiturgyMaker && (
+                                    <Button
+                                      size="sm"
+                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                      onClick={() =>
+                                        handleSendToPastor(task.id)
+                                      }
+                                    >
+                                      <Mail className="w-3 h-3" />
+                                      Send to Pastor
+                                    </Button>
+                                  )}
+                                </div>
                               )}
                             </>
                           )}
@@ -568,6 +615,14 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         isOpen={isSermonModalOpen}
         onClose={() => setIsSermonModalOpen(false)}
         onSubmit={handleSermonSubmit}
+      />
+
+      {/* Add the Send to Pastor Modal */}
+      <SendToPastorModal
+        isOpen={isSendToPastorModalOpen}
+        onClose={() => setIsSendToPastorModalOpen(false)}
+        onSubmit={handleSendToPastorSubmit}
+        documentType={currentDocumentToSend}
       />
     </div>
   );
