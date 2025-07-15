@@ -15,8 +15,9 @@ import {
   DollarSign,
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DocumentCreatorModal } from "./document-creator-modal";
+import { SermonCreatorModal } from "./sermon-creator-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -111,9 +112,51 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     service?.taskStatuses?.qrcode || "pending"
   );
 
-  // Add these states for the modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Add these states for both modals
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [isSermonModalOpen, setIsSermonModalOpen] = useState(false);
   const [currentDocumentType, setCurrentDocumentType] = useState("concept");
+
+  // Helper function to check role more easily
+  const hasRole = (roleId) => {
+    if (!currentUserRole) return false;
+
+    // Handle string roles
+    if (typeof currentUserRole === "string") {
+      return currentUserRole.toLowerCase() === roleId.toLowerCase();
+    }
+
+    // Handle object roles
+    if (typeof currentUserRole === "object") {
+      // Check direct id
+      if (
+        currentUserRole.id &&
+        currentUserRole.id.toLowerCase() === roleId.toLowerCase()
+      ) {
+        return true;
+      }
+
+      // Check nested role object
+      if (
+        currentUserRole.role &&
+        currentUserRole.role.id &&
+        currentUserRole.role.id.toLowerCase() === roleId.toLowerCase()
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  // Update the role checking for the pastor
+  const isPastor = hasRole("pastor");
+
+  // Also update the liturgy maker role check
+  const isLiturgyMaker = hasRole("liturgy");
+
+  // And update the treasurer role check
+  const isTreasurer = hasRole("treasurer");
 
   const toggleCategory = (categoryId) => {
     setExpandedCategories((prev) => ({
@@ -160,6 +203,20 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     }
   };
 
+  // This function will handle sermon submission from the modal
+  const handleSermonSubmit = (sermonData) => {
+    // Here you would handle the saved sermon
+    console.log("Sermon submitted:", sermonData);
+
+    // Update the service status for this task if needed
+    if (onStartAction) {
+      onStartAction(`sermon-completed`);
+    }
+
+    // Show a success message
+    alert(`Sermon "${sermonData.sermonTitle}" has been saved successfully!`);
+  };
+
   // This function will handle document submission from the modal
   const handleDocumentSubmit = (documentData) => {
     // Here you would handle the saved document
@@ -174,17 +231,32 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert(`${documentData.documentTitle} has been saved successfully!`);
   };
 
-  // Replace your existing onStartAction handler with this:
+  // Update your handleActionStart function to use the new helper
   const handleActionStart = (taskId) => {
-    // For document creation tasks, open the modal instead of navigating
-    if (taskId === "concept" || taskId === "sermon" || taskId === "final") {
+    console.log(`Action started for task: ${taskId}`); // Add this for debugging
+
+    // For sermon task, open the sermon modal if pastor
+    if (taskId === "sermon" && hasRole("pastor")) {
+      setIsSermonModalOpen(true);
+    }
+    // For document creation tasks, open the document modal for liturgy maker
+    else if (
+      (taskId === "concept" || taskId === "final") &&
+      hasRole("liturgy")
+    ) {
       setCurrentDocumentType(taskId);
-      setIsModalOpen(true);
+      setIsDocumentModalOpen(true);
     } else {
       // For other actions, use the original handler
       onStartAction && onStartAction(taskId);
     }
   };
+
+  // Helper function to log role information for debugging
+  useEffect(() => {
+    console.log("Current user role:", currentUserRole);
+    console.log("Is treasurer check:", isTreasurer);
+  }, [currentUserRole, isTreasurer]);
 
   return (
     <div className="space-y-3 md:space-y-4">
@@ -226,9 +298,6 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
                     // Special handling for QR code task
                     const isQrCodeTask = task.id === "qrcode";
-                    const isTreasurer =
-                      typeof currentUserRole === "object" &&
-                      currentUserRole.id === "treasurer";
                     const canPerformTask =
                       !task.restrictedTo ||
                       task.restrictedTo === currentUserRole?.toLowerCase();
@@ -270,21 +339,31 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         <div className="font-medium text-sm mb-1">
                           {task.name}
                         </div>
-                        <div className="text-xs text-gray-500 mb-2">
+                        {/* <div className="text-xs text-gray-500 mb-2">
                           {task.description}
-                        </div>
+                        </div> */}
 
                         {/* Standard action button for Liturgy Maker tasks - with more compact styling */}
                         {(task.id === "concept" ||
                           task.id === "sermon" ||
                           task.id === "final") && (
                           <>
+                            {/* For Pastor - show sermon creation button */}
+                            {task.id === "sermon" &&
+                              hasRole("pastor") &&
+                              !isCompleted && (
+                                <Button
+                                  size="sm"
+                                  className="w-full mt-auto bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-7"
+                                  onClick={() => handleActionStart(task.id)}
+                                >
+                                  {task.actionLabel}
+                                </Button>
+                              )}
+
                             {/* For Liturgy Maker - show action button */}
-                            {((typeof currentUserRole === "object" &&
-                              (currentUserRole.id === "liturgy" ||
-                                (currentUserRole.role &&
-                                  currentUserRole.role.id === "liturgy"))) ||
-                              currentUserRole === "liturgy") &&
+                            {(task.id === "concept" || task.id === "final") &&
+                              hasRole("liturgy") &&
                               !isCompleted && (
                                 <Button
                                   size="sm"
@@ -296,61 +375,61 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                               )}
 
                             {/* For Liturgy Maker - if completed, show download/view link */}
-                            {typeof currentUserRole === "object" &&
-                              currentUserRole.id === "liturgy" &&
-                              isCompleted && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
-                                  onClick={() =>
-                                    onStartAction &&
-                                    onStartAction(`view-${task.id}`)
-                                  }
-                                >
-                                  View Document
-                                </Button>
-                              )}
+                            {isLiturgyMaker && isCompleted && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
+                                onClick={() =>
+                                  onStartAction &&
+                                  onStartAction(`view-${task.id}`)
+                                }
+                              >
+                                View Document
+                              </Button>
+                            )}
 
                             {/* For non-Liturgy Makers - if completed, show download/view link */}
-                            {!(
-                              typeof currentUserRole === "object" &&
-                              currentUserRole.id === "liturgy"
-                            ) &&
-                              isCompleted && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
-                                  onClick={() =>
-                                    onStartAction &&
-                                    onStartAction(`view-${task.id}`)
-                                  }
-                                >
-                                  View Document
-                                </Button>
-                              )}
+                            {!isLiturgyMaker && isCompleted && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
+                                onClick={() =>
+                                  onStartAction &&
+                                  onStartAction(`view-${task.id}`)
+                                }
+                              >
+                                View Document
+                              </Button>
+                            )}
                           </>
                         )}
 
                         {/* QR Code special handling for Treasurer - more compact styling */}
-                        {isQrCodeTask && isTreasurer && !isCompleted && (
-                          <Button
-                            size="sm"
-                            className={`w-full mt-auto ${
-                              isActive
-                                ? "bg-emerald-600 hover:bg-emerald-700"
-                                : "bg-emerald-500 hover:bg-emerald-600"
-                            } text-white text-xs py-1 h-7`}
-                            onClick={() =>
-                              handleQrCodeAction(
-                                isActive ? "complete" : "upload"
-                              )
-                            }
-                          >
-                            {isActive ? "Finish Upload" : task.actionLabel}
-                          </Button>
-                        )}
+                        {isQrCodeTask &&
+                          ((typeof currentUserRole === "object" &&
+                            (currentUserRole.id === "treasurer" ||
+                              (currentUserRole.role &&
+                                currentUserRole.role.id === "treasurer"))) ||
+                            currentUserRole === "treasurer") &&
+                          !isCompleted && (
+                            <Button
+                              size="sm"
+                              className={`w-full mt-auto ${
+                                isActive
+                                  ? "bg-emerald-600 hover:bg-emerald-700"
+                                  : "bg-emerald-500 hover:bg-emerald-600"
+                              } text-white text-xs py-1 h-7`}
+                              onClick={() =>
+                                handleQrCodeAction(
+                                  isActive ? "complete" : "upload"
+                                )
+                              }
+                            >
+                              {isActive ? "Finish Upload" : task.actionLabel}
+                            </Button>
+                          )}
 
                         {/* Other tasks active handling - more compact styling */}
                         {!isQrCodeTask &&
@@ -405,10 +484,17 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
       {/* Document Creator Modal */}
       <DocumentCreatorModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isDocumentModalOpen}
+        onClose={() => setIsDocumentModalOpen(false)}
         onSubmit={handleDocumentSubmit}
         documentType={currentDocumentType}
+      />
+
+      {/* Sermon Creator Modal */}
+      <SermonCreatorModal
+        isOpen={isSermonModalOpen}
+        onClose={() => setIsSermonModalOpen(false)}
+        onSubmit={handleSermonSubmit}
       />
     </div>
   );
