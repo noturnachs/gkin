@@ -133,7 +133,9 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
     // Handle when currentUserRole is an object with an id property
     const userRoleId =
-      typeof currentUserRole === "object" && currentUserRole.id
+      typeof currentUserRole === "object" && currentUserRole.role
+        ? currentUserRole.role.id.toLowerCase() // Access the nested role object
+        : typeof currentUserRole === "object" && currentUserRole.id
         ? currentUserRole.id.toLowerCase()
         : currentUserRole.toLowerCase();
 
@@ -247,8 +249,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           task.id === "final") && (
                           <>
                             {/* For Liturgy Maker - show action button */}
-                            {typeof currentUserRole === "object" &&
-                              currentUserRole.id === "liturgy" &&
+                            {((typeof currentUserRole === "object" &&
+                              (currentUserRole.id === "liturgy" ||
+                                (currentUserRole.role &&
+                                  currentUserRole.role.id === "liturgy"))) ||
+                              currentUserRole === "liturgy") &&
                               !isCompleted && (
                                 <Button
                                   size="sm"
