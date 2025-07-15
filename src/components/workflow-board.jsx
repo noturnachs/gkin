@@ -12,6 +12,7 @@ import {
   File,
   ChevronDown,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
@@ -43,8 +44,9 @@ const workflowCategories = [
         id: "qrcode",
         name: "QR Code",
         icon: QrCode,
-        description: "Generate QR codes for resources",
-        actionLabel: "Generate QR",
+        description: "Generate and upload QR codes for donations",
+        actionLabel: "Upload QR Code",
+        restrictedTo: "treasurer", // Only treasurer can perform this action
       },
       {
         id: "final",
@@ -103,6 +105,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     beamer: false,
   });
 
+  // Local state to track QR code upload status for simulation
+  const [qrCodeStatus, setQrCodeStatus] = useState(
+    service?.taskStatuses?.qrcode || "pending"
+  );
+
   const toggleCategory = (categoryId) => {
     setExpandedCategories((prev) => ({
       ...prev,
@@ -111,6 +118,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   };
 
   const getTaskStatus = (taskId) => {
+    // Special handling for qrcode task to use local state
+    if (taskId === "qrcode") {
+      return qrCodeStatus;
+    }
+
     if (!service || !service.taskStatuses) return "pending";
     return service.taskStatuses[taskId] || "pending";
   };
@@ -121,11 +133,27 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     return role.toLowerCase().includes(currentUserRole.toLowerCase());
   };
 
+  // Handle QR code upload simulation
+  const handleQrCodeAction = (stage) => {
+    if (stage === "upload") {
+      setQrCodeStatus("active");
+      // Simulate processing time
+      setTimeout(() => {
+        setQrCodeStatus("completed");
+      }, 2000);
+    } else {
+      onStartAction && onStartAction("qrcode");
+    }
+  };
+
   return (
     <div className="space-y-3 md:space-y-4">
       {workflowCategories.map((category) => {
         const isCurrentUserCategory = isUserCategory(category.role);
         const isCategoryExpanded = expandedCategories[category.id];
+
+        // Skip categories that don't match user's role if filtering is desired
+        // if (!isCurrentUserCategory && currentUserRole !== "pastor") return null;
 
         return (
           <div
@@ -156,22 +184,44 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                     const isCompleted = status === "completed";
                     const isActive = status === "active";
 
+                    // Special handling for QR code task
+                    const isQrCodeTask = task.id === "qrcode";
+                    const isTreasurer =
+                      currentUserRole?.toLowerCase() === "treasurer";
+                    const canPerformTask =
+                      !task.restrictedTo ||
+                      task.restrictedTo === currentUserRole?.toLowerCase();
+
                     return (
                       <div
                         key={task.id}
                         className={`p-3 border rounded-lg flex flex-col items-center text-center ${
                           isCompleted
                             ? "bg-green-50 border-green-200"
-                            : isActive && isCurrentUserCategory
-                            ? "bg-blue-50 border-blue-300 border-2 shadow"
+                            : isActive
+                            ? isQrCodeTask
+                              ? "bg-emerald-50 border-emerald-300 border-2 shadow"
+                              : "bg-blue-50 border-blue-300 border-2 shadow"
                             : "bg-gray-50 border-gray-200"
                         }`}
                       >
                         <div className="mb-1">
                           {isCompleted ? (
-                            <CheckCircle className="w-6 h-6 text-green-500" />
+                            <CheckCircle
+                              className={`w-6 h-6 ${
+                                isQrCodeTask
+                                  ? "text-emerald-500"
+                                  : "text-green-500"
+                              }`}
+                            />
                           ) : isActive ? (
-                            <AlertCircle className="w-6 h-6 text-blue-500 animate-pulse" />
+                            <AlertCircle
+                              className={`w-6 h-6 ${
+                                isQrCodeTask
+                                  ? "text-emerald-500"
+                                  : "text-blue-500"
+                              } animate-pulse`}
+                            />
                           ) : (
                             <task.icon className="w-6 h-6 text-gray-400" />
                           )}
@@ -183,7 +233,27 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           {task.description}
                         </div>
 
-                        {isActive && isCurrentUserCategory && (
+                        {/* QR Code special handling for Treasurer */}
+                        {isQrCodeTask && isTreasurer && !isCompleted && (
+                          <Button
+                            size="sm"
+                            className={`w-full mt-auto ${
+                              isActive
+                                ? "bg-emerald-600 hover:bg-emerald-700"
+                                : "bg-emerald-500 hover:bg-emerald-600"
+                            } text-white text-xs`}
+                            onClick={() =>
+                              handleQrCodeAction(
+                                isActive ? "complete" : "upload"
+                              )
+                            }
+                          >
+                            {isActive ? "Finish Upload" : task.actionLabel}
+                          </Button>
+                        )}
+
+                        {/* Standard action button for non-QR tasks */}
+                        {!isQrCodeTask && isActive && isCurrentUserCategory && (
                           <Button
                             size="sm"
                             className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
@@ -205,7 +275,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         )}
 
                         {isCompleted && (
-                          <Badge className="mt-auto bg-green-500 text-white text-xs px-2">
+                          <Badge
+                            className={`mt-auto ${
+                              isQrCodeTask ? "bg-emerald-500" : "bg-green-500"
+                            } text-white text-xs px-2`}
+                          >
                             Completed
                           </Badge>
                         )}
