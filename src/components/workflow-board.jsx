@@ -3,334 +3,221 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  ArrowRight,
   FileText,
-  Upload,
   Edit,
   MessageSquare,
   Send,
-  Lock,
-  ExternalLink,
-  Download,
-  Eye,
+  Book,
+  QrCode,
+  File,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 
-const workflowSteps = [
+// Main task categories with their subtasks
+const workflowCategories = [
   {
-    id: 1,
-    name: "Concept Creation",
+    id: "liturgy",
+    name: "Liturgy Tasks",
     role: "Liturgy Maker",
     icon: FileText,
-    description: "Create initial liturgy concept document",
-    actionLabel: "Create Document",
+    color: "bg-blue-100 border-blue-300 text-blue-800",
+    subtasks: [
+      {
+        id: "concept",
+        name: "Concept Document",
+        icon: FileText,
+        description: "Create initial liturgy concept",
+        actionLabel: "Create Document",
+      },
+      {
+        id: "sermon",
+        name: "Sermon Document",
+        icon: Book,
+        description: "Prepare sermon document",
+        actionLabel: "Create Sermon",
+      },
+      {
+        id: "qrcode",
+        name: "QR Code",
+        icon: QrCode,
+        description: "Generate QR codes for resources",
+        actionLabel: "Generate QR",
+      },
+      {
+        id: "final",
+        name: "Final Document",
+        icon: File,
+        description: "Finalize all liturgy documents",
+        actionLabel: "Finalize",
+      },
+    ],
   },
   {
-    id: 2,
-    name: "Pastor Review",
-    role: "Pastor",
-    icon: Eye,
-    description: "Pastor reviews and provides feedback",
-    actionLabel: "Review Document",
-  },
-  {
-    id: 3,
-    name: "Document Update",
-    role: "Liturgy Maker",
-    icon: Edit,
-    description: "Update document based on feedback",
-    actionLabel: "Update Document",
-  },
-  {
-    id: 4,
-    name: "Final Version",
-    role: "Liturgy Maker",
-    icon: CheckCircle,
-    description: "Finalize document for translation",
-    actionLabel: "Finalize Document",
-  },
-  {
-    id: 5,
-    name: "Translation",
+    id: "translation",
+    name: "Translation Tasks",
     role: "Translation Team",
     icon: MessageSquare,
-    description: "Translate document to required languages",
-    actionLabel: "Translate Document",
+    color: "bg-green-100 border-green-300 text-green-800",
+    subtasks: [
+      {
+        id: "translate-liturgy",
+        name: "Translate Liturgy",
+        icon: MessageSquare,
+        description: "Translate liturgy content",
+        actionLabel: "Translate",
+      },
+      {
+        id: "translate-sermon",
+        name: "Translate Sermon",
+        icon: Book,
+        description: "Translate sermon content",
+        actionLabel: "Translate",
+      },
+    ],
   },
   {
-    id: 6,
-    name: "Beamer Prep",
+    id: "beamer",
+    name: "Beamer Tasks",
     role: "Beamer Team",
     icon: Send,
-    description: "Prepare presentation slides",
-    actionLabel: "Create Slides",
-  },
-  {
-    id: 7,
-    name: "Complete",
-    role: "System",
-    icon: CheckCircle,
-    description: "Workflow complete",
-    actionLabel: null,
+    color: "bg-orange-100 border-orange-300 text-orange-800",
+    subtasks: [
+      {
+        id: "slides",
+        name: "Create Slides",
+        icon: Send,
+        description: "Create presentation slides",
+        actionLabel: "Create Slides",
+      },
+    ],
   },
 ];
 
 export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
-  const [expandedStep, setExpandedStep] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState({
+    liturgy: true, // Open by default
+    translation: false,
+    beamer: false,
+  });
 
-  const getStepStatus = (stepId) => {
-    if (!service) return "pending";
-    if (stepId < service.currentStep) return "completed";
-    if (stepId === service.currentStep) return "active";
-    return "pending";
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
   };
 
-  const getStepColor = (status, role) => {
-    // Highlight the current user's role steps
-    const isUserRole = role && role.toLowerCase().includes(currentUserRole);
-
-    switch (status) {
-      case "completed":
-        return "bg-green-100 border-green-300 text-green-800";
-      case "active":
-        return isUserRole
-          ? "bg-blue-100 border-blue-500 border-2 text-blue-800 shadow-sm"
-          : "bg-blue-50 border-blue-300 text-blue-700";
-      case "pending":
-        return isUserRole
-          ? "bg-gray-100 border-gray-300 text-gray-700"
-          : "bg-gray-50 border-gray-200 text-gray-600";
-      default:
-        return "bg-gray-100 border-gray-300 text-gray-600";
-    }
+  const getTaskStatus = (taskId) => {
+    if (!service || !service.taskStatuses) return "pending";
+    return service.taskStatuses[taskId] || "pending";
   };
 
-  const getIcon = (status, IconComponent) => {
-    if (status === "completed") return CheckCircle;
-    if (status === "active") return AlertCircle;
-    return IconComponent;
-  };
-
-  const getActionIcon = (stepId) => {
-    switch (stepId) {
-      case 1:
-        return FileText;
-      case 2:
-        return Eye;
-      case 3:
-        return Edit;
-      case 4:
-        return CheckCircle;
-      case 5:
-        return MessageSquare;
-      case 6:
-        return Send;
-      default:
-        return Clock;
-    }
-  };
-
-  const toggleExpandStep = (stepId) => {
-    if (expandedStep === stepId) {
-      setExpandedStep(null);
-    } else {
-      setExpandedStep(stepId);
-    }
+  // Check if the current user can work on this category
+  const isUserCategory = (role) => {
+    if (!role || !currentUserRole) return false;
+    return role.toLowerCase().includes(currentUserRole.toLowerCase());
   };
 
   return (
-    <div className="space-y-2 md:space-y-4">
-      <div className="grid grid-cols-1 gap-2 md:gap-3">
-        {workflowSteps.map((step, index) => {
-          const status = getStepStatus(step.id);
-          const IconComponent = getIcon(status, step.icon);
-          const isUserRole =
-            step.role && step.role.toLowerCase().includes(currentUserRole);
-          const isActiveUserStep = status === "active" && isUserRole;
-          const isPending = status === "pending";
-          const isCompleted = status === "completed";
-          const isExpanded = expandedStep === step.id;
-          const ActionIcon = getActionIcon(step.id);
+    <div className="space-y-3 md:space-y-4">
+      {workflowCategories.map((category) => {
+        const isCurrentUserCategory = isUserCategory(category.role);
+        const isCategoryExpanded = expandedCategories[category.id];
 
-          return (
-            <div key={step.id} className="flex flex-col gap-1">
-              <div
-                className={`flex items-center gap-2 md:gap-4 ${
-                  isActiveUserStep ? "cursor-pointer" : ""
-                }`}
-                onClick={
-                  isActiveUserStep ? () => toggleExpandStep(step.id) : undefined
-                }
-              >
-                <div
-                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border flex-1 ${getStepColor(
-                    status,
-                    step.role
-                  )}`}
-                >
-                  <IconComponent
-                    className={`w-4 h-4 md:w-5 md:h-5 ${
-                      status === "active" ? "text-blue-600 animate-pulse" : ""
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-xs md:text-sm truncate">
-                      {step.name}
-                    </div>
-                    <div className="text-[10px] md:text-xs opacity-75 truncate">
-                      {step.role}
-                    </div>
-                  </div>
-
-                  {isActiveUserStep && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100 mr-1 md:mr-2 h-7 md:h-8 text-[10px] md:text-xs px-1.5 md:px-2 min-h-0 whitespace-nowrap"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onStartAction && onStartAction(step.id);
-                      }}
-                    >
-                      <ActionIcon className="w-3 h-3 mr-1 hidden sm:inline" />
-                      <span className="sm:hidden">Start</span>
-                      <span className="hidden sm:inline">
-                        {step.actionLabel || `Start ${step.name}`}
-                      </span>
-                    </Button>
-                  )}
-
-                  <Badge
-                    variant={status === "completed" ? "default" : "secondary"}
-                    className="text-[9px] md:text-xs h-5 md:h-6 px-1 md:px-2 min-w-[52px] md:min-w-[60px] flex items-center justify-center"
-                  >
-                    {status}
-                  </Badge>
-                </div>
-                {index < workflowSteps.length - 1 && (
-                  <ArrowRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400 hidden sm:block" />
-                )}
-              </div>
-
-              {/* Expanded details for active user steps */}
-              {isExpanded && isActiveUserStep && (
-                <div className="ml-6 mr-2 mb-2 p-3 bg-white border border-blue-200 rounded-lg shadow-sm">
-                  <p className="text-xs text-gray-600 mb-3">
-                    {step.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
-                      onClick={() => onStartAction && onStartAction(step.id)}
-                    >
-                      <ActionIcon className="w-3 h-3 mr-1" />
-                      {step.actionLabel || `Start ${step.name}`}
-                    </Button>
-
-                    {step.id === 1 && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <Upload className="w-3 h-3 mr-1" />
-                          Upload Existing
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          View Templates
-                        </Button>
-                      </>
-                    )}
-
-                    {step.id === 2 && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download Document
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <MessageSquare className="w-3 h-3 mr-1" />
-                          Send Feedback
-                        </Button>
-                      </>
-                    )}
-
-                    {step.id === 3 && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View Feedback
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <Upload className="w-3 h-3 mr-1" />
-                          Upload Revised
-                        </Button>
-                      </>
-                    )}
-
-                    {(step.id === 4 || step.id === 5 || step.id === 6) && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          Download Files
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 h-8"
-                        >
-                          <MessageSquare className="w-3 h-3 mr-1" />
-                          Ask Questions
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* View-only info for non-user roles when active */}
-              {status === "active" && !isUserRole && (
-                <div className="ml-6 mr-2 mb-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-3 h-3 text-gray-400" />
-                    <p className="text-xs text-gray-500">
-                      Waiting for {step.role} to complete this step
-                    </p>
-                  </div>
-                </div>
+        return (
+          <div
+            key={category.id}
+            className="border rounded-lg overflow-hidden shadow-sm"
+          >
+            {/* Category Header */}
+            <div
+              className={`flex items-center gap-3 p-3 cursor-pointer ${category.color}`}
+              onClick={() => toggleCategory(category.id)}
+            >
+              <category.icon className="w-5 h-5" />
+              <div className="flex-1 font-medium">{category.name}</div>
+              <div className="text-sm opacity-75">{category.role}</div>
+              {isCategoryExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
               )}
             </div>
-          );
-        })}
-      </div>
+
+            {/* Subtasks */}
+            {isCategoryExpanded && (
+              <div className="p-2 bg-white">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                  {category.subtasks.map((task) => {
+                    const status = getTaskStatus(task.id);
+                    const isCompleted = status === "completed";
+                    const isActive = status === "active";
+
+                    return (
+                      <div
+                        key={task.id}
+                        className={`p-3 border rounded-lg flex flex-col items-center text-center ${
+                          isCompleted
+                            ? "bg-green-50 border-green-200"
+                            : isActive && isCurrentUserCategory
+                            ? "bg-blue-50 border-blue-300 border-2 shadow"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
+                      >
+                        <div className="mb-1">
+                          {isCompleted ? (
+                            <CheckCircle className="w-6 h-6 text-green-500" />
+                          ) : isActive ? (
+                            <AlertCircle className="w-6 h-6 text-blue-500 animate-pulse" />
+                          ) : (
+                            <task.icon className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="font-medium text-sm mb-1">
+                          {task.name}
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">
+                          {task.description}
+                        </div>
+
+                        {isActive && isCurrentUserCategory && (
+                          <Button
+                            size="sm"
+                            className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                            onClick={() =>
+                              onStartAction && onStartAction(task.id)
+                            }
+                          >
+                            {task.actionLabel}
+                          </Button>
+                        )}
+
+                        {!isActive && !isCompleted && (
+                          <Badge
+                            variant="secondary"
+                            className="mt-auto text-xs px-2"
+                          >
+                            Pending
+                          </Badge>
+                        )}
+
+                        {isCompleted && (
+                          <Badge className="mt-auto bg-green-500 text-white text-xs px-2">
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
