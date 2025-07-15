@@ -8,7 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { FileText, Users, Music, Video, BookOpen, LogIn } from "lucide-react";
+import {
+  FileText,
+  Users,
+  Music,
+  Video,
+  BookOpen,
+  LogIn,
+  DollarSign,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const roles = [
@@ -61,6 +69,16 @@ const roles = [
     bgColor: "bg-pink-50",
     borderColor: "border-pink-200",
     description: "Prepare music arrangements",
+  },
+  {
+    id: "treasurer",
+    name: "Treasurer",
+    icon: DollarSign,
+    color: "bg-emerald-500",
+    textColor: "text-emerald-700",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+    description: "Manage financial records and budgets",
   },
 ];
 
