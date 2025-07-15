@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { DocumentCreatorModal } from "./document-creator-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -110,6 +111,10 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     service?.taskStatuses?.qrcode || "pending"
   );
 
+  // Add these states for the modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentDocumentType, setCurrentDocumentType] = useState("concept");
+
   const toggleCategory = (categoryId) => {
     setExpandedCategories((prev) => ({
       ...prev,
@@ -152,6 +157,32 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
       }, 2000);
     } else {
       onStartAction && onStartAction("qrcode");
+    }
+  };
+
+  // This function will handle document submission from the modal
+  const handleDocumentSubmit = (documentData) => {
+    // Here you would handle the saved document
+    console.log("Document submitted:", documentData);
+
+    // Update the service status for this task if needed
+    if (onStartAction) {
+      onStartAction(`${documentData.documentType}-completed`);
+    }
+
+    // Show a success message
+    alert(`${documentData.documentTitle} has been saved successfully!`);
+  };
+
+  // Replace your existing onStartAction handler with this:
+  const handleActionStart = (taskId) => {
+    // For document creation tasks, open the modal instead of navigating
+    if (taskId === "concept" || taskId === "sermon" || taskId === "final") {
+      setCurrentDocumentType(taskId);
+      setIsModalOpen(true);
+    } else {
+      // For other actions, use the original handler
+      onStartAction && onStartAction(taskId);
     }
   };
 
@@ -258,9 +289,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 <Button
                                   size="sm"
                                   className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                                  onClick={() =>
-                                    onStartAction && onStartAction(task.id)
-                                  }
+                                  onClick={() => handleActionStart(task.id)}
                                 >
                                   {task.actionLabel}
                                 </Button>
@@ -370,6 +399,14 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
           </div>
         );
       })}
+
+      {/* Document Creator Modal */}
+      <DocumentCreatorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleDocumentSubmit}
+        documentType={currentDocumentType}
+      />
     </div>
   );
 }
