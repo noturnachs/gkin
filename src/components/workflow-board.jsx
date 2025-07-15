@@ -128,9 +128,16 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   };
 
   // Check if the current user can work on this category
-  const isUserCategory = (role) => {
-    if (!role || !currentUserRole) return false;
-    return role.toLowerCase().includes(currentUserRole.toLowerCase());
+  const isUserCategory = (roleStr) => {
+    if (!roleStr || !currentUserRole) return false;
+
+    // Handle when currentUserRole is an object with an id property
+    const userRoleId =
+      typeof currentUserRole === "object" && currentUserRole.id
+        ? currentUserRole.id.toLowerCase()
+        : currentUserRole.toLowerCase();
+
+    return roleStr.toLowerCase().includes(userRoleId);
   };
 
   // Handle QR code upload simulation
@@ -187,7 +194,8 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                     // Special handling for QR code task
                     const isQrCodeTask = task.id === "qrcode";
                     const isTreasurer =
-                      currentUserRole?.toLowerCase() === "treasurer";
+                      typeof currentUserRole === "object" &&
+                      currentUserRole.id === "treasurer";
                     const canPerformTask =
                       !task.restrictedTo ||
                       task.restrictedTo === currentUserRole?.toLowerCase();
@@ -233,6 +241,64 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           {task.description}
                         </div>
 
+                        {/* Standard action button for Liturgy Maker tasks */}
+                        {(task.id === "concept" ||
+                          task.id === "sermon" ||
+                          task.id === "final") && (
+                          <>
+                            {/* For Liturgy Maker - show action button */}
+                            {typeof currentUserRole === "object" &&
+                              currentUserRole.id === "liturgy" &&
+                              !isCompleted && (
+                                <Button
+                                  size="sm"
+                                  className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                  onClick={() =>
+                                    onStartAction && onStartAction(task.id)
+                                  }
+                                >
+                                  {task.actionLabel}
+                                </Button>
+                              )}
+
+                            {/* For Liturgy Maker - if completed, show download/view link */}
+                            {typeof currentUserRole === "object" &&
+                              currentUserRole.id === "liturgy" &&
+                              isCompleted && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                                  onClick={() =>
+                                    onStartAction &&
+                                    onStartAction(`view-${task.id}`)
+                                  }
+                                >
+                                  View Document
+                                </Button>
+                              )}
+
+                            {/* For non-Liturgy Makers - if completed, show download/view link */}
+                            {!(
+                              typeof currentUserRole === "object" &&
+                              currentUserRole.id === "liturgy"
+                            ) &&
+                              isCompleted && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs"
+                                  onClick={() =>
+                                    onStartAction &&
+                                    onStartAction(`view-${task.id}`)
+                                  }
+                                >
+                                  View Document
+                                </Button>
+                              )}
+                          </>
+                        )}
+
                         {/* QR Code special handling for Treasurer */}
                         {isQrCodeTask && isTreasurer && !isCompleted && (
                           <Button
@@ -252,18 +318,25 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </Button>
                         )}
 
-                        {/* Standard action button for non-QR tasks */}
-                        {!isQrCodeTask && isActive && isCurrentUserCategory && (
-                          <Button
-                            size="sm"
-                            className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                            onClick={() =>
-                              onStartAction && onStartAction(task.id)
-                            }
-                          >
-                            {task.actionLabel}
-                          </Button>
-                        )}
+                        {/* Other tasks active handling */}
+                        {!isQrCodeTask &&
+                          !(
+                            task.id === "concept" ||
+                            task.id === "sermon" ||
+                            task.id === "final"
+                          ) &&
+                          isActive &&
+                          isCurrentUserCategory && (
+                            <Button
+                              size="sm"
+                              className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                              onClick={() =>
+                                onStartAction && onStartAction(task.id)
+                              }
+                            >
+                              {task.actionLabel}
+                            </Button>
+                          )}
 
                         {!isActive && !isCompleted && (
                           <Badge
