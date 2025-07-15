@@ -274,7 +274,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           {task.description}
                         </div>
 
-                        {/* Standard action button for Liturgy Maker tasks */}
+                        {/* Standard action button for Liturgy Maker tasks - with more compact styling */}
                         {(task.id === "concept" ||
                           task.id === "sermon" ||
                           task.id === "final") && (
@@ -288,7 +288,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                               !isCompleted && (
                                 <Button
                                   size="sm"
-                                  className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                  className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
                                   onClick={() => handleActionStart(task.id)}
                                 >
                                   {task.actionLabel}
@@ -302,7 +302,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                                  className="w-full mt-auto border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-7"
                                   onClick={() =>
                                     onStartAction &&
                                     onStartAction(`view-${task.id}`)
@@ -321,7 +321,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs"
+                                  className="w-full mt-auto border-gray-300 text-gray-700 hover:bg-gray-50 text-xs py-1 h-7"
                                   onClick={() =>
                                     onStartAction &&
                                     onStartAction(`view-${task.id}`)
@@ -333,7 +333,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </>
                         )}
 
-                        {/* QR Code special handling for Treasurer */}
+                        {/* QR Code special handling for Treasurer - more compact styling */}
                         {isQrCodeTask && isTreasurer && !isCompleted && (
                           <Button
                             size="sm"
@@ -341,7 +341,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                               isActive
                                 ? "bg-emerald-600 hover:bg-emerald-700"
                                 : "bg-emerald-500 hover:bg-emerald-600"
-                            } text-white text-xs`}
+                            } text-white text-xs py-1 h-7`}
                             onClick={() =>
                               handleQrCodeAction(
                                 isActive ? "complete" : "upload"
@@ -352,7 +352,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </Button>
                         )}
 
-                        {/* Other tasks active handling */}
+                        {/* Other tasks active handling - more compact styling */}
                         {!isQrCodeTask &&
                           !(
                             task.id === "concept" ||
@@ -363,7 +363,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           isCurrentUserCategory && (
                             <Button
                               size="sm"
-                              className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                              className="w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-7"
                               onClick={() =>
                                 onStartAction && onStartAction(task.id)
                               }
@@ -372,21 +372,24 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                             </Button>
                           )}
 
+                        {/* Consistent status badge rendering */}
                         {!isActive && !isCompleted && (
                           <Badge
                             variant="secondary"
-                            className="mt-auto text-xs px-2"
+                            className="mt-auto text-xs px-2 bg-gray-100 text-gray-700 border border-gray-200"
                           >
                             Pending
                           </Badge>
                         )}
 
+                        {isActive && !isCompleted && (
+                          <Badge className="mt-auto text-xs px-2 bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                            In Progress
+                          </Badge>
+                        )}
+
                         {isCompleted && (
-                          <Badge
-                            className={`mt-auto ${
-                              isQrCodeTask ? "bg-emerald-500" : "bg-green-500"
-                            } text-white text-xs px-2`}
-                          >
+                          <Badge className="mt-auto text-xs px-2 bg-green-500 text-white">
                             Completed
                           </Badge>
                         )}
