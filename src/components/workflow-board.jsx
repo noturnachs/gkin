@@ -70,9 +70,9 @@ const workflowCategories = [
     subtasks: [
       {
         id: "translate-liturgy",
-        name: "Translate Liturgy",
+        name: "Translate Lyrics",
         icon: MessageSquare,
-        description: "Translate liturgy content",
+        description: "Translate song lyrics content",
         actionLabel: "Translate",
       },
       {
