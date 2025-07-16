@@ -23,6 +23,7 @@ import { SermonCreatorModal } from "./sermon-creator-modal";
 import { SendToPastorModal } from "./send-to-pastor-modal"; // We'll create this new component
 import { SendToMusicModal } from "./send-to-music-modal"; // We'll create this new component
 import { SermonUploadModal } from "./sermon-upload-modal"; // Import the new modal
+import { PastorNotifyModal } from "./pastor-notify-modal"; // Import the pastor notify modal
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -139,6 +140,10 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
 
   // Add a new state for the sermon upload modal
   const [isSermonUploadModalOpen, setIsSermonUploadModalOpen] = useState(false);
+
+  // Add a new state for the pastor notification modal
+  const [isPastorNotifyModalOpen, setIsPastorNotifyModalOpen] = useState(false);
+  const [currentDocumentToNotify, setCurrentDocumentToNotify] = useState(null);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -426,6 +431,83 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     onStartAction && onStartAction(`view-${taskId}`);
   };
 
+  // Handle pastor editing document
+  const handlePastorEdit = (taskId) => {
+    console.log(`Pastor editing document: ${taskId}`);
+
+    // Define document URLs - same as in handleViewDocument
+    const documentLinks = {
+      concept:
+        "https://docs.google.com/document/d/1example-concept-document/edit",
+      sermon:
+        "https://docs.google.com/document/d/1example-sermon-document/edit",
+      final: "https://docs.google.com/document/d/1example-final-document/edit",
+      qrcode: "https://example.com/qr-code-image.png",
+    };
+
+    // Get document types
+    const documentTypes = {
+      concept: "Concept Document",
+      final: "Final Liturgy",
+      sermon: "Sermon",
+      qrcode: "QR Code",
+    };
+
+    // Get the document URL
+    const documentUrl = documentLinks[taskId];
+
+    if (documentUrl) {
+      // Open the document in a new tab
+      window.open(documentUrl, "_blank");
+
+      // Show a confirmation when window is refocused that they can notify teams when done
+      window.addEventListener(
+        "focus",
+        function onFocus() {
+          // Remove this listener so it only runs once
+          window.removeEventListener("focus", onFocus);
+
+          // Ask if they want to notify teams now
+          const confirmed = window.confirm(
+            `Have you finished editing the ${documentTypes[taskId]}? Would you like to notify the teams now?`
+          );
+
+          if (confirmed) {
+            handlePastorNotifyTeams(taskId);
+          }
+        },
+        { once: true }
+      );
+    }
+  };
+
+  // Handle pastor notifying teams after editing
+  const handlePastorNotifyTeams = (taskId) => {
+    console.log(`Pastor notifying teams about document: ${taskId}`);
+    setCurrentDocumentToNotify(taskId);
+    setIsPastorNotifyModalOpen(true);
+  };
+
+  // Handle submission from pastor notify modal
+  const handlePastorNotifySubmit = (notificationData) => {
+    console.log("Pastor sending notifications:", notificationData);
+
+    // Here you would typically make an API call to send the emails
+
+    // Show success message
+    alert(
+      `Notifications sent to teams about the ${notificationData.documentType}!`
+    );
+
+    // Close the modal
+    setIsPastorNotifyModalOpen(false);
+
+    // Update the status if needed
+    if (onStartAction) {
+      onStartAction(`${currentDocumentToNotify}-pastor-reviewed`);
+    }
+  };
+
   // Helper function to log role information for debugging
   useEffect(() => {
     console.log("Current user role:", currentUserRole);
@@ -567,6 +649,34 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                     : "View Document"}
                                 </Button>
 
+                                {/* Pastor special options - View & Edit and notify teams */}
+                                {isPastor &&
+                                  (task.id === "concept" ||
+                                    task.id === "final") && (
+                                    <div className="space-y-2 mt-2">
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                        onClick={() =>
+                                          handlePastorEdit(task.id)
+                                        }
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                        Edit Document
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                        onClick={() =>
+                                          handlePastorNotifyTeams(task.id)
+                                        }
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                        Notify Teams
+                                      </Button>
+                                    </div>
+                                  )}
+
                                 {/* Send to Pastor button - now showing for both concept and final documents */}
                                 {(task.id === "concept" ||
                                   task.id === "final") &&
@@ -583,7 +693,6 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                         Send to Pastor
                                       </Button>
 
-                                      {/* New Send to Music button */}
                                       <Button
                                         size="sm"
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
@@ -724,6 +833,14 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         isOpen={isSermonUploadModalOpen}
         onClose={() => setIsSermonUploadModalOpen(false)}
         onSubmit={handleSermonUploadSubmit}
+      />
+
+      {/* Add the Pastor Notify Modal - new */}
+      <PastorNotifyModal
+        isOpen={isPastorNotifyModalOpen}
+        onClose={() => setIsPastorNotifyModalOpen(false)}
+        onSubmit={handlePastorNotifySubmit}
+        documentType={currentDocumentToNotify}
       />
     </div>
   );
