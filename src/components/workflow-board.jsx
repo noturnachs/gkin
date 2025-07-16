@@ -103,11 +103,12 @@ const workflowCategories = [
 ];
 
 export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
-  const [expandedCategories, setExpandedCategories] = useState({
-    liturgy: true, // Open by default
-    translation: false,
-    beamer: false,
-  });
+  // Remove the expandedCategories state
+  // const [expandedCategories, setExpandedCategories] = useState({
+  //   liturgy: true, // Open by default
+  //   translation: false,
+  //   beamer: false,
+  // });
 
   // Local state to track QR code upload status for simulation
   const [qrCodeStatus, setQrCodeStatus] = useState(
@@ -169,12 +170,13 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   // And update the treasurer role check
   const isTreasurer = hasRole("treasurer");
 
-  const toggleCategory = (categoryId) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [categoryId]: !prev[categoryId],
-    }));
-  };
+  // Remove the toggleCategory function
+  // const toggleCategory = (categoryId) => {
+  //   setExpandedCategories((prev) => ({
+  //     ...prev,
+  //     [categoryId]: !prev[categoryId],
+  //   }));
+  // };
 
   // Update the getTaskStatus function to use our local state
   const getTaskStatus = (taskId) => {
@@ -368,7 +370,8 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     <div className="space-y-3 md:space-y-4">
       {workflowCategories.map((category) => {
         const isCurrentUserCategory = isUserCategory(category.role);
-        const isCategoryExpanded = expandedCategories[category.id];
+        // Remove the isCategoryExpanded variable
+        // const isCategoryExpanded = expandedCategories[category.id];
 
         // Skip categories that don't match user's role if filtering is desired
         // if (!isCurrentUserCategory && currentUserRole !== "pastor") return null;
@@ -378,226 +381,215 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
             key={category.id}
             className="border rounded-lg overflow-hidden shadow-sm"
           >
-            {/* Category Header */}
-            <div
-              className={`flex items-center gap-3 p-3 cursor-pointer ${category.color}`}
-              onClick={() => toggleCategory(category.id)}
-            >
+            {/* Category Header - non-collapsible now */}
+            <div className={`flex items-center gap-3 p-3 ${category.color}`}>
               <category.icon className="w-5 h-5" />
               <div className="flex-1 font-medium">{category.name}</div>
-              {isCategoryExpanded ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
+              {/* Remove the chevron icons */}
             </div>
 
-            {/* Subtasks */}
-            {isCategoryExpanded && (
-              <div className="p-2 bg-white">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                  {category.subtasks.map((task) => {
-                    const status = getTaskStatus(task.id);
-                    const isCompleted = status === "completed";
-                    const isActive = status === "active";
+            {/* Subtasks - always visible */}
+            <div className="p-2 bg-white">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                {category.subtasks.map((task) => {
+                  const status = getTaskStatus(task.id);
+                  const isCompleted = status === "completed";
+                  const isActive = status === "active";
 
-                    // Special handling for QR code task
-                    const isQrCodeTask = task.id === "qrcode";
-                    const canPerformTask =
-                      !task.restrictedTo ||
-                      task.restrictedTo === currentUserRole?.toLowerCase();
+                  // Special handling for QR code task
+                  const isQrCodeTask = task.id === "qrcode";
+                  const canPerformTask =
+                    !task.restrictedTo ||
+                    task.restrictedTo === currentUserRole?.toLowerCase();
 
-                    return (
-                      <div
-                        key={task.id}
-                        className={`p-3 border rounded-lg flex flex-col items-center text-center ${
-                          isCompleted
-                            ? "bg-green-50 border-green-200"
-                            : isActive
-                            ? isQrCodeTask
-                              ? "bg-emerald-50 border-emerald-300 border-2 shadow"
-                              : "bg-blue-50 border-blue-300 border-2 shadow"
-                            : "bg-gray-50 border-gray-200"
-                        }`}
-                      >
-                        <div className="mb-1">
-                          {isCompleted ? (
-                            <CheckCircle
-                              className={`w-6 h-6 ${
-                                isQrCodeTask
-                                  ? "text-emerald-500"
-                                  : "text-green-500"
-                              }`}
-                            />
-                          ) : isActive ? (
-                            <AlertCircle
-                              className={`w-6 h-6 ${
-                                isQrCodeTask
-                                  ? "text-emerald-500"
-                                  : "text-blue-500"
-                              } animate-pulse`}
-                            />
-                          ) : (
-                            <task.icon className="w-6 h-6 text-gray-400" />
-                          )}
-                        </div>
-                        <div className="font-medium text-sm mb-1">
-                          {task.name}
-                        </div>
+                  return (
+                    <div
+                      key={task.id}
+                      className={`p-3 border rounded-lg flex flex-col items-center text-center ${
+                        isCompleted
+                          ? "bg-green-50 border-green-200"
+                          : isActive
+                          ? isQrCodeTask
+                            ? "bg-emerald-50 border-emerald-300 border-2 shadow"
+                            : "bg-blue-50 border-blue-300 border-2 shadow"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <div className="mb-1">
+                        {isCompleted ? (
+                          <CheckCircle
+                            className={`w-6 h-6 ${
+                              isQrCodeTask
+                                ? "text-emerald-500"
+                                : "text-green-500"
+                            }`}
+                          />
+                        ) : isActive ? (
+                          <AlertCircle
+                            className={`w-6 h-6 ${
+                              isQrCodeTask
+                                ? "text-emerald-500"
+                                : "text-blue-500"
+                            } animate-pulse`}
+                          />
+                        ) : (
+                          <task.icon className="w-6 h-6 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="font-medium text-sm mb-1">
+                        {task.name}
+                      </div>
 
-                        {/* Action buttons and status badges container - consistent height */}
-                        <div className="w-full mt-auto flex flex-col justify-end min-h-[32px] space-y-2">
-                          {/* Liturgy Maker tasks */}
-                          {(task.id === "concept" ||
-                            task.id === "sermon" ||
-                            task.id === "final") && (
-                            <>
-                              {/* For Pastor - show sermon creation button */}
-                              {task.id === "sermon" &&
-                                hasRole("pastor") &&
-                                !isCompleted && (
-                                  <Button
-                                    size="sm"
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
-                                    onClick={() => handleActionStart(task.id)}
-                                  >
-                                    {task.actionLabel}
-                                  </Button>
-                                )}
-
-                              {/* For Liturgy Maker - show action button */}
-                              {(task.id === "concept" || task.id === "final") &&
-                                hasRole("liturgy") &&
-                                !isCompleted && (
-                                  <Button
-                                    size="sm"
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
-                                    onClick={() => handleActionStart(task.id)}
-                                  >
-                                    {task.actionLabel}
-                                  </Button>
-                                )}
-
-                              {/* Document viewing section - show for everyone when completed */}
-                              {isCompleted && (
-                                <div className="space-y-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className={`w-full ${
-                                      isLiturgyMaker || isPastor
-                                        ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
-                                        : "border border-gray-300 text-blue-600 hover:bg-gray-50"
-                                    } text-xs py-1 h-8 rounded-md font-medium`}
-                                    onClick={() => handleViewDocument(task.id)}
-                                  >
-                                    {task.id === "sermon"
-                                      ? "View Sermon"
-                                      : "View Document"}
-                                  </Button>
-
-                                  {/* Send to Pastor button - only show for concept documents and for liturgy makers */}
-                                  {task.id === "concept" && isLiturgyMaker && (
-                                    <Button
-                                      size="sm"
-                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
-                                      onClick={() =>
-                                        handleSendToPastor(task.id)
-                                      }
-                                    >
-                                      <Mail className="w-3 h-3" />
-                                      Send to Pastor
-                                    </Button>
-                                  )}
-                                </div>
+                      {/* Action buttons and status badges container - consistent height */}
+                      <div className="w-full mt-auto flex flex-col justify-end min-h-[32px] space-y-2">
+                        {/* Liturgy Maker tasks */}
+                        {(task.id === "concept" ||
+                          task.id === "sermon" ||
+                          task.id === "final") && (
+                          <>
+                            {/* For Pastor - show sermon creation button */}
+                            {task.id === "sermon" &&
+                              hasRole("pastor") &&
+                              !isCompleted && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={() => handleActionStart(task.id)}
+                                >
+                                  {task.actionLabel}
+                                </Button>
                               )}
-                            </>
-                          )}
 
-                          {/* QR Code special handling for Treasurer */}
-                          {isQrCodeTask &&
-                            hasRole("treasurer") &&
-                            !isCompleted && (
-                              <Button
-                                size="sm"
-                                className={`w-full ${
-                                  isActive
-                                    ? "bg-emerald-600 hover:bg-emerald-700"
-                                    : "bg-emerald-500 hover:bg-emerald-600"
-                                } text-white text-xs py-1 h-8 rounded-md`}
-                                onClick={() =>
-                                  handleQrCodeAction(
-                                    isActive ? "complete" : "upload"
-                                  )
-                                }
-                              >
-                                {isActive ? "Finish Upload" : task.actionLabel}
-                              </Button>
+                            {/* For Liturgy Maker - show action button */}
+                            {(task.id === "concept" || task.id === "final") &&
+                              hasRole("liturgy") &&
+                              !isCompleted && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={() => handleActionStart(task.id)}
+                                >
+                                  {task.actionLabel}
+                                </Button>
+                              )}
+
+                            {/* Document viewing section - show for everyone when completed */}
+                            {isCompleted && (
+                              <div className="space-y-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className={`w-full ${
+                                    isLiturgyMaker || isPastor
+                                      ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
+                                      : "border border-gray-300 text-blue-600 hover:bg-gray-50"
+                                  } text-xs py-1 h-8 rounded-md font-medium`}
+                                  onClick={() => handleViewDocument(task.id)}
+                                >
+                                  {task.id === "sermon"
+                                    ? "View Sermon"
+                                    : "View Document"}
+                                </Button>
+
+                                {/* Send to Pastor button - only show for concept documents and for liturgy makers */}
+                                {task.id === "concept" && isLiturgyMaker && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                    onClick={() => handleSendToPastor(task.id)}
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    Send to Pastor
+                                  </Button>
+                                )}
+                              </div>
                             )}
+                          </>
+                        )}
 
-                          {/* QR Code viewing when completed */}
-                          {isQrCodeTask && isCompleted && (
+                        {/* QR Code special handling for Treasurer */}
+                        {isQrCodeTask &&
+                          hasRole("treasurer") &&
+                          !isCompleted && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              className="w-full border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs py-1 h-8 rounded-md font-medium"
-                              onClick={() => handleViewDocument("qrcode")}
+                              className={`w-full ${
+                                isActive
+                                  ? "bg-emerald-600 hover:bg-emerald-700"
+                                  : "bg-emerald-500 hover:bg-emerald-600"
+                              } text-white text-xs py-1 h-8 rounded-md`}
+                              onClick={() =>
+                                handleQrCodeAction(
+                                  isActive ? "complete" : "upload"
+                                )
+                              }
                             >
-                              View QR Code
+                              {isActive ? "Finish Upload" : task.actionLabel}
                             </Button>
                           )}
 
-                          {/* Other tasks active handling */}
-                          {!isQrCodeTask &&
-                            !(
-                              task.id === "concept" ||
-                              task.id === "sermon" ||
-                              task.id === "final"
-                            ) &&
-                            isActive &&
-                            isCurrentUserCategory && (
-                              <Button
-                                size="sm"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
-                                onClick={() =>
-                                  onStartAction && onStartAction(task.id)
-                                }
-                              >
-                                {task.actionLabel}
-                              </Button>
-                            )}
+                        {/* QR Code viewing when completed */}
+                        {isQrCodeTask && isCompleted && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs py-1 h-8 rounded-md font-medium"
+                            onClick={() => handleViewDocument("qrcode")}
+                          >
+                            View QR Code
+                          </Button>
+                        )}
 
-                          {/* Consistent status badges */}
-                          {!isActive && !isCompleted && (
-                            <Badge
-                              variant="secondary"
-                              className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
+                        {/* Other tasks active handling */}
+                        {!isQrCodeTask &&
+                          !(
+                            task.id === "concept" ||
+                            task.id === "sermon" ||
+                            task.id === "final"
+                          ) &&
+                          isActive &&
+                          isCurrentUserCategory && (
+                            <Button
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                              onClick={() =>
+                                onStartAction && onStartAction(task.id)
+                              }
                             >
-                              Pending
+                              {task.actionLabel}
+                            </Button>
+                          )}
+
+                        {/* Consistent status badges */}
+                        {!isActive && !isCompleted && (
+                          <Badge
+                            variant="secondary"
+                            className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
+                          >
+                            Pending
+                          </Badge>
+                        )}
+
+                        {isActive &&
+                          !isCompleted &&
+                          !isQrCodeTask &&
+                          !hasRole(task.restrictedTo) && (
+                            <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 rounded-md animate-pulse">
+                              In Progress
                             </Badge>
                           )}
 
-                          {isActive &&
-                            !isCompleted &&
-                            !isQrCodeTask &&
-                            !hasRole(task.restrictedTo) && (
-                              <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 rounded-md animate-pulse">
-                                In Progress
-                              </Badge>
-                            )}
-
-                          {isCompleted && (
-                            <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-green-500 text-white rounded-md font-medium">
-                              Completed
-                            </Badge>
-                          )}
-                        </div>
+                        {isCompleted && (
+                          <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-green-500 text-white rounded-md font-medium">
+                            Completed
+                          </Badge>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
         );
       })}
