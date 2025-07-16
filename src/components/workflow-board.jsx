@@ -491,17 +491,20 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                     : "View Document"}
                                 </Button>
 
-                                {/* Send to Pastor button - only show for concept documents and for liturgy makers */}
-                                {task.id === "concept" && isLiturgyMaker && (
-                                  <Button
-                                    size="sm"
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
-                                    onClick={() => handleSendToPastor(task.id)}
-                                  >
-                                    <Mail className="w-3 h-3" />
-                                    Send to Pastor
-                                  </Button>
-                                )}
+                                {/* Send to Pastor button - now showing for both concept and final documents */}
+                                {(task.id === "concept" ||
+                                  task.id === "final") &&
+                                  isLiturgyMaker && (
+                                    <Button
+                                      size="sm"
+                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                      onClick={() =>
+                                        handleSendToPastor(task.id)
+                                      }
+                                    >
+                                      Send to Pastor
+                                    </Button>
+                                  )}
                               </div>
                             )}
                           </>
