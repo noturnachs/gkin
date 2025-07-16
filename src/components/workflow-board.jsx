@@ -24,6 +24,8 @@ import { SendToPastorModal } from "./send-to-pastor-modal"; // We'll create this
 import { SendToMusicModal } from "./send-to-music-modal"; // We'll create this new component
 import { SermonUploadModal } from "./sermon-upload-modal"; // Import the new modal
 import { PastorNotifyModal } from "./pastor-notify-modal"; // Import the pastor notify modal
+import { LyricsInputModal } from "./lyrics-input-modal";
+import { TranslationModal } from "./translation-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -144,6 +146,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   // Add a new state for the pastor notification modal
   const [isPastorNotifyModalOpen, setIsPastorNotifyModalOpen] = useState(false);
   const [currentDocumentToNotify, setCurrentDocumentToNotify] = useState(null);
+
+  // Add these new state variables with your other states
+  const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
+  const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
+  const [currentLyrics, setCurrentLyrics] = useState(null);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -508,6 +515,64 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     }
   };
 
+  // Add these handler functions for lyrics and translations
+  const handleAddLyrics = () => {
+    console.log("Opening lyrics input modal");
+    setIsLyricsModalOpen(true);
+  };
+
+  const handleLyricsSubmit = (lyricsData) => {
+    console.log("Lyrics submitted:", lyricsData);
+
+    // Update the local state to store the lyrics
+    setCompletedTasks((prev) => ({
+      ...prev,
+      lyrics: "completed",
+      lyricsData: lyricsData,
+    }));
+
+    // Close the modal
+    setIsLyricsModalOpen(false);
+
+    // Update the service status if needed
+    if (onStartAction) {
+      onStartAction("lyrics-added");
+    }
+
+    // Show a success message
+    alert("Song lyrics have been saved successfully!");
+  };
+
+  const handleTranslateLyrics = () => {
+    console.log("Opening translation modal");
+    // Get the current lyrics data from the completedTasks
+    const lyricsData = completedTasks?.lyricsData || { songs: [] };
+    setCurrentLyrics(lyricsData);
+    setIsTranslationModalOpen(true);
+  };
+
+  const handleTranslationSubmit = (translationData) => {
+    console.log("Translation submitted:", translationData);
+
+    // Update the local state to store the translations
+    setCompletedTasks((prev) => ({
+      ...prev,
+      "translate-liturgy": "completed",
+      translationData: translationData,
+    }));
+
+    // Close the modal
+    setIsTranslationModalOpen(false);
+
+    // Update the service status if needed
+    if (onStartAction) {
+      onStartAction("lyrics-translated");
+    }
+
+    // Show a success message
+    alert("Translations have been saved successfully!");
+  };
+
   // Helper function to log role information for debugging
   useEffect(() => {
     console.log("Current user role:", currentUserRole);
@@ -743,6 +808,46 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </Button>
                         )}
 
+                        {/* Lyrics translation task special handling */}
+                        {task.id === "translate-liturgy" && (
+                          <>
+                            {/* For liturgy maker - show "Add Lyrics" button when no lyrics exist */}
+                            {hasRole("liturgy") && !completedTasks?.lyrics && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                                onClick={handleAddLyrics}
+                              >
+                                Add Song Lyrics
+                              </Button>
+                            )}
+
+                            {/* For liturgy maker - show "Edit Lyrics" button when lyrics exist */}
+                            {hasRole("liturgy") &&
+                              completedTasks?.lyrics === "completed" && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={handleAddLyrics}
+                                >
+                                  Edit Lyrics
+                                </Button>
+                              )}
+
+                            {/* For translation team - show translate button when lyrics exist */}
+                            {hasRole("translation") &&
+                              completedTasks?.lyrics === "completed" && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={handleTranslateLyrics}
+                                >
+                                  Translate Lyrics
+                                </Button>
+                              )}
+                          </>
+                        )}
+
                         {/* Other tasks active handling */}
                         {!isQrCodeTask &&
                           !(
@@ -764,14 +869,21 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           )}
 
                         {/* Consistent status badges */}
-                        {!isActive && !isCompleted && (
-                          <Badge
-                            variant="secondary"
-                            className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
-                          >
-                            Pending
-                          </Badge>
-                        )}
+                        {!isActive &&
+                          !isCompleted &&
+                          !(
+                            task.id === "translate-liturgy" &&
+                            ((hasRole("liturgy") && !completedTasks?.lyrics) ||
+                              (hasRole("translation") &&
+                                completedTasks?.lyrics === "completed"))
+                          ) && (
+                            <Badge
+                              variant="secondary"
+                              className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
+                            >
+                              Pending
+                            </Badge>
+                          )}
 
                         {isActive &&
                           !isCompleted &&
@@ -841,6 +953,22 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         onClose={() => setIsPastorNotifyModalOpen(false)}
         onSubmit={handlePastorNotifySubmit}
         documentType={currentDocumentToNotify}
+      />
+
+      {/* Lyrics Input Modal - new */}
+      <LyricsInputModal
+        isOpen={isLyricsModalOpen}
+        onClose={() => setIsLyricsModalOpen(false)}
+        onSubmit={handleLyricsSubmit}
+        initialData={completedTasks?.lyricsData}
+      />
+
+      {/* Translation Modal - new */}
+      <TranslationModal
+        isOpen={isTranslationModalOpen}
+        onClose={() => setIsTranslationModalOpen(false)}
+        onSubmit={handleTranslationSubmit}
+        lyricsData={currentLyrics}
       />
     </div>
   );
