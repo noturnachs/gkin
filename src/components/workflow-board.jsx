@@ -22,6 +22,7 @@ import { DocumentCreatorModal } from "./document-creator-modal";
 import { SermonCreatorModal } from "./sermon-creator-modal";
 import { SendToPastorModal } from "./send-to-pastor-modal"; // We'll create this new component
 import { SendToMusicModal } from "./send-to-music-modal"; // We'll create this new component
+import { SermonUploadModal } from "./sermon-upload-modal"; // Import the new modal
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -135,6 +136,9 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   const [isSendToMusicModalOpen, setIsSendToMusicModalOpen] = useState(false);
   const [currentDocumentToSendMusic, setCurrentDocumentToSendMusic] =
     useState(null);
+
+  // Add a new state for the sermon upload modal
+  const [isSermonUploadModalOpen, setIsSermonUploadModalOpen] = useState(false);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -333,6 +337,36 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     }
   };
 
+  // Add this function after your other handler functions
+  const handleUploadSermon = (taskId) => {
+    console.log(`Upload sermon for task: ${taskId}`);
+    setIsSermonUploadModalOpen(true);
+  };
+
+  // Add this handler for sermon upload submission
+  const handleSermonUploadSubmit = (sermonData) => {
+    console.log("Sermon upload submitted:", sermonData);
+
+    // Update the local completed tasks state
+    setCompletedTasks((prev) => ({
+      ...prev,
+      sermon: "completed",
+      // Store the actual sermon data
+      sermonData: sermonData,
+    }));
+
+    // Close the upload modal
+    setIsSermonUploadModalOpen(false);
+
+    // Update the service status for this task if needed
+    if (onStartAction) {
+      onStartAction(`sermon-uploaded`);
+    }
+
+    // Show a success message
+    alert(`Sermon "${sermonData.sermonTitle}" has been uploaded successfully!`);
+  };
+
   // Update your handleActionStart function to use the new helper
   const handleActionStart = (taskId) => {
     console.log(`Action started for task: ${taskId}`); // Add this for debugging
@@ -479,17 +513,27 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           task.id === "sermon" ||
                           task.id === "final") && (
                           <>
-                            {/* For Pastor - show sermon creation button */}
+                            {/* For Pastor - show sermon creation/upload options */}
                             {task.id === "sermon" &&
                               hasRole("pastor") &&
                               !isCompleted && (
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
-                                  onClick={() => handleActionStart(task.id)}
-                                >
-                                  {task.actionLabel}
-                                </Button>
+                                <div className="space-y-2">
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
+                                    onClick={() => handleActionStart(task.id)}
+                                  >
+                                    Create Sermon
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
+                                    onClick={() => handleUploadSermon(task.id)}
+                                  >
+                                    Upload Sermon
+                                  </Button>
+                                </div>
                               )}
 
                             {/* For Liturgy Maker - show action button */}
@@ -673,6 +717,13 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         onClose={() => setIsSendToMusicModalOpen(false)}
         onSubmit={handleSendToMusicSubmit}
         documentType={currentDocumentToSendMusic}
+      />
+
+      {/* Add the Sermon Upload Modal */}
+      <SermonUploadModal
+        isOpen={isSermonUploadModalOpen}
+        onClose={() => setIsSermonUploadModalOpen(false)}
+        onSubmit={handleSermonUploadSubmit}
       />
     </div>
   );
