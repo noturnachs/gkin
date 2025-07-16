@@ -14,12 +14,14 @@ import {
   ChevronRight,
   DollarSign,
   Mail,
+  Music,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { DocumentCreatorModal } from "./document-creator-modal";
 import { SermonCreatorModal } from "./sermon-creator-modal";
 import { SendToPastorModal } from "./send-to-pastor-modal"; // We'll create this new component
+import { SendToMusicModal } from "./send-to-music-modal"; // We'll create this new component
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -128,6 +130,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   // Add state for the send to pastor modal
   const [isSendToPastorModalOpen, setIsSendToPastorModalOpen] = useState(false);
   const [currentDocumentToSend, setCurrentDocumentToSend] = useState(null);
+
+  // Add state for the send to music modal
+  const [isSendToMusicModalOpen, setIsSendToMusicModalOpen] = useState(false);
+  const [currentDocumentToSendMusic, setCurrentDocumentToSendMusic] =
+    useState(null);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -298,6 +305,31 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     // Update the status if needed
     if (onStartAction) {
       onStartAction(`${currentDocumentToSend}-sent-to-pastor`);
+    }
+  };
+
+  // Handle sending document to music team
+  const handleSendToMusic = (taskId) => {
+    console.log(`Preparing to send document: ${taskId} to music team`);
+    setCurrentDocumentToSendMusic(taskId);
+    setIsSendToMusicModalOpen(true);
+  };
+
+  // Handle submission from send to music modal
+  const handleSendToMusicSubmit = (emailData) => {
+    console.log("Sending document to music team:", emailData);
+
+    // Here you would typically make an API call to send the email
+
+    // Show success message
+    alert(`Document sent to music team at ${emailData.email}!`);
+
+    // Close the modal
+    setIsSendToMusicModalOpen(false);
+
+    // Update the status if needed
+    if (onStartAction) {
+      onStartAction(`${currentDocumentToSendMusic}-sent-to-music`);
     }
   };
 
@@ -495,15 +527,30 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                 {(task.id === "concept" ||
                                   task.id === "final") &&
                                   isLiturgyMaker && (
-                                    <Button
-                                      size="sm"
-                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
-                                      onClick={() =>
-                                        handleSendToPastor(task.id)
-                                      }
-                                    >
-                                      Send to Pastor
-                                    </Button>
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                        onClick={() =>
+                                          handleSendToPastor(task.id)
+                                        }
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                        Send to Pastor
+                                      </Button>
+
+                                      {/* New Send to Music button */}
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                        onClick={() =>
+                                          handleSendToMusic(task.id)
+                                        }
+                                      >
+                                        <Music className="w-3 h-3" />
+                                        Send to Music
+                                      </Button>
+                                    </>
                                   )}
                               </div>
                             )}
@@ -618,6 +665,14 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         onClose={() => setIsSendToPastorModalOpen(false)}
         onSubmit={handleSendToPastorSubmit}
         documentType={currentDocumentToSend}
+      />
+
+      {/* Add the Send to Music Modal */}
+      <SendToMusicModal
+        isOpen={isSendToMusicModalOpen}
+        onClose={() => setIsSendToMusicModalOpen(false)}
+        onSubmit={handleSendToMusicSubmit}
+        documentType={currentDocumentToSendMusic}
       />
     </div>
   );
