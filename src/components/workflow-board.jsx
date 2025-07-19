@@ -123,9 +123,20 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   );
 
   // Add these states for document tracking
-  const [completedTasks, setCompletedTasks] = useState(
-    service?.taskStatuses || {}
-  );
+  const [completedTasks, setCompletedTasks] = useState({
+    // Demo data for testing - comment out for production
+    sermon: "completed",
+    sermonData: {
+      sermonTitle: "Demo Sermon for Testing",
+      sermonText:
+        "This is a sample sermon text for testing the translation functionality. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      serviceDate: "2023-07-23",
+      documentType: "sermon",
+      documentTitle: "Sunday Service - Demo Sermon",
+    },
+    // End of demo data
+    ...service?.taskStatuses,
+  });
 
   // Add these states for both modals
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
@@ -617,8 +628,42 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     console.log("Is treasurer check:", isTreasurer);
   }, [currentUserRole, isTreasurer]);
 
+  // FOR DEMO ONLY: Add a function to simulate sermon creation
+  const simulateSermonCreation = () => {
+    setCompletedTasks((prev) => ({
+      ...prev,
+      sermon: "completed",
+      sermonData: {
+        sermonTitle: "Demo Sermon for Testing",
+        sermonText:
+          "This is a sample sermon text for testing the translation functionality. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        serviceDate: "2023-07-23",
+        documentType: "sermon",
+        documentTitle: "Sunday Service - Demo Sermon",
+      },
+    }));
+    alert("Demo sermon created! Now translators can translate it.");
+  };
+
   return (
     <div className="space-y-3 md:space-y-4">
+      {/* DEMO BUTTON - Remove in production */}
+      {hasRole("translation") && !completedTasks?.sermon && (
+        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+          <p className="text-yellow-700 mb-2 text-sm">
+            Demo Mode: No sermon is available yet. Click the button below to
+            simulate sermon creation.
+          </p>
+          <Button
+            size="sm"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white"
+            onClick={simulateSermonCreation}
+          >
+            Simulate Sermon Creation (Demo)
+          </Button>
+        </div>
+      )}
+
       {workflowCategories.map((category) => {
         const isCurrentUserCategory = isUserCategory(category.role);
         // Remove the isCategoryExpanded variable
