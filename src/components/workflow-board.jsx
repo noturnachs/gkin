@@ -26,6 +26,7 @@ import { SermonUploadModal } from "./sermon-upload-modal"; // Import the new mod
 import { PastorNotifyModal } from "./pastor-notify-modal"; // Import the pastor notify modal
 import { LyricsInputModal } from "./lyrics-input-modal";
 import { TranslationModal } from "./translation-modal";
+import { SermonTranslationModal } from "./sermon-translation-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -151,6 +152,11 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   const [currentLyrics, setCurrentLyrics] = useState(null);
+
+  // Add state variables for the sermon translation modal
+  const [isSermonTranslationModalOpen, setIsSermonTranslationModalOpen] =
+    useState(false);
+  const [currentSermon, setCurrentSermon] = useState(null);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -573,6 +579,38 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert("Translations have been saved successfully!");
   };
 
+  // Add this handler function for sermon translation
+  const handleTranslateSermon = () => {
+    console.log("Opening sermon translation modal");
+    // Get the current sermon data from the completedTasks
+    const sermonData = completedTasks?.sermonData || null;
+    setCurrentSermon(sermonData);
+    setIsSermonTranslationModalOpen(true);
+  };
+
+  // Add this handler for sermon translation submission
+  const handleSermonTranslationSubmit = (translationData) => {
+    console.log("Sermon translation submitted:", translationData);
+
+    // Update the local state to store the translations
+    setCompletedTasks((prev) => ({
+      ...prev,
+      "translate-sermon": "completed",
+      sermonTranslationData: translationData,
+    }));
+
+    // Close the modal
+    setIsSermonTranslationModalOpen(false);
+
+    // Update the service status if needed
+    if (onStartAction) {
+      onStartAction("sermon-translated");
+    }
+
+    // Show a success message
+    alert("Sermon translation has been saved successfully!");
+  };
+
   // Helper function to log role information for debugging
   useEffect(() => {
     console.log("Current user role:", currentUserRole);
@@ -848,6 +886,23 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </>
                         )}
 
+                        {/* Sermon translation task special handling */}
+                        {task.id === "translate-sermon" && (
+                          <>
+                            {/* For translation team - show translate button when sermon exists */}
+                            {hasRole("translation") &&
+                              completedTasks?.sermon === "completed" && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={handleTranslateSermon}
+                                >
+                                  Translate Sermon
+                                </Button>
+                              )}
+                          </>
+                        )}
+
                         {/* Other tasks active handling */}
                         {!isQrCodeTask &&
                           !(
@@ -969,6 +1024,14 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         onClose={() => setIsTranslationModalOpen(false)}
         onSubmit={handleTranslationSubmit}
         lyricsData={currentLyrics}
+      />
+
+      {/* Sermon Translation Modal */}
+      <SermonTranslationModal
+        isOpen={isSermonTranslationModalOpen}
+        onClose={() => setIsSermonTranslationModalOpen(false)}
+        onSubmit={handleSermonTranslationSubmit}
+        sermonData={currentSermon}
       />
     </div>
   );
