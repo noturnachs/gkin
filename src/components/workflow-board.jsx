@@ -15,6 +15,9 @@ import {
   DollarSign,
   Mail,
   Music,
+  Presentation,
+  Upload,
+  X,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
@@ -27,6 +30,7 @@ import { PastorNotifyModal } from "./pastor-notify-modal"; // Import the pastor 
 import { LyricsInputModal } from "./lyrics-input-modal";
 import { TranslationModal } from "./translation-modal";
 import { SermonTranslationModal } from "./sermon-translation-modal";
+import { SlidesUploadModal } from "./slides-upload-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -101,7 +105,7 @@ const workflowCategories = [
       {
         id: "slides",
         name: "Create Slides",
-        icon: Send,
+        icon: Presentation,
         description: "Create presentation slides",
         actionLabel: "Create Slides",
       },
@@ -168,6 +172,9 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   const [isSermonTranslationModalOpen, setIsSermonTranslationModalOpen] =
     useState(false);
   const [currentSermon, setCurrentSermon] = useState(null);
+
+  // Add state variables for the slides upload modal
+  const [isSlidesUploadModalOpen, setIsSlidesUploadModalOpen] = useState(false);
 
   // Helper function to check role more easily
   const hasRole = (roleId) => {
@@ -429,6 +436,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         "https://docs.google.com/document/d/1example-sermon-document/edit",
       final: "https://docs.google.com/document/d/1example-final-document/edit",
       qrcode: "https://example.com/qr-code-image.png",
+      slides: "https://example.com/presentation.pptx", // Example for slides
     };
 
     // Get the document name for the alert
@@ -437,6 +445,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
       final: "Final Liturgy",
       sermon: "Sermon",
       qrcode: "QR Code",
+      slides: "Presentation Slides",
     };
 
     // Get the document URL
@@ -467,6 +476,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         "https://docs.google.com/document/d/1example-sermon-document/edit",
       final: "https://docs.google.com/document/d/1example-final-document/edit",
       qrcode: "https://example.com/qr-code-image.png",
+      slides: "https://example.com/presentation.pptx", // Example for slides
     };
 
     // Get document types
@@ -475,6 +485,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
       final: "Final Liturgy",
       sermon: "Sermon",
       qrcode: "QR Code",
+      slides: "Presentation Slides",
     };
 
     // Get the document URL
@@ -645,9 +656,36 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert("Demo sermon created! Now translators can translate it.");
   };
 
+  const handleUploadSlides = () => {
+    console.log("Opening slides upload modal");
+    setIsSlidesUploadModalOpen(true);
+  };
+
+  const handleSlidesUploadSubmit = (slidesData) => {
+    console.log("Slides upload submitted:", slidesData);
+
+    // Update the local state to store the slides data
+    setCompletedTasks((prev) => ({
+      ...prev,
+      slides: "completed",
+      slidesData: slidesData,
+    }));
+
+    // Close the modal
+    setIsSlidesUploadModalOpen(false);
+
+    // Update the service status if needed
+    if (onStartAction) {
+      onStartAction("slides-uploaded");
+    }
+
+    // Show a success message
+    alert(`Presentation "${slidesData.title}" has been uploaded successfully!`);
+  };
+
   return (
     <div className="space-y-3 md:space-y-4">
-      {/* DEMO BUTTON - Remove in production */}
+      {/* DEMO BUTTONS - Remove in production */}
       {hasRole("translation") && !completedTasks?.sermon && (
         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
           <p className="text-yellow-700 mb-2 text-sm">
@@ -660,6 +698,21 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
             onClick={simulateSermonCreation}
           >
             Simulate Sermon Creation (Demo)
+          </Button>
+        </div>
+      )}
+
+      {hasRole("beamer") && (
+        <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+          <p className="text-orange-700 mb-2 text-sm">
+            Beamer Team: You can upload presentation slides for the service.
+          </p>
+          <Button
+            size="sm"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+            onClick={handleUploadSlides}
+          >
+            Upload Presentation Slides
           </Button>
         </div>
       )}
@@ -948,6 +1001,34 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </>
                         )}
 
+                        {/* Beamer slides task special handling */}
+                        {task.id === "slides" && (
+                          <>
+                            {/* For beamer team - show upload button */}
+                            {hasRole("beamer") && !isCompleted && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8 rounded-md"
+                                onClick={handleUploadSlides}
+                              >
+                                Upload Slides
+                              </Button>
+                            )}
+
+                            {/* When completed, show view button */}
+                            {isCompleted && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full border border-orange-300 text-orange-700 hover:bg-orange-50 text-xs py-1 h-8 rounded-md font-medium"
+                                onClick={() => handleViewDocument("slides")}
+                              >
+                                View Slides
+                              </Button>
+                            )}
+                          </>
+                        )}
+
                         {/* Other tasks active handling */}
                         {!isQrCodeTask &&
                           !(
@@ -1077,6 +1158,13 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         onClose={() => setIsSermonTranslationModalOpen(false)}
         onSubmit={handleSermonTranslationSubmit}
         sermonData={currentSermon}
+      />
+
+      {/* Slides Upload Modal */}
+      <SlidesUploadModal
+        isOpen={isSlidesUploadModalOpen}
+        onClose={() => setIsSlidesUploadModalOpen(false)}
+        onSubmit={handleSlidesUploadSubmit}
       />
     </div>
   );
