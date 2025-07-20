@@ -823,13 +823,34 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                             {(task.id === "concept" || task.id === "final") &&
                               hasRole("liturgy") &&
                               !isCompleted && (
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
-                                  onClick={() => handleActionStart(task.id)}
-                                >
-                                  {task.actionLabel}
-                                </Button>
+                                <div className="space-y-2">
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                                    onClick={() => handleActionStart(task.id)}
+                                  >
+                                    {task.actionLabel}
+                                  </Button>
+
+                                  {/* Send to Pastor and Send to Music buttons - always visible for liturgy maker */}
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                    onClick={() => handleSendToPastor(task.id)}
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    Send to Pastor
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                                    onClick={() => handleSendToMusic(task.id)}
+                                  >
+                                    <Music className="w-3 h-3" />
+                                    Send to Music
+                                  </Button>
+                                </div>
                               )}
 
                             {/* Document viewing section - show for everyone when completed */}
@@ -878,34 +899,8 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                     </div>
                                   )}
 
-                                {/* Send to Pastor button - now showing for both concept and final documents */}
-                                {(task.id === "concept" ||
-                                  task.id === "final") &&
-                                  isLiturgyMaker && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
-                                        onClick={() =>
-                                          handleSendToPastor(task.id)
-                                        }
-                                      >
-                                        <Mail className="w-3 h-3" />
-                                        Send to Pastor
-                                      </Button>
-
-                                      <Button
-                                        size="sm"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
-                                        onClick={() =>
-                                          handleSendToMusic(task.id)
-                                        }
-                                      >
-                                        <Music className="w-3 h-3" />
-                                        Send to Music
-                                      </Button>
-                                    </>
-                                  )}
+                                {/* Send to Pastor and Send to Music buttons for completed documents - REMOVE THIS SECTION */}
+                                {/* We've moved these buttons outside the isCompleted condition */}
                               </div>
                             )}
                           </>
