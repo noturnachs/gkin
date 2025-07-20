@@ -31,6 +31,7 @@ import { LyricsInputModal } from "./lyrics-input-modal";
 import { TranslationModal } from "./translation-modal";
 import { SermonTranslationModal } from "./sermon-translation-modal";
 import { SlidesUploadModal } from "./slides-upload-modal";
+import { QrCodeUploadModal } from "./qr-code-upload-modal";
 
 // Main task categories with their subtasks
 const workflowCategories = [
@@ -176,6 +177,9 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   // Add state variables for the slides upload modal
   const [isSlidesUploadModalOpen, setIsSlidesUploadModalOpen] = useState(false);
 
+  // Add a new state for the QR code upload modal
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+
   // Helper function to check role more easily
   const hasRole = (roleId) => {
     if (!currentUserRole) return false;
@@ -263,11 +267,8 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
   // Handle QR code upload simulation
   const handleQrCodeAction = (stage) => {
     if (stage === "upload") {
-      setQrCodeStatus("active");
-      // Simulate processing time
-      setTimeout(() => {
-        setQrCodeStatus("completed");
-      }, 2000);
+      // Open the QR code upload modal instead of directly changing status
+      setIsQrCodeModalOpen(true);
     } else {
       onStartAction && onStartAction("qrcode");
     }
@@ -403,19 +404,16 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert(`Sermon "${sermonData.sermonTitle}" has been uploaded successfully!`);
   };
 
-  // Update your handleActionStart function to use the new helper
+  // Update your handleActionStart function to remove role restrictions
   const handleActionStart = (taskId) => {
-    console.log(`Action started for task: ${taskId}`); // Add this for debugging
+    console.log(`Action started for task: ${taskId}`);
 
-    // For sermon task, open the sermon modal if pastor
-    if (taskId === "sermon" && hasRole("pastor")) {
+    // For sermon task, open the sermon modal (for anyone)
+    if (taskId === "sermon") {
       setIsSermonModalOpen(true);
     }
-    // For document creation tasks, open the document modal for liturgy maker
-    else if (
-      (taskId === "concept" || taskId === "final") &&
-      hasRole("liturgy")
-    ) {
+    // For document creation tasks, open the document modal (for anyone)
+    else if (taskId === "concept" || taskId === "final") {
       setCurrentDocumentType(taskId);
       setIsDocumentModalOpen(true);
     } else {
@@ -694,6 +692,37 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert(`Presentation "${slidesData.title}" has been uploaded successfully!`);
   };
 
+  // Add a handler for QR code upload submission
+  const handleQrCodeUploadSubmit = (qrCodeData) => {
+    console.log("QR code upload submitted:", qrCodeData);
+
+    // Set the QR code status to active first
+    setQrCodeStatus("active");
+
+    // Then simulate processing and set to completed
+    setTimeout(() => {
+      setQrCodeStatus("completed");
+
+      // Update the completed tasks state
+      setCompletedTasks((prev) => ({
+        ...prev,
+        qrcode: "completed",
+        qrcodeData: qrCodeData,
+      }));
+
+      // Close the modal
+      setIsQrCodeModalOpen(false);
+
+      // Update the service status if needed
+      if (onStartAction) {
+        onStartAction("qrcode-uploaded");
+      }
+
+      // Show a success message
+      alert(`QR Code "${qrCodeData.title}" has been uploaded successfully!`);
+    }, 1500); // Simulate a short processing time
+  };
+
   return (
     <div className="space-y-3 md:space-y-4">
       {/* DEMO BUTTONS - Remove in production */}
@@ -847,57 +876,29 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           task.id === "sermon" ||
                           task.id === "final") && (
                           <>
-                            {/* For Pastor - show sermon creation/upload options */}
-                            {task.id === "sermon" && hasRole("pastor") && (
+                            {/* Show sermon creation/upload options for everyone */}
+                            {task.id === "sermon" && !isCompleted && (
                               <div className="space-y-2">
-                                {!isCompleted ? (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
-                                      onClick={() => handleActionStart(task.id)}
-                                    >
-                                      Create Sermon
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
-                                      onClick={() =>
-                                        handleUploadSermon(task.id)
-                                      }
-                                    >
-                                      Upload Sermon
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full border border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-8 rounded-md font-medium"
-                                      onClick={() =>
-                                        handleViewDocument(task.id)
-                                      }
-                                    >
-                                      View Sermon
-                                    </Button>
-                                    {/* Demo button to reset sermon status */}
-                                    <Button
-                                      size="sm"
-                                      className="w-full bg-red-500 hover:bg-red-600 text-white text-xs py-1 h-8 rounded-md"
-                                      onClick={resetSermonStatus}
-                                    >
-                                      Reset (Demo)
-                                    </Button>
-                                  </>
-                                )}
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
+                                  onClick={() => handleActionStart(task.id)}
+                                >
+                                  Create Sermon
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
+                                  onClick={() => handleUploadSermon(task.id)}
+                                >
+                                  Upload Sermon
+                                </Button>
                               </div>
                             )}
 
-                            {/* For Liturgy Maker - show action button */}
+                            {/* Show document creation buttons for everyone */}
                             {(task.id === "concept" || task.id === "final") &&
-                              hasRole("liturgy") &&
                               !isCompleted && (
                                 <div className="space-y-2">
                                   <Button
@@ -908,7 +909,7 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                                     {task.actionLabel}
                                   </Button>
 
-                                  {/* Send to Pastor and Send to Music buttons - always visible for liturgy maker */}
+                                  {/* Send to Pastor and Send to Music buttons - available for everyone */}
                                   <Button
                                     size="sm"
                                     className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
@@ -987,26 +988,24 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           </>
                         )}
 
-                        {/* QR Code special handling for Treasurer */}
-                        {isQrCodeTask &&
-                          hasRole("treasurer") &&
-                          !isCompleted && (
-                            <Button
-                              size="sm"
-                              className={`w-full ${
-                                isActive
-                                  ? "bg-emerald-600 hover:bg-emerald-700"
-                                  : "bg-emerald-500 hover:bg-emerald-600"
-                              } text-white text-xs py-1 h-8 rounded-md`}
-                              onClick={() =>
-                                handleQrCodeAction(
-                                  isActive ? "complete" : "upload"
-                                )
-                              }
-                            >
-                              {isActive ? "Finish Upload" : task.actionLabel}
-                            </Button>
-                          )}
+                        {/* QR Code handling - available for everyone */}
+                        {isQrCodeTask && !isCompleted && (
+                          <Button
+                            size="sm"
+                            className={`w-full ${
+                              isActive
+                                ? "bg-blue-600 hover:bg-blue-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                            } text-white text-xs py-1 h-8 rounded-md`}
+                            onClick={() =>
+                              handleQrCodeAction(
+                                isActive ? "complete" : "upload"
+                              )
+                            }
+                          >
+                            {isActive ? "Finish Upload" : task.actionLabel}
+                          </Button>
+                        )}
 
                         {/* QR Code viewing when completed */}
                         {isQrCodeTask && isCompleted && (
@@ -1023,65 +1022,46 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                         {/* Lyrics translation task special handling */}
                         {task.id === "translate-liturgy" && (
                           <>
-                            {/* For liturgy maker - show "Add Lyrics" button when no lyrics exist */}
-                            {hasRole("liturgy") && !completedTasks?.lyrics && (
-                              <Button
-                                size="sm"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
-                                onClick={handleAddLyrics}
-                              >
-                                Add Song Lyrics
-                              </Button>
-                            )}
+                            {/* Always show Add/Edit Song Lyrics button */}
+                            <Button
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                              onClick={handleAddLyrics}
+                            >
+                              {completedTasks?.lyrics === "completed"
+                                ? "Edit Lyrics"
+                                : "Add Song Lyrics"}
+                            </Button>
 
-                            {/* For liturgy maker - show "Edit Lyrics" button when lyrics exist */}
-                            {hasRole("liturgy") &&
-                              completedTasks?.lyrics === "completed" && (
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
-                                  onClick={handleAddLyrics}
-                                >
-                                  Edit Lyrics
-                                </Button>
-                              )}
-
-                            {/* For translation team - show translate button when lyrics exist */}
-                            {hasRole("translation") &&
-                              completedTasks?.lyrics === "completed" && (
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8 rounded-md"
-                                  onClick={handleTranslateLyrics}
-                                >
-                                  Translate Lyrics
-                                </Button>
-                              )}
+                            {/* Show Translate button regardless of lyrics status */}
+                            <Button
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md mt-2"
+                              onClick={handleTranslateLyrics}
+                              disabled={!completedTasks?.lyrics}
+                            >
+                              Translate Lyrics
+                            </Button>
                           </>
                         )}
 
                         {/* Sermon translation task special handling */}
-                        {task.id === "translate-sermon" && (
-                          <>
-                            {/* For translation team - show translate button when sermon exists */}
-                            {hasRole("translation") &&
-                              completedTasks?.sermon === "completed" && (
-                                <Button
-                                  size="sm"
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 h-8 rounded-md"
-                                  onClick={handleTranslateSermon}
-                                >
-                                  Translate Sermon
-                                </Button>
-                              )}
-                          </>
-                        )}
+                        {task.id === "translate-sermon" &&
+                          completedTasks?.sermon === "completed" && (
+                            <Button
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                              onClick={handleTranslateSermon}
+                            >
+                              Translate Sermon
+                            </Button>
+                          )}
 
                         {/* Beamer slides task special handling */}
                         {task.id === "slides" && (
                           <>
                             {/* For beamer team - show upload button */}
-                            {hasRole("beamer") && !isCompleted && (
+                            {!isCompleted && (
                               <Button
                                 size="sm"
                                 className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8 rounded-md"
@@ -1241,6 +1221,13 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
         isOpen={isSlidesUploadModalOpen}
         onClose={() => setIsSlidesUploadModalOpen(false)}
         onSubmit={handleSlidesUploadSubmit}
+      />
+
+      {/* Add the QR Code Upload Modal */}
+      <QrCodeUploadModal
+        isOpen={isQrCodeModalOpen}
+        onClose={() => setIsQrCodeModalOpen(false)}
+        onSubmit={handleQrCodeUploadSubmit}
       />
     </div>
   );
