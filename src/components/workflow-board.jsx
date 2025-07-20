@@ -656,6 +656,17 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
     alert("Demo sermon created! Now translators can translate it.");
   };
 
+  // FOR DEMO ONLY: Add a function to reset sermon status
+  const resetSermonStatus = () => {
+    setCompletedTasks((prev) => {
+      const newState = { ...prev };
+      delete newState.sermon;
+      delete newState.sermonData;
+      return newState;
+    });
+    alert("Sermon status has been reset for demo purposes.");
+  };
+
   const handleUploadSlides = () => {
     console.log("Opening slides upload modal");
     setIsSlidesUploadModalOpen(true);
@@ -699,6 +710,46 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
           >
             Simulate Sermon Creation (Demo)
           </Button>
+        </div>
+      )}
+
+      {/* Add demo panel for pastors */}
+      {hasRole("pastor") && (
+        <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
+          <p className="text-purple-700 mb-2 text-sm">
+            Pastor Demo Mode:{" "}
+            {completedTasks?.sermon === "completed"
+              ? "A sermon is already created. Reset to test sermon creation again."
+              : "You can create or upload a sermon for the service."}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {completedTasks?.sermon === "completed" ? (
+              <Button
+                size="sm"
+                className="bg-red-500 hover:bg-red-600 text-white"
+                onClick={resetSermonStatus}
+              >
+                Reset Sermon Status (Demo)
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                  onClick={() => handleActionStart("sermon")}
+                >
+                  Create Sermon
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                  onClick={() => handleUploadSermon("sermon")}
+                >
+                  Upload Sermon
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -797,27 +848,52 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                           task.id === "final") && (
                           <>
                             {/* For Pastor - show sermon creation/upload options */}
-                            {task.id === "sermon" &&
-                              hasRole("pastor") &&
-                              !isCompleted && (
-                                <div className="space-y-2">
-                                  <Button
-                                    size="sm"
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
-                                    onClick={() => handleActionStart(task.id)}
-                                  >
-                                    Create Sermon
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
-                                    onClick={() => handleUploadSermon(task.id)}
-                                  >
-                                    Upload Sermon
-                                  </Button>
-                                </div>
-                              )}
+                            {task.id === "sermon" && hasRole("pastor") && (
+                              <div className="space-y-2">
+                                {!isCompleted ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
+                                      onClick={() => handleActionStart(task.id)}
+                                    >
+                                      Create Sermon
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
+                                      onClick={() =>
+                                        handleUploadSermon(task.id)
+                                      }
+                                    >
+                                      Upload Sermon
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full border border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-8 rounded-md font-medium"
+                                      onClick={() =>
+                                        handleViewDocument(task.id)
+                                      }
+                                    >
+                                      View Sermon
+                                    </Button>
+                                    {/* Demo button to reset sermon status */}
+                                    <Button
+                                      size="sm"
+                                      className="w-full bg-red-500 hover:bg-red-600 text-white text-xs py-1 h-8 rounded-md"
+                                      onClick={resetSermonStatus}
+                                    >
+                                      Reset (Demo)
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            )}
 
                             {/* For Liturgy Maker - show action button */}
                             {(task.id === "concept" || task.id === "final") &&
@@ -856,20 +932,25 @@ export function WorkflowBoard({ service, currentUserRole, onStartAction }) {
                             {/* Document viewing section - show for everyone when completed */}
                             {isCompleted && (
                               <div className="space-y-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className={`w-full ${
-                                    isLiturgyMaker || isPastor
-                                      ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
-                                      : "border border-gray-300 text-blue-600 hover:bg-gray-50"
-                                  } text-xs py-1 h-8 rounded-md font-medium`}
-                                  onClick={() => handleViewDocument(task.id)}
-                                >
-                                  {task.id === "sermon"
-                                    ? "View Sermon"
-                                    : "View Document"}
-                                </Button>
+                                {/* Skip this button for sermons when user is pastor (since we already added it above) */}
+                                {!(
+                                  task.id === "sermon" && hasRole("pastor")
+                                ) && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className={`w-full ${
+                                      isLiturgyMaker || isPastor
+                                        ? "border border-blue-300 text-blue-700 hover:bg-blue-50"
+                                        : "border border-gray-300 text-blue-600 hover:bg-gray-50"
+                                    } text-xs py-1 h-8 rounded-md font-medium`}
+                                    onClick={() => handleViewDocument(task.id)}
+                                  >
+                                    {task.id === "sermon"
+                                      ? "View Sermon"
+                                      : "View Document"}
+                                  </Button>
+                                )}
 
                                 {/* Pastor special options - View & Edit and notify teams */}
                                 {isPastor &&
