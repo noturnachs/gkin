@@ -6,6 +6,24 @@ import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
 import { MusicUploadModal } from "../../music-upload-modal";
 
+// Common button styles - making actions more prominent
+const actionButtonClasses =
+  "w-full text-white text-xs py-2 h-9 rounded-md font-medium shadow-sm hover:shadow transition-all";
+
+// Status badge styles - making them more subtle and clearly non-interactive
+const statusBadgeClasses =
+  "w-full mx-auto text-xs px-2 py-0.5 h-7 flex items-center justify-center rounded-md font-normal";
+
+// Primary action button - for main actions
+const primaryActionClass = `${actionButtonClasses} bg-blue-600 hover:bg-blue-700`;
+
+// Secondary action button - for supporting actions
+const secondaryActionClass = `${actionButtonClasses} bg-gray-600 hover:bg-gray-700`;
+
+// View action button - for view-only actions
+const viewActionClass =
+  "w-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs py-1.5 h-9 rounded-md font-medium hover:shadow transition-all";
+
 export const TaskCard = ({ task, categoryId }) => {
   const { getTaskStatus, hasRole, completedTasks, setCompletedTasks } =
     useWorkflow();
@@ -75,7 +93,7 @@ export const TaskCard = ({ task, categoryId }) => {
               <div className="space-y-2">
                 <Button
                   size="sm"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
+                  className={`${actionButtonClasses} bg-purple-600 hover:bg-purple-700`}
                   onClick={() => handleUploadSermon(task.id)}
                 >
                   Upload Sermon
@@ -88,7 +106,7 @@ export const TaskCard = ({ task, categoryId }) => {
               <div className="space-y-2">
                 <Button
                   size="sm"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+                  className={primaryActionClass}
                   onClick={() => handleActionStart(task.id)}
                 >
                   {task.actionLabel}
@@ -96,19 +114,17 @@ export const TaskCard = ({ task, categoryId }) => {
 
                 <Button
                   size="sm"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                  className={`${secondaryActionClass} flex items-center justify-center gap-1`}
                   onClick={() => handleSendToPastor(task.id)}
                 >
-                  <Mail className="w-3 h-3" />
                   Send to Pastor
                 </Button>
 
                 <Button
                   size="sm"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                  className={`${secondaryActionClass} flex items-center justify-center gap-1`}
                   onClick={() => handleSendToMusic(task.id)}
                 >
-                  <Music className="w-3 h-3" />
                   Send to Music
                 </Button>
               </div>
@@ -120,8 +136,7 @@ export const TaskCard = ({ task, categoryId }) => {
                 {!(task.id === "sermon" && hasRole("pastor")) && (
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="w-full border border-blue-300 text-blue-700 hover:bg-blue-50 text-xs py-1 h-8 rounded-md font-medium"
+                    className={viewActionClass}
                     onClick={() => handleViewDocument(task.id)}
                   >
                     {task.id === "sermon" ? "View Sermon" : "View Document"}
@@ -251,7 +266,6 @@ export const TaskCard = ({ task, categoryId }) => {
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
                 onClick={handleUploadMusic}
               >
-                <Music className="w-3 h-3" />
                 Upload Music
               </Button>
             )}
@@ -270,33 +284,30 @@ export const TaskCard = ({ task, categoryId }) => {
         )}
 
         {/* Status badges */}
-        {!isActive &&
-          !isCompleted &&
-          !(
-            task.id === "translate-liturgy" &&
-            ((hasRole("liturgy") && !completedTasks?.lyrics) ||
-              (hasRole("translation") &&
-                completedTasks?.lyrics === "completed"))
-          ) && (
-            <Badge
-              variant="secondary"
-              className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-gray-100 text-gray-700 border border-gray-200 rounded-md"
-            >
-              Pending
-            </Badge>
-          )}
+        {!isActive && !isCompleted && (
+          <Badge
+            variant="secondary"
+            className={`${statusBadgeClasses} bg-gray-100 text-gray-600 border border-gray-200`}
+          >
+            Pending
+          </Badge>
+        )}
 
         {isActive &&
           !isCompleted &&
           !isQrCodeTask &&
           !hasRole(task.restrictedTo) && (
-            <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-blue-100 text-blue-800 border border-blue-300 rounded-md animate-pulse">
+            <Badge
+              className={`${statusBadgeClasses} bg-blue-100 text-blue-600 border border-blue-200 animate-pulse`}
+            >
               In Progress
             </Badge>
           )}
 
         {isCompleted && (
-          <Badge className="w-full mx-auto text-xs px-2 py-1 h-8 flex items-center justify-center bg-green-500 text-white rounded-md font-medium">
+          <Badge
+            className={`${statusBadgeClasses} bg-green-100 text-green-600 border border-green-200`}
+          >
             Completed
           </Badge>
         )}
