@@ -170,9 +170,9 @@ export const useWorkflowHandlers = () => {
   const handleActionStart = (taskId) => {
     console.log(`Action started for task: ${taskId}`);
 
-    // For sermon task, open the sermon modal (for anyone)
+    // For sermon task, open the sermon upload modal instead
     if (taskId === "sermon") {
-      setIsSermonModalOpen(true);
+      setIsSermonUploadModalOpen(true);
     }
     // For document creation tasks, open the document modal (for anyone)
     else if (taskId === "concept" || taskId === "final") {

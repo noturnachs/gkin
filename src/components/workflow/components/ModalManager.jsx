@@ -1,6 +1,5 @@
 // src/components/workflow/components/ModalManager.jsx
 import { DocumentCreatorModal } from "../../document-creator-modal";
-import { SermonCreatorModal } from "../../sermon-creator-modal";
 import { SendToPastorModal } from "../../send-to-pastor-modal";
 import { SendToMusicModal } from "../../send-to-music-modal";
 import { SermonUploadModal } from "../../sermon-upload-modal";
@@ -68,12 +67,6 @@ export const ModalManager = () => {
         onClose={() => setIsDocumentModalOpen(false)}
         onSubmit={handleDocumentSubmit}
         documentType={currentDocumentType}
-      />
-
-      <SermonCreatorModal
-        isOpen={isSermonModalOpen}
-        onClose={() => setIsSermonModalOpen(false)}
-        onSubmit={handleSermonSubmit}
       />
 
       <SendToPastorModal

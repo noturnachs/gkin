@@ -73,14 +73,6 @@ export const TaskCard = ({ task, categoryId }) => {
                 <Button
                   size="sm"
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md"
-                  onClick={() => handleActionStart(task.id)}
-                >
-                  Create Sermon
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full border border-purple-300 text-purple-700 hover:bg-purple-50 text-xs py-1 h-8 rounded-md"
                   onClick={() => handleUploadSermon(task.id)}
                 >
                   Upload Sermon

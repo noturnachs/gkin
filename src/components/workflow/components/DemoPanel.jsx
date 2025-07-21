@@ -52,13 +52,7 @@ export const DemoPanel = () => {
               </Button>
             ) : (
               <>
-                <Button
-                  size="sm"
-                  className="bg-purple-500 hover:bg-purple-600 text-white"
-                  onClick={() => handleActionStart("sermon")}
-                >
-                  Create Sermon
-                </Button>
+                {/* Remove the Create Sermon button and keep only Upload Sermon */}
                 <Button
                   size="sm"
                   className="bg-purple-500 hover:bg-purple-600 text-white"
