@@ -479,6 +479,33 @@ export const useWorkflowHandlers = () => {
     }, 1500); // Simulate a short processing time
   };
 
+  const handleUploadMusic = () => {
+    console.log("Opening music upload modal");
+    setIsMusicUploadModalOpen(true);
+  };
+
+  const handleMusicUploadSubmit = (musicData) => {
+    console.log("Music upload submitted:", musicData);
+
+    // Update the local state to store the music data
+    setCompletedTasks((prev) => ({
+      ...prev,
+      music: "completed",
+      musicData: musicData,
+    }));
+
+    // Close the modal
+    setIsMusicUploadModalOpen(false);
+
+    // Update the service status if needed
+    if (onStartAction) {
+      onStartAction("music-uploaded");
+    }
+
+    // Show a success message
+    alert(`Music file "${musicData.title}" has been uploaded successfully!`);
+  };
+
   return {
     handleQrCodeAction,
     handleSermonSubmit,
@@ -505,5 +532,7 @@ export const useWorkflowHandlers = () => {
     handleUploadSlides,
     handleSlidesUploadSubmit,
     handleQrCodeUploadSubmit,
+    handleUploadMusic,
+    handleMusicUploadSubmit,
   };
 };

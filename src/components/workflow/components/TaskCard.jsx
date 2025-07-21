@@ -4,9 +4,11 @@ import { Button } from "../../ui/button";
 import { CheckCircle, AlertCircle, Mail, Music, Edit } from "lucide-react";
 import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
+import { MusicUploadModal } from "../../music-upload-modal";
 
 export const TaskCard = ({ task, categoryId }) => {
-  const { getTaskStatus, hasRole, completedTasks } = useWorkflow();
+  const { getTaskStatus, hasRole, completedTasks, setCompletedTasks } =
+    useWorkflow();
   const {
     handleActionStart,
     handleViewDocument,
@@ -20,6 +22,7 @@ export const TaskCard = ({ task, categoryId }) => {
     handleTranslateSermon,
     handleUploadSermon,
     handleUploadSlides,
+    handleUploadMusic,
   } = useWorkflowHandlers();
 
   const status = getTaskStatus(task.id);
@@ -215,13 +218,15 @@ export const TaskCard = ({ task, categoryId }) => {
         {task.id === "slides" && (
           <>
             {!isCompleted && (
-              <Button
-                size="sm"
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8 rounded-md"
-                onClick={handleUploadSlides}
-              >
-                Upload Slides
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  size="sm"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8 rounded-md"
+                  onClick={handleUploadSlides}
+                >
+                  Upload Slides
+                </Button>
+              </div>
             )}
 
             {isCompleted && (
@@ -232,6 +237,33 @@ export const TaskCard = ({ task, categoryId }) => {
                 onClick={() => handleViewDocument("slides")}
               >
                 View Slides
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Music upload task */}
+        {task.id === "music" && (
+          <>
+            {!isCompleted && (
+              <Button
+                size="sm"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                onClick={handleUploadMusic}
+              >
+                <Music className="w-3 h-3" />
+                Upload Music
+              </Button>
+            )}
+
+            {isCompleted && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-xs py-1 h-8 rounded-md font-medium"
+                onClick={() => handleViewDocument("music")}
+              >
+                View Music
               </Button>
             )}
           </>

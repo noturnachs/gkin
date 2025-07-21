@@ -41,6 +41,7 @@ export const WorkflowProvider = ({
   const [currentSermon, setCurrentSermon] = useState(null);
   const [isSlidesUploadModalOpen, setIsSlidesUploadModalOpen] = useState(false);
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [isMusicUploadModalOpen, setIsMusicUploadModalOpen] = useState(false);
 
   // Helper function to check role
   const hasRole = (roleId) => {
@@ -154,6 +155,8 @@ export const WorkflowProvider = ({
     setIsSlidesUploadModalOpen,
     isQrCodeModalOpen,
     setIsQrCodeModalOpen,
+    isMusicUploadModalOpen,
+    setIsMusicUploadModalOpen,
 
     // Helper functions
     hasRole,

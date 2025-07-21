@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Send,
   Presentation,
+  Music,
 } from "lucide-react";
 
 export const workflowCategories = [
@@ -84,6 +85,13 @@ export const workflowCategories = [
         icon: Presentation,
         description: "Create presentation slides",
         actionLabel: "Create Slides",
+      },
+      {
+        id: "music",
+        name: "Upload Music",
+        icon: Music,
+        description: "Upload music files for service",
+        actionLabel: "Upload Music",
       },
     ],
   },

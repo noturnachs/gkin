@@ -9,6 +9,7 @@ import { TranslationModal } from "../../translation-modal";
 import { SermonTranslationModal } from "../../sermon-translation-modal";
 import { SlidesUploadModal } from "../../slides-upload-modal";
 import { QrCodeUploadModal } from "../../qr-code-upload-modal";
+import { MusicUploadModal } from "../../music-upload-modal";
 
 import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
@@ -44,6 +45,8 @@ export const ModalManager = () => {
     isQrCodeModalOpen,
     setIsQrCodeModalOpen,
     completedTasks,
+    isMusicUploadModalOpen,
+    setIsMusicUploadModalOpen,
   } = useWorkflow();
 
   const {
@@ -58,6 +61,7 @@ export const ModalManager = () => {
     handleSermonTranslationSubmit,
     handleSlidesUploadSubmit,
     handleQrCodeUploadSubmit,
+    handleMusicUploadSubmit,
   } = useWorkflowHandlers();
 
   return (
@@ -127,6 +131,12 @@ export const ModalManager = () => {
         isOpen={isQrCodeModalOpen}
         onClose={() => setIsQrCodeModalOpen(false)}
         onSubmit={handleQrCodeUploadSubmit}
+      />
+
+      <MusicUploadModal
+        isOpen={isMusicUploadModalOpen}
+        onClose={() => setIsMusicUploadModalOpen(false)}
+        onSubmit={handleMusicUploadSubmit}
       />
     </>
   );
