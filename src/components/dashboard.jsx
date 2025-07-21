@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { WorkflowBoard } from "./workflow";
 import { WeekSelector } from "./week-selector";
-import { GlobalChat } from "./global-chat";
+import { InlineChatComponent } from "./InlineChatComponent";
 import { ServiceAssignments } from "./service-assignments";
 import { WelcomeBanner } from "./welcome-banner";
 import { Footer } from "./ui/footer";
@@ -161,11 +161,6 @@ function Dashboard() {
             />
           )}
 
-        {/* Mobile Chat - Always visible */}
-        <div className="md:hidden">
-          <GlobalChat />
-        </div>
-
         {/* Main Content - Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Left Column - Service Assignments and Workflow Board */}
@@ -193,14 +188,14 @@ function Dashboard() {
             </Card>
           </div>
 
-          {/* Right Column - Global Chat and Role Actions */}
+          {/* Right Column - Global Chat and Recent Updates */}
           <div className="space-y-4 md:space-y-6">
-            {/* Global Chat - Now at the top of right column (hidden on mobile) */}
-            <div className="hidden md:block">
-              <GlobalChat />
+            {/* Inline Chat Component */}
+            <div className="h-[500px]">
+              <InlineChatComponent currentUser={user} height="h-[350px]" />
             </div>
 
-            {/* Recent Updates - Replacing Notifications */}
+            {/* Recent Updates */}
             <Card>
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-lg md:text-xl">
