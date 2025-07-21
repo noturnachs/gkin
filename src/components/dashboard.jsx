@@ -23,9 +23,8 @@ import {
   Mail,
   Upload,
 } from "lucide-react";
-import { WorkflowBoard } from "./workflow-board";
+import { WorkflowBoard } from "./workflow";
 import { WeekSelector } from "./week-selector";
-import { NotificationCenter } from "./notification-center";
 import { GlobalChat } from "./global-chat";
 import { ServiceAssignments } from "./service-assignments";
 import { WelcomeBanner } from "./welcome-banner";

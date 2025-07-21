@@ -1,0 +1,140 @@
+// src/components/workflow/components/ModalManager.jsx
+import { DocumentCreatorModal } from "../../document-creator-modal";
+import { SermonCreatorModal } from "../../sermon-creator-modal";
+import { SendToPastorModal } from "../../send-to-pastor-modal";
+import { SendToMusicModal } from "../../send-to-music-modal";
+import { SermonUploadModal } from "../../sermon-upload-modal";
+import { PastorNotifyModal } from "../../pastor-notify-modal";
+import { LyricsInputModal } from "../../lyrics-input-modal";
+import { TranslationModal } from "../../translation-modal";
+import { SermonTranslationModal } from "../../sermon-translation-modal";
+import { SlidesUploadModal } from "../../slides-upload-modal";
+import { QrCodeUploadModal } from "../../qr-code-upload-modal";
+
+import { useWorkflow } from "../context/WorkflowContext";
+import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
+
+export const ModalManager = () => {
+  const {
+    isDocumentModalOpen,
+    setIsDocumentModalOpen,
+    isSermonModalOpen,
+    setIsSermonModalOpen,
+    currentDocumentType,
+    isSendToPastorModalOpen,
+    setIsSendToPastorModalOpen,
+    currentDocumentToSend,
+    isSendToMusicModalOpen,
+    setIsSendToMusicModalOpen,
+    currentDocumentToSendMusic,
+    isSermonUploadModalOpen,
+    setIsSermonUploadModalOpen,
+    isPastorNotifyModalOpen,
+    setIsPastorNotifyModalOpen,
+    currentDocumentToNotify,
+    isLyricsModalOpen,
+    setIsLyricsModalOpen,
+    isTranslationModalOpen,
+    setIsTranslationModalOpen,
+    currentLyrics,
+    isSermonTranslationModalOpen,
+    setIsSermonTranslationModalOpen,
+    currentSermon,
+    isSlidesUploadModalOpen,
+    setIsSlidesUploadModalOpen,
+    isQrCodeModalOpen,
+    setIsQrCodeModalOpen,
+    completedTasks,
+  } = useWorkflow();
+
+  const {
+    handleDocumentSubmit,
+    handleSermonSubmit,
+    handleSendToPastorSubmit,
+    handleSendToMusicSubmit,
+    handleSermonUploadSubmit,
+    handlePastorNotifySubmit,
+    handleLyricsSubmit,
+    handleTranslationSubmit,
+    handleSermonTranslationSubmit,
+    handleSlidesUploadSubmit,
+    handleQrCodeUploadSubmit,
+  } = useWorkflowHandlers();
+
+  return (
+    <>
+      <DocumentCreatorModal
+        isOpen={isDocumentModalOpen}
+        onClose={() => setIsDocumentModalOpen(false)}
+        onSubmit={handleDocumentSubmit}
+        documentType={currentDocumentType}
+      />
+
+      <SermonCreatorModal
+        isOpen={isSermonModalOpen}
+        onClose={() => setIsSermonModalOpen(false)}
+        onSubmit={handleSermonSubmit}
+      />
+
+      <SendToPastorModal
+        isOpen={isSendToPastorModalOpen}
+        onClose={() => setIsSendToPastorModalOpen(false)}
+        onSubmit={handleSendToPastorSubmit}
+        documentType={currentDocumentToSend}
+      />
+
+      <SendToMusicModal
+        isOpen={isSendToMusicModalOpen}
+        onClose={() => setIsSendToMusicModalOpen(false)}
+        onSubmit={handleSendToMusicSubmit}
+        documentType={currentDocumentToSendMusic}
+      />
+
+      <SermonUploadModal
+        isOpen={isSermonUploadModalOpen}
+        onClose={() => setIsSermonUploadModalOpen(false)}
+        onSubmit={handleSermonUploadSubmit}
+      />
+
+      <PastorNotifyModal
+        isOpen={isPastorNotifyModalOpen}
+        onClose={() => setIsPastorNotifyModalOpen(false)}
+        onSubmit={handlePastorNotifySubmit}
+        documentType={currentDocumentToNotify}
+      />
+
+      <LyricsInputModal
+        isOpen={isLyricsModalOpen}
+        onClose={() => setIsLyricsModalOpen(false)}
+        onSubmit={handleLyricsSubmit}
+        initialData={completedTasks?.lyricsData}
+      />
+
+      <TranslationModal
+        isOpen={isTranslationModalOpen}
+        onClose={() => setIsTranslationModalOpen(false)}
+        onSubmit={handleTranslationSubmit}
+        lyricsData={currentLyrics}
+      />
+
+      <SermonTranslationModal
+        isOpen={isSermonTranslationModalOpen}
+        onClose={() => setIsSermonTranslationModalOpen(false)}
+        onSubmit={handleSermonTranslationSubmit}
+        sermonData={currentSermon}
+      />
+
+      <SlidesUploadModal
+        isOpen={isSlidesUploadModalOpen}
+        onClose={() => setIsSlidesUploadModalOpen(false)}
+        onSubmit={handleSlidesUploadSubmit}
+      />
+
+      <QrCodeUploadModal
+        isOpen={isQrCodeModalOpen}
+        onClose={() => setIsQrCodeModalOpen(false)}
+        onSubmit={handleQrCodeUploadSubmit}
+      />
+    </>
+  );
+};
