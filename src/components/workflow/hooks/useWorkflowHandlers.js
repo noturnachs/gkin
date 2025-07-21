@@ -23,6 +23,7 @@ export const useWorkflowHandlers = () => {
     setCurrentSermon,
     setIsSlidesUploadModalOpen,
     setIsQrCodeModalOpen,
+    setIsMusicUploadModalOpen,
     onStartAction,
   } = useWorkflow();
 

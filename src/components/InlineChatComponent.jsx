@@ -216,10 +216,19 @@ export function InlineChatComponent({
       mentions.push(match[1].toLowerCase());
     }
 
+    // Create a simplified sender object with role as string
+    const senderToSave = {
+      ...currentUser,
+      role:
+        typeof currentUser.role === "object"
+          ? currentUser.role.id || currentUser.role.name
+          : currentUser.role,
+    };
+
     const newMsg = {
       id: messages.length + 1,
-      sender: currentUser,
-      text: newMessage,
+      sender: senderToSave,
+      text: newMessage.toString(),
       timestamp: new Date().toISOString(),
       mentions: mentions,
     };
@@ -230,7 +239,6 @@ export function InlineChatComponent({
     // Simulate email notification
     if (mentions.length > 0) {
       console.log("Sending email notifications to:", mentions);
-      // In a real app, you would call an API to send emails here
     }
   };
 
@@ -262,6 +270,10 @@ export function InlineChatComponent({
 
   // Highlight mentions in message text
   const highlightMentions = (text) => {
+    if (!text || typeof text !== "string") {
+      return ""; // Return empty string if text is not a string
+    }
+
     return text.split(" ").map((word, index) => {
       if (word.startsWith("@")) {
         const role = word.substring(1).toLowerCase();
@@ -347,7 +359,11 @@ export function InlineChatComponent({
                               : "text-gray-500"
                           }`}
                         >
-                          ({message.sender.role})
+                          (
+                          {typeof message.sender.role === "object"
+                            ? message.sender.role.id || message.sender.role.name
+                            : message.sender.role}
+                          )
                         </span>
                       </span>
                       <span
@@ -368,29 +384,32 @@ export function InlineChatComponent({
                           : "text-gray-800"
                       }`}
                     >
-                      {highlightMentions(message.text)}
+                      {typeof message.text === "string"
+                        ? highlightMentions(message.text)
+                        : ""}
                     </p>
-                    {message.mentions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {message.mentions.map((mention, index) => {
-                          const roleColor =
-                            roleColors[mention]?.light || "bg-gray-100";
-                          const borderColor =
-                            roleColors[mention]?.border || "border-gray-200";
-                          const textColor =
-                            roleColors[mention]?.text || "text-gray-800";
+                    {Array.isArray(message.mentions) &&
+                      message.mentions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {message.mentions.map((mention, index) => {
+                            const roleColor =
+                              roleColors[mention]?.light || "bg-gray-100";
+                            const borderColor =
+                              roleColors[mention]?.border || "border-gray-200";
+                            const textColor =
+                              roleColors[mention]?.text || "text-gray-800";
 
-                          return (
-                            <span
-                              key={index}
-                              className={`text-xs px-2 py-0.5 rounded-full ${roleColor} ${textColor} border ${borderColor}`}
-                            >
-                              @{mention}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
+                            return (
+                              <span
+                                key={index}
+                                className={`text-xs px-2 py-0.5 rounded-full ${roleColor} ${textColor} border ${borderColor}`}
+                              >
+                                @{mention}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                   </div>
 
                   {message.sender.id === currentUser.id && (
