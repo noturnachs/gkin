@@ -77,18 +77,19 @@ export function LyricsInputModal({ isOpen, onClose, onSubmit, initialData }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 my-8 animate-fadeIn"
-        style={{ maxHeight: "calc(100vh - 4rem)" }}
+        className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-auto my-2 sm:my-8 animate-fadeIn"
+        style={{ maxHeight: "calc(100vh - 1rem)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
-            <Music className="w-5 h-5 text-blue-600" />
-            Song Lyrics Input
+        {/* Header - Made more compact on mobile */}
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-1 sm:gap-2 text-gray-800">
+            <Music className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+            <span className="truncate">Song Lyrics Input</span>
           </h2>
           <button
             onClick={onClose}
@@ -101,32 +102,34 @@ export function LyricsInputModal({ isOpen, onClose, onSubmit, initialData }) {
 
         <form
           onSubmit={handleSubmit}
-          className="p-4 overflow-y-auto"
-          style={{ maxHeight: "calc(100vh - 10rem)" }}
+          className="p-3 sm:p-4 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 8rem)" }}
         >
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Responsive header for instructions and add button */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <p className="text-xs sm:text-sm text-gray-600">
                 Add songs and lyrics that will need translation
               </p>
               <Button
                 type="button"
                 onClick={handleAddSong}
-                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1 w-full sm:w-auto"
                 size="sm"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 Add Song
               </Button>
             </div>
 
+            {/* Song list - improved for mobile */}
             {songs.map((song, index) => (
               <div
                 key={index}
-                className="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50"
+                className="p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50"
               >
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-gray-700">
+                <div className="flex justify-between items-center mb-2 sm:mb-3">
+                  <h3 className="font-medium text-sm sm:text-base text-gray-700">
                     Song {index + 1}
                   </h3>
                   {songs.length > 1 && (
@@ -136,17 +139,18 @@ export function LyricsInputModal({ isOpen, onClose, onSubmit, initialData }) {
                       className="text-red-600 hover:bg-red-50 hover:text-red-700 p-1 h-auto"
                       variant="ghost"
                       size="sm"
+                      aria-label={`Remove Song ${index + 1}`}
                     >
                       <X className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="grid gap-2">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid gap-1 sm:gap-2">
                     <Label
                       htmlFor={`song-title-${index}`}
-                      className="text-gray-700"
+                      className="text-xs sm:text-sm text-gray-700"
                     >
                       Song Title
                     </Label>
@@ -156,26 +160,26 @@ export function LyricsInputModal({ isOpen, onClose, onSubmit, initialData }) {
                       onChange={(e) =>
                         handleSongChange(index, "title", e.target.value)
                       }
-                      className="border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      className="border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm"
                       placeholder="Enter song title"
                     />
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="grid gap-1 sm:gap-2">
                     <Label
                       htmlFor={`song-lyrics-${index}`}
-                      className="text-gray-700"
+                      className="text-xs sm:text-sm text-gray-700"
                     >
                       Lyrics
                     </Label>
                     <Textarea
                       id={`song-lyrics-${index}`}
-                      rows={6}
+                      rows={4}
                       value={song.lyrics}
                       onChange={(e) =>
                         handleSongChange(index, "lyrics", e.target.value)
                       }
-                      className="border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      className="border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm"
                       placeholder="Enter song lyrics"
                     />
                   </div>
@@ -184,17 +188,18 @@ export function LyricsInputModal({ isOpen, onClose, onSubmit, initialData }) {
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 mt-6">
+          {/* Footer buttons - Made full width on mobile */}
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 mt-4 sm:mt-6">
             <Button
               type="button"
               onClick={onClose}
-              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 w-full sm:w-auto order-2 sm:order-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto order-1 sm:order-2"
             >
               <Save className="w-4 h-4 mr-2" />
               Save Lyrics
