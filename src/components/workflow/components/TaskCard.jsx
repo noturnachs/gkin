@@ -1,28 +1,96 @@
 // src/components/workflow/components/TaskCard.jsx
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { CheckCircle, AlertCircle, Mail, Music, Edit } from "lucide-react";
+import {
+  CheckCircle,
+  AlertCircle,
+  Mail,
+  Music,
+  Edit,
+  ArrowRight,
+  Upload,
+} from "lucide-react";
 import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
 import { MusicUploadModal } from "../../music-upload-modal";
 
-// Common button styles - making actions more prominent
-const actionButtonClasses =
-  "w-full text-white text-xs py-2 h-9 rounded-md font-medium shadow-sm hover:shadow transition-all";
+// Task type specific styling
+const taskTypeStyles = {
+  // Liturgy tasks - blue theme
+  concept: {
+    primary: "bg-blue-600 hover:bg-blue-700",
+    secondary: "bg-blue-500 hover:bg-blue-600",
+    badge: "bg-blue-100 text-blue-700 border-blue-200",
+    viewButton: "border-blue-300 text-blue-700 hover:bg-blue-50",
+    icon: "text-blue-500",
+  },
+  sermon: {
+    primary: "bg-purple-600 hover:bg-purple-700",
+    secondary: "bg-purple-500 hover:bg-purple-600",
+    badge: "bg-purple-100 text-purple-700 border-purple-200",
+    viewButton: "border-purple-300 text-purple-700 hover:bg-purple-50",
+    icon: "text-purple-500",
+  },
+  final: {
+    primary: "bg-blue-600 hover:bg-blue-700",
+    secondary: "bg-blue-500 hover:bg-blue-600",
+    badge: "bg-blue-100 text-blue-700 border-blue-200",
+    viewButton: "border-blue-300 text-blue-700 hover:bg-blue-50",
+    icon: "text-blue-500",
+  },
 
-// Status badge styles - making them more subtle and clearly non-interactive
-const statusBadgeClasses =
-  "w-full mx-auto text-xs px-2 py-0.5 h-7 flex items-center justify-center rounded-md font-normal";
+  // QR code - emerald theme
+  qrcode: {
+    primary: "bg-emerald-600 hover:bg-emerald-700",
+    secondary: "bg-emerald-500 hover:bg-emerald-600",
+    badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    viewButton: "border-emerald-300 text-emerald-700 hover:bg-emerald-50",
+    icon: "text-emerald-500",
+  },
 
-// Primary action button - for main actions
-const primaryActionClass = `${actionButtonClasses} bg-blue-600 hover:bg-blue-700`;
+  // Translation tasks - green theme
+  "translate-liturgy": {
+    primary: "bg-green-600 hover:bg-green-700",
+    secondary: "bg-green-500 hover:bg-green-600",
+    badge: "bg-green-100 text-green-700 border-green-200",
+    viewButton: "border-green-300 text-green-700 hover:bg-green-50",
+    icon: "text-green-500",
+  },
+  "translate-sermon": {
+    primary: "bg-green-600 hover:bg-green-700",
+    secondary: "bg-green-500 hover:bg-green-600",
+    badge: "bg-green-100 text-green-700 border-green-200",
+    viewButton: "border-green-300 text-green-700 hover:bg-green-50",
+    icon: "text-green-500",
+  },
 
-// Secondary action button - for supporting actions
-const secondaryActionClass = `${actionButtonClasses} bg-gray-600 hover:bg-gray-700`;
+  // Beamer tasks - orange theme
+  slides: {
+    primary: "bg-orange-600 hover:bg-orange-700",
+    secondary: "bg-orange-500 hover:bg-orange-600",
+    badge: "bg-orange-100 text-orange-700 border-orange-200",
+    viewButton: "border-orange-300 text-orange-700 hover:bg-orange-50",
+    icon: "text-orange-500",
+  },
 
-// View action button - for view-only actions
-const viewActionClass =
-  "w-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs py-1.5 h-9 rounded-md font-medium hover:shadow transition-all";
+  // Music tasks - indigo theme
+  music: {
+    primary: "bg-indigo-600 hover:bg-indigo-700",
+    secondary: "bg-indigo-500 hover:bg-indigo-600",
+    badge: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    viewButton: "border-indigo-300 text-indigo-700 hover:bg-indigo-50",
+    icon: "text-indigo-500",
+  },
+};
+
+// Default style for tasks without specific styling
+const defaultTaskStyle = {
+  primary: "bg-gray-600 hover:bg-gray-700",
+  secondary: "bg-gray-500 hover:bg-gray-600",
+  badge: "bg-gray-100 text-gray-700 border-gray-200",
+  viewButton: "border-gray-300 text-gray-700 hover:bg-gray-50",
+  icon: "text-gray-500",
+};
 
 export const TaskCard = ({ task, categoryId }) => {
   const { getTaskStatus, hasRole, completedTasks, setCompletedTasks } =
@@ -46,9 +114,15 @@ export const TaskCard = ({ task, categoryId }) => {
   const status = getTaskStatus(task.id);
   const isCompleted = status === "completed";
   const isActive = status === "active";
-
-  // Special handling for QR code task
   const isQrCodeTask = task.id === "qrcode";
+
+  // Get task-specific styling or use default
+  const taskStyle = taskTypeStyles[task.id] || defaultTaskStyle;
+
+  // Button styles with task-specific colors
+  const primaryButtonClass = `w-full text-white text-xs py-2 h-9 rounded-md font-medium shadow-sm hover:shadow transition-all ${taskStyle.primary}`;
+  const secondaryButtonClass = `w-full text-white text-xs py-2 h-9 rounded-md font-medium shadow-sm hover:shadow transition-all ${taskStyle.secondary}`;
+  const viewButtonClass = `w-full border text-xs py-1.5 h-9 rounded-md font-medium hover:shadow transition-all ${taskStyle.viewButton}`;
 
   return (
     <div
@@ -56,33 +130,61 @@ export const TaskCard = ({ task, categoryId }) => {
         isCompleted
           ? "bg-green-50 border-green-200"
           : isActive
-          ? isQrCodeTask
-            ? "bg-emerald-50 border-emerald-300 border-2 shadow"
-            : "bg-blue-50 border-blue-300 border-2 shadow"
+          ? `bg-${
+              task.id === "qrcode" ? "emerald" : taskStyle.icon.split("-")[1]
+            }-50 border-${
+              task.id === "qrcode" ? "emerald" : taskStyle.icon.split("-")[1]
+            }-300 border-2 shadow`
           : "bg-gray-50 border-gray-200"
       }`}
     >
+      {/* Task icon with task-specific color */}
       <div className="mb-1">
         {isCompleted ? (
-          <CheckCircle
-            className={`w-6 h-6 ${
-              isQrCodeTask ? "text-emerald-500" : "text-green-500"
-            }`}
-          />
+          <CheckCircle className={`w-6 h-6 text-green-500`} />
         ) : isActive ? (
-          <AlertCircle
-            className={`w-6 h-6 ${
-              isQrCodeTask ? "text-emerald-500" : "text-blue-500"
-            } animate-pulse`}
-          />
+          <AlertCircle className={`w-6 h-6 ${taskStyle.icon} animate-pulse`} />
         ) : (
-          <task.icon className="w-6 h-6 text-gray-400" />
+          <task.icon className={`w-6 h-6 ${taskStyle.icon}`} />
         )}
       </div>
-      <div className="font-medium text-sm mb-1">{task.name}</div>
 
-      {/* Action buttons and status badges container */}
-      <div className="w-full mt-auto flex flex-col justify-end min-h-[32px] space-y-2">
+      {/* Task name */}
+      <div className="font-medium text-sm mb-2">{task.name}</div>
+
+      {/* Status badge - moved to top for better visibility */}
+      {!isActive && !isCompleted && (
+        <Badge className={`mb-3 px-3 py-1 text-xs ${taskStyle.badge}`}>
+          Pending
+        </Badge>
+      )}
+
+      {isActive &&
+        !isCompleted &&
+        !isQrCodeTask &&
+        !hasRole(task.restrictedTo) && (
+          <Badge
+            className={`mb-3 px-3 py-1 text-xs ${taskStyle.badge.replace(
+              "border",
+              "border-2"
+            )} animate-pulse flex items-center gap-1`}
+          >
+            <span className="w-2 h-2 rounded-full bg-current"></span>
+            In Progress
+          </Badge>
+        )}
+
+      {isCompleted && (
+        <Badge
+          className={`mb-3 px-3 py-1 text-xs bg-green-100 text-green-700 border border-green-200 flex items-center gap-1`}
+        >
+          <CheckCircle className="w-3 h-3" />
+          Completed
+        </Badge>
+      )}
+
+      {/* Action buttons container */}
+      <div className="w-full mt-auto flex flex-col justify-end space-y-2">
         {/* Liturgy Maker tasks */}
         {(task.id === "concept" ||
           task.id === "sermon" ||
@@ -90,15 +192,14 @@ export const TaskCard = ({ task, categoryId }) => {
           <>
             {/* Show sermon creation/upload options */}
             {task.id === "sermon" && !isCompleted && (
-              <div className="space-y-2">
-                <Button
-                  size="sm"
-                  className={`${actionButtonClasses} bg-purple-600 hover:bg-purple-700`}
-                  onClick={() => handleUploadSermon(task.id)}
-                >
-                  Upload Sermon
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                className={primaryButtonClass}
+                onClick={() => handleUploadSermon(task.id)}
+              >
+                <Upload className="w-3 h-3 mr-1" />
+                Upload Sermon
+              </Button>
             )}
 
             {/* Show document creation buttons */}
@@ -106,25 +207,28 @@ export const TaskCard = ({ task, categoryId }) => {
               <div className="space-y-2">
                 <Button
                   size="sm"
-                  className={primaryActionClass}
+                  className={primaryButtonClass}
                   onClick={() => handleActionStart(task.id)}
                 >
+                  <Edit className="w-3 h-3 mr-1" />
                   {task.actionLabel}
                 </Button>
 
                 <Button
                   size="sm"
-                  className={`${secondaryActionClass} flex items-center justify-center gap-1`}
+                  className={secondaryButtonClass}
                   onClick={() => handleSendToPastor(task.id)}
                 >
+                  <ArrowRight className="w-3 h-3 mr-1" />
                   Send to Pastor
                 </Button>
 
                 <Button
                   size="sm"
-                  className={`${secondaryActionClass} flex items-center justify-center gap-1`}
+                  className={secondaryButtonClass}
                   onClick={() => handleSendToMusic(task.id)}
                 >
+                  <Music className="w-3 h-3 mr-1" />
                   Send to Music
                 </Button>
               </div>
@@ -136,7 +240,7 @@ export const TaskCard = ({ task, categoryId }) => {
                 {!(task.id === "sermon" && hasRole("pastor")) && (
                   <Button
                     size="sm"
-                    className={viewActionClass}
+                    className={viewButtonClass}
                     onClick={() => handleViewDocument(task.id)}
                   >
                     {task.id === "sermon" ? "View Sermon" : "View Document"}
@@ -149,7 +253,7 @@ export const TaskCard = ({ task, categoryId }) => {
                     <div className="space-y-2 mt-2">
                       <Button
                         size="sm"
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                        className={`w-full text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1 ${taskStyle.primary}`}
                         onClick={() => handlePastorEdit(task.id)}
                       >
                         <Edit className="w-3 h-3" />
@@ -174,7 +278,7 @@ export const TaskCard = ({ task, categoryId }) => {
         {isQrCodeTask && !isCompleted && (
           <Button
             size="sm"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+            className={primaryButtonClass}
             onClick={() => handleQrCodeAction(isActive ? "complete" : "upload")}
           >
             {isActive ? "Finish Upload" : task.actionLabel}
@@ -186,7 +290,7 @@ export const TaskCard = ({ task, categoryId }) => {
           <Button
             size="sm"
             variant="outline"
-            className="w-full border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs py-1 h-8 rounded-md font-medium"
+            className={viewButtonClass}
             onClick={() => handleViewDocument("qrcode")}
           >
             View QR Code
@@ -198,7 +302,7 @@ export const TaskCard = ({ task, categoryId }) => {
           <>
             <Button
               size="sm"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+              className={primaryButtonClass}
               onClick={handleAddLyrics}
             >
               {completedTasks?.lyrics === "completed"
@@ -208,7 +312,9 @@ export const TaskCard = ({ task, categoryId }) => {
 
             <Button
               size="sm"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md mt-2"
+              className={`${secondaryButtonClass} mt-2 ${
+                !completedTasks?.lyrics ? "opacity-50" : ""
+              }`}
               onClick={handleTranslateLyrics}
               disabled={!completedTasks?.lyrics}
             >
@@ -222,7 +328,7 @@ export const TaskCard = ({ task, categoryId }) => {
           completedTasks?.sermon === "completed" && (
             <Button
               size="sm"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 h-8 rounded-md"
+              className={primaryButtonClass}
               onClick={handleTranslateSermon}
             >
               Translate Sermon
@@ -233,22 +339,21 @@ export const TaskCard = ({ task, categoryId }) => {
         {task.id === "slides" && (
           <>
             {!isCompleted && (
-              <div className="space-y-2">
-                <Button
-                  size="sm"
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-1 h-8 rounded-md"
-                  onClick={handleUploadSlides}
-                >
-                  Upload Slides
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                className={primaryButtonClass}
+                onClick={handleUploadSlides}
+              >
+                <Upload className="w-3 h-3 mr-1" />
+                Upload Slides
+              </Button>
             )}
 
             {isCompleted && (
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full border border-orange-300 text-orange-700 hover:bg-orange-50 text-xs py-1 h-8 rounded-md font-medium"
+                className={viewButtonClass}
                 onClick={() => handleViewDocument("slides")}
               >
                 View Slides
@@ -263,9 +368,10 @@ export const TaskCard = ({ task, categoryId }) => {
             {!isCompleted && (
               <Button
                 size="sm"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 h-8 rounded-md flex items-center justify-center gap-1"
+                className={primaryButtonClass}
                 onClick={handleUploadMusic}
               >
+                <Music className="w-3 h-3 mr-1" />
                 Upload Music
               </Button>
             )}
@@ -274,42 +380,13 @@ export const TaskCard = ({ task, categoryId }) => {
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full border border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-xs py-1 h-8 rounded-md font-medium"
+                className={viewButtonClass}
                 onClick={() => handleViewDocument("music")}
               >
                 View Music
               </Button>
             )}
           </>
-        )}
-
-        {/* Status badges */}
-        {!isActive && !isCompleted && (
-          <Badge
-            variant="secondary"
-            className={`${statusBadgeClasses} bg-gray-100 text-gray-600 border border-gray-200`}
-          >
-            Pending
-          </Badge>
-        )}
-
-        {isActive &&
-          !isCompleted &&
-          !isQrCodeTask &&
-          !hasRole(task.restrictedTo) && (
-            <Badge
-              className={`${statusBadgeClasses} bg-blue-100 text-blue-600 border border-blue-200 animate-pulse`}
-            >
-              In Progress
-            </Badge>
-          )}
-
-        {isCompleted && (
-          <Badge
-            className={`${statusBadgeClasses} bg-green-100 text-green-600 border border-green-200`}
-          >
-            Completed
-          </Badge>
         )}
       </div>
     </div>
