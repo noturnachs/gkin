@@ -312,11 +312,8 @@ export const TaskCard = ({ task, categoryId }) => {
 
             <Button
               size="sm"
-              className={`${secondaryButtonClass} mt-2 ${
-                !completedTasks?.lyrics ? "opacity-50" : ""
-              }`}
+              className={secondaryButtonClass}
               onClick={handleTranslateLyrics}
-              disabled={!completedTasks?.lyrics}
             >
               Translate Lyrics
             </Button>
@@ -324,16 +321,15 @@ export const TaskCard = ({ task, categoryId }) => {
         )}
 
         {/* Sermon translation task */}
-        {task.id === "translate-sermon" &&
-          completedTasks?.sermon === "completed" && (
-            <Button
-              size="sm"
-              className={primaryButtonClass}
-              onClick={handleTranslateSermon}
-            >
-              Translate Sermon
-            </Button>
-          )}
+        {task.id === "translate-sermon" && (
+          <Button
+            size="sm"
+            className={primaryButtonClass}
+            onClick={handleTranslateSermon}
+          >
+            Translate Sermon
+          </Button>
+        )}
 
         {/* Beamer slides task */}
         {task.id === "slides" && (
