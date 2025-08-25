@@ -4,12 +4,18 @@ import Dashboard from "./components/dashboard"; // Changed from { Dashboard }
 import { LoginPage } from "./components/login-page";
 import { EmailComposerPage } from "./components/email-composer-page";
 import { ProtectedRoute } from "./components/protected-route";
+import { AssignmentsPage } from "./components/assignments/assignments-page";
+import { AssignmentsProvider } from "./components/assignments/context/AssignmentsContext";
 
 // Routes configuration
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: (
+      <AssignmentsProvider>
+        <App />
+      </AssignmentsProvider>
+    ),
     children: [
       {
         index: true,
@@ -37,6 +43,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EmailComposerPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "assignments",
+        element: (
+          <ProtectedRoute>
+            <AssignmentsPage />
           </ProtectedRoute>
         ),
       },
