@@ -158,13 +158,28 @@ export const AssignmentsProvider = ({ children }) => {
     setAssignments(prev => [...prev, ...newServices]);
   };
 
+  // Function to explicitly save assignments to localStorage (and future backend)
+  const saveAssignments = () => {
+    // Currently just saves to localStorage
+    localStorage.setItem("serviceAssignments", JSON.stringify(assignments));
+    
+    // In the future, this would be an API call:
+    // return api.post('/assignments', assignments);
+    
+    // For now, return a promise that resolves immediately
+    return new Promise(resolve => {
+      setTimeout(() => resolve({ success: true }), 300);
+    });
+  };
+
   const value = {
     assignments,
     updateAssignment,
     addRole,
     removeRole,
     getAssignmentsForDate,
-    addMoreFutureDates
+    addMoreFutureDates,
+    saveAssignments
   };
 
   return (

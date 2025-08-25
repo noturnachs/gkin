@@ -1,11 +1,11 @@
 // src/components/assignments/assignments-page.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Calendar, Save, Plus, Trash2, ArrowLeft, ChevronRight } from "lucide-react";
+import { Calendar, Save, Plus, Trash2, ArrowLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { Header } from "../header";
 import { Footer } from "../ui/footer";
 import { WeekSelector } from "../week-selector";
@@ -21,8 +21,16 @@ export function AssignmentsPage() {
     addRole, 
     removeRole, 
     getAssignmentsForDate,
-    addMoreFutureDates 
+    addMoreFutureDates,
+    saveAssignments 
   } = useAssignments();
+  
+  // Add state for local changes and saving status
+  const [localAssignments, setLocalAssignments] = useState([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  
   const [newRoleName, setNewRoleName] = useState("");
   const [user] = useState(() => {
     // Try to get user from localStorage on initial load
@@ -30,10 +38,55 @@ export function AssignmentsPage() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   
+  // Get current service and update local assignments when selected week changes
   const currentService = getAssignmentsForDate(selectedWeek);
   
-  const handleUpdateAssignment = (roleIndex, newPerson) => {
-    updateAssignment(currentService.dateString, roleIndex, newPerson);
+  useEffect(() => {
+    if (currentService) {
+      setLocalAssignments(currentService.assignments.map(a => ({...a})));
+      setHasChanges(false);
+    }
+  }, [currentService, selectedWeek]);
+  
+  // Update local assignment without saving to context
+  const handleLocalUpdate = (roleIndex, newPerson) => {
+    setLocalAssignments(prev => {
+      const updated = [...prev];
+      updated[roleIndex] = {
+        ...updated[roleIndex],
+        person: newPerson
+      };
+      return updated;
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  };
+  
+  // Save changes to context/localStorage
+  const handleSaveChanges = async () => {
+    if (!hasChanges) return;
+    
+    setIsSaving(true);
+    
+    // Update assignments in context
+    localAssignments.forEach((assignment, index) => {
+      updateAssignment(currentService.dateString, index, assignment.person);
+    });
+    
+    // Save to localStorage (and future backend)
+    try {
+      await saveAssignments();
+      setSaveSuccess(true);
+      setHasChanges(false);
+      
+      // Reset success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving assignments:", error);
+      // Handle error here
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   const handleAddRole = (e) => {
@@ -41,28 +94,30 @@ export function AssignmentsPage() {
     if (newRoleName.trim()) {
       addRole(newRoleName.trim());
       setNewRoleName("");
+      
+      // Update local assignments with the new role
+      setLocalAssignments(prev => [
+        ...prev,
+        { role: newRoleName.trim(), person: "" }
+      ]);
     }
   };
   
   const handleRemoveRole = (roleIndex) => {
     if (window.confirm("Are you sure you want to remove this role from all services?")) {
       removeRole(roleIndex);
+      
+      // Update local assignments
+      setLocalAssignments(prev => {
+        const updated = [...prev];
+        updated.splice(roleIndex, 1);
+        return updated;
+      });
     }
   };
 
   const handleAddMoreDates = () => {
     addMoreFutureDates(4); // Add 4 more future dates
-    
-    // Provide visual feedback
-    alert("4 more future dates have been added!");
-    
-    // Optionally scroll to the Available Dates section
-    setTimeout(() => {
-      document.querySelector('.max-h-64.overflow-y-auto')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }, 100);
   };
   
   // If no user is logged in, redirect to login
@@ -96,21 +151,43 @@ export function AssignmentsPage() {
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Button>
           
-          <Button
-            variant="default" // Change from "outline" to "default" for more visibility
-            size="sm"
-            onClick={handleAddMoreDates}
-            className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white" // Add green color for emphasis
-          >
-            <Plus className="w-4 h-4" /> Add More Dates
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddMoreDates}
+              className="flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" /> Add More Dates
+            </Button>
+            
+            <Button
+              variant={hasChanges ? "default" : "outline"}
+              size="sm"
+              onClick={handleSaveChanges}
+              disabled={!hasChanges || isSaving}
+              className={`flex items-center gap-1 ${
+                hasChanges ? "bg-blue-600 hover:bg-blue-700 text-white" : ""
+              }`}
+            >
+              <Save className="w-4 h-4" /> 
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
+        
+        {saveSuccess && (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md text-sm flex items-center">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Changes saved successfully!
+          </div>
+        )}
         
         <div className="overflow-x-auto">
           <WeekSelector
             selectedWeek={selectedWeek}
             onWeekChange={setSelectedWeek}
-            customWeeks={assignments} // Pass assignments as customWeeks
+            customWeeks={assignments}
           />
         </div>
         
@@ -139,7 +216,7 @@ export function AssignmentsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3">
-                {currentService?.assignments.map((assignment, index) => (
+                {localAssignments.map((assignment, index) => (
                   <div 
                     key={index}
                     className="grid grid-cols-12 gap-2 border-b border-gray-100 py-3 last:border-0"
@@ -152,7 +229,7 @@ export function AssignmentsPage() {
                     <div className="col-span-7">
                       <Input 
                         value={assignment.person} 
-                        onChange={(e) => handleUpdateAssignment(index, e.target.value)}
+                        onChange={(e) => handleLocalUpdate(index, e.target.value)}
                         className="text-sm"
                       />
                     </div>
@@ -195,7 +272,7 @@ export function AssignmentsPage() {
               </CardHeader>
               <CardContent className="p-3">
                 <div className="space-y-2">
-                  {currentService?.assignments.map((assignment, index) => (
+                  {localAssignments.map((assignment, index) => (
                     <div
                       key={index}
                       className="grid grid-cols-12 gap-1 border-b border-gray-100 pb-2 last:border-0 last:pb-0"
