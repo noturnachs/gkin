@@ -1,98 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Calendar } from "lucide-react";
-import {
-  getUpcomingSundays,
-  formatDate,
-  getStatusColor,
-} from "../lib/date-utils";
+import { Calendar, Edit } from "lucide-react";
+import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
+import { getStatusColor } from "../lib/date-utils";
+import { useAssignments } from "./assignments/context/AssignmentsContext";
 
 export function ServiceAssignments({ selectedDate }) {
-  const [upcomingServices, setUpcomingServices] = useState([]);
-  const [currentService, setCurrentService] = useState(null);
+  const { getAssignmentsForDate } = useAssignments();
+  const currentService = getAssignmentsForDate(selectedDate);
 
-  // Use the shared date utility to load all services
-  useEffect(() => {
-    const sundays = getUpcomingSundays(4);
-
-    // Add assignments to each Sunday
-    const servicesWithAssignments = sundays.map((sunday, i) => {
-      // Example assignments - in a real app, these would come from your database
-      const assignments = [
-        { role: "Voorganger", person: "ds. D. Kurniawan" },
-        { role: "Ouderling van dienst", person: "Althea Simons-Winailan" },
-        { role: "Muzikale begeleiding", person: "Charlie Hendrawan" },
-        {
-          role: "Voorzangers",
-          person: "Yolly Wenker-Tampubolon, Teddy Simanjuntak",
-        },
-      ];
-
-      // Add different people for different weeks to show variety
-      if (i === 1) {
-        assignments[1].person = "Johan van der Meer";
-        assignments[3].person = "Maria Jansen, Peter de Vries";
-      } else if (i === 2) {
-        assignments[0].person = "ds. A. Visser";
-        assignments[2].person = "David Smit";
-      } else if (i === 3) {
-        assignments[1].person = "Esther de Boer";
-        assignments[3].person = "Thomas Bakker, Anna Mulder";
-      }
-
-      return {
-        ...sunday,
-        title: "Sunday Service",
-        assignments: assignments,
-      };
-    });
-
-    setUpcomingServices(servicesWithAssignments);
-  }, []);
-
-  // Update current service when selectedDate changes
-  useEffect(() => {
-    if (selectedDate && upcomingServices.length > 0) {
-      // Try direct match first
-      let service = upcomingServices.find((s) => s.dateString === selectedDate);
-
-      // If no direct match, try to find the closest date
-      if (!service) {
-        // Convert selectedDate to a Date object
-        const selectedDateTime = new Date(selectedDate).getTime();
-
-        // Find the service with the closest date
-        service = upcomingServices.reduce((closest, current) => {
-          const currentTime = new Date(current.dateString).getTime();
-          const closestTime = closest
-            ? new Date(closest.dateString).getTime()
-            : Infinity;
-
-          const currentDiff = Math.abs(currentTime - selectedDateTime);
-          const closestDiff = Math.abs(closestTime - selectedDateTime);
-
-          return currentDiff < closestDiff ? current : closest;
-        }, null);
-
-        console.log("Found closest service:", service);
-      } else {
-        console.log("Found exact matching service:", service);
-      }
-
-      if (service) {
-        setCurrentService(service);
-      } else {
-        // If still no match found, use the first service as fallback
-        setCurrentService(upcomingServices[0]);
-      }
-    } else if (upcomingServices.length > 0) {
-      // If no selectedDate, default to first service
-      setCurrentService(upcomingServices[0]);
-    }
-  }, [selectedDate, upcomingServices]);
-
-  // If services haven't been calculated yet or no current service, show loading
+  // If no current service, show loading
   if (!currentService) {
     return (
       <Card className="border border-gray-200 shadow-sm">
@@ -111,7 +30,8 @@ export function ServiceAssignments({ selectedDate }) {
     );
   }
 
-  const formattedDateString = formatDate(currentService.date);
+  // Format the date directly from the title or dateString
+  const formattedDateString = currentService.title;
   const statusColor = getStatusColor(currentService.daysRemaining);
 
   return (
@@ -134,6 +54,11 @@ export function ServiceAssignments({ selectedDate }) {
                 ? "Tomorrow"
                 : `${currentService.daysRemaining} days`}
             </Badge>
+            <Link to="/assignments">
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 ml-1">
+                <Edit className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </CardHeader>
@@ -153,7 +78,7 @@ export function ServiceAssignments({ selectedDate }) {
                 :
               </div>
               <div className="col-span-7 text-gray-900 text-sm">
-                {assignment.person}
+                {assignment.person || <span className="text-gray-400 italic">Not assigned</span>}
               </div>
             </div>
           ))}
