@@ -22,6 +22,7 @@ import {
   MessageCircle,
   Mail,
   Upload,
+  Plus,
 } from "lucide-react";
 import { WorkflowBoard } from "./workflow";
 import { WeekSelector } from "./week-selector";
@@ -36,6 +37,7 @@ import {
   getUpcomingSundays,
 } from "../lib/date-utils";
 import { RecentUpdates } from "./recent-updates";
+import { useAssignments } from "./assignments/context/AssignmentsContext";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -47,6 +49,7 @@ function Dashboard() {
   const [selectedWeek, setSelectedWeek] = useState(getDefaultSelectedWeek());
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
   const [mockServices, setMockServices] = useState(generateServiceData());
+  const { assignments } = useAssignments();
 
   // Initialize services using the shared date utility
   useEffect(() => {
@@ -146,6 +149,7 @@ function Dashboard() {
           <WeekSelector
             selectedWeek={selectedWeek}
             onWeekChange={setSelectedWeek}
+            customWeeks={assignments} // Pass assignments as customWeeks
           />
         </div>
 
