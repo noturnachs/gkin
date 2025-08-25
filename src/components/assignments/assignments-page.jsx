@@ -52,6 +52,17 @@ export function AssignmentsPage() {
 
   const handleAddMoreDates = () => {
     addMoreFutureDates(4); // Add 4 more future dates
+    
+    // Provide visual feedback
+    alert("4 more future dates have been added!");
+    
+    // Optionally scroll to the Available Dates section
+    setTimeout(() => {
+      document.querySelector('.max-h-64.overflow-y-auto')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 100);
   };
   
   // If no user is logged in, redirect to login
@@ -85,63 +96,22 @@ export function AssignmentsPage() {
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Button>
           
+          <Button
+            variant="default" // Change from "outline" to "default" for more visibility
+            size="sm"
+            onClick={handleAddMoreDates}
+            className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white" // Add green color for emphasis
+          >
+            <Plus className="w-4 h-4" /> Add More Dates
+          </Button>
         </div>
         
-        <div className="flex flex-col space-y-4">
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
-              <CardTitle className="text-base font-bold">
-                Select Service Date
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {assignments.slice(0, 6).map((service) => {
-                  const date = new Date(service.dateString + 'T00:00:00Z');
-                  // Ensure it's a Sunday
-                  if (date.getUTCDay() !== 0) {
-                    // Adjust to nearest Sunday if needed
-                    const adjustment = date.getUTCDay() === 6 ? 1 : 7 - date.getUTCDay();
-                    date.setUTCDate(date.getUTCDate() + adjustment);
-                  }
-                  
-                  const formattedDate = date.toLocaleDateString('en-US', { 
-                    weekday: 'short',
-                    month: 'short', 
-                    day: 'numeric'
-                  });
-                  
-                  return (
-                    <Button
-                      key={service.dateString}
-                      variant={selectedWeek === service.dateString ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedWeek(service.dateString)}
-                      className={`justify-start ${
-                        selectedWeek === service.dateString 
-                          ? "bg-blue-600 text-white" 
-                          : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span className="truncate">{formattedDate}</span>
-                    </Button>
-                  );
-                })}
-              </div>
-              
-              <div className="mt-3 flex justify-end">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleAddMoreDates}
-                  className="flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" /> Add More Dates
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="overflow-x-auto">
+          <WeekSelector
+            selectedWeek={selectedWeek}
+            onWeekChange={setSelectedWeek}
+            customWeeks={assignments} // Pass assignments as customWeeks
+          />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -244,53 +214,6 @@ export function AssignmentsPage() {
                 </div>
               </CardContent>
             </Card>
-            
-            <div className="mt-4">
-              <Card className="border border-gray-200 shadow-sm">
-                <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
-                  <CardTitle className="text-base font-bold">
-                    Available Dates
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3">
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {assignments.map((service, index) => (
-                      <div
-                        key={index}
-                        className={`flex justify-between items-center p-2 rounded-md cursor-pointer ${
-                          service.dateString === selectedWeek ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => setSelectedWeek(service.dateString)}
-                      >
-                        <div className="text-sm">
-                          {(() => {
-                            const date = new Date(service.dateString + 'T00:00:00Z');
-                            // Ensure it's a Sunday
-                            if (date.getUTCDay() !== 0) {
-                              // Adjust to nearest Sunday if needed
-                              const adjustment = date.getUTCDay() === 6 ? 1 : 7 - date.getUTCDay();
-                              date.setUTCDate(date.getUTCDate() + adjustment);
-                            }
-                            return (
-                              <>
-                                <span className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                                {' - '}
-                                {date.toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                })}
-                              </>
-                            );
-                          })()}
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
         

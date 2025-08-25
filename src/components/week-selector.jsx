@@ -1,47 +1,84 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
-import { ChevronLeft, ChevronRight, Calendar, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, ChevronDown, Plus } from "lucide-react";
 import { getUpcomingSundays } from "../lib/date-utils";
+import { useAssignments } from "./assignments/context/AssignmentsContext";
 
-export function WeekSelector({ selectedWeek, onWeekChange }) {
+export function WeekSelector({ selectedWeek, onWeekChange, customWeeks }) {
   const [weeks, setWeeks] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
 
-  // Use the shared utility to get weeks
+  // Use the shared utility to get weeks or use customWeeks if provided
   useEffect(() => {
-    // Force refresh of sundays to ensure we get the corrected calculation
-    const sundays = getUpcomingSundays();
-
-    // Verify all dates are Sundays
-    const verifiedSundays = sundays.map((sunday) => {
-      const date = new Date(sunday.dateString);
-      if (date.getDay() !== 0) {
-        // Fix the date to be a Sunday
-        const adjustment = date.getDay() === 6 ? 1 : 7 - date.getDay();
-        date.setDate(date.getDate() + adjustment);
-        return {
-          ...sunday,
-          date: date,
-          dateString: date.toISOString().split("T")[0],
-          title: date.toLocaleDateString("en-US", {
+    if (customWeeks && customWeeks.length > 0) {
+      // Use custom weeks but ensure they're all Sundays
+      const verifiedCustomWeeks = customWeeks.map(week => {
+        // Create a proper date object with UTC handling
+        const date = new Date(week.dateString + 'T00:00:00Z');
+        
+        // Verify it's a Sunday (0 in JavaScript)
+        if (date.getUTCDay() !== 0) {
+          console.warn('Date is not a Sunday:', week.dateString);
+          // Fix the date to be a Sunday
+          const adjustment = date.getUTCDay() === 6 ? 1 : 7 - date.getUTCDay();
+          date.setUTCDate(date.getUTCDate() + adjustment);
+          
+          // Update the dateString and title
+          const newDateString = date.toISOString().split('T')[0];
+          const newTitle = date.toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
             year: "numeric",
-          }),
-        };
-      }
-      return sunday;
-    });
+          });
+          
+          return {
+            ...week,
+            date: date,
+            dateString: newDateString,
+            title: newTitle
+          };
+        }
+        return week;
+      });
+      
+      setWeeks(verifiedCustomWeeks);
+    } else {
+      // Otherwise use the default getUpcomingSundays with UTC handling
+      const sundays = getUpcomingSundays();
 
-    setWeeks(verifiedSundays);
+      // Verify all dates are Sundays with UTC handling
+      const verifiedSundays = sundays.map((sunday) => {
+        const date = new Date(sunday.dateString + 'T00:00:00Z');
+        if (date.getUTCDay() !== 0) {
+          // Fix the date to be a Sunday
+          const adjustment = date.getUTCDay() === 6 ? 1 : 7 - date.getUTCDay();
+          date.setUTCDate(date.getUTCDate() + adjustment);
+          return {
+            ...sunday,
+            date: date,
+            dateString: date.toISOString().split("T")[0],
+            title: date.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }),
+          };
+        }
+        return sunday;
+      });
 
-    // Set initial selected week if not already set
-    if (verifiedSundays.length > 0 && !selectedWeek) {
+      setWeeks(verifiedSundays);
+    }
+  }, [customWeeks]);
+
+  // Set initial selected week if not already set
+  useEffect(() => {
+    if (weeks.length > 0 && !selectedWeek) {
       // Find the first upcoming Sunday (not in the past)
-      const upcomingSunday = verifiedSundays.find(
+      const upcomingSunday = weeks.find(
         (week) => week.status === "active" || week.status === "upcoming"
       );
 
@@ -49,10 +86,10 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
       if (upcomingSunday) {
         onWeekChange(upcomingSunday.dateString);
       } else {
-        onWeekChange(verifiedSundays[0].dateString);
+        onWeekChange(weeks[0].dateString);
       }
     }
-  }, [selectedWeek, onWeekChange]);
+  }, [weeks, selectedWeek, onWeekChange]);
 
   // Handle selectedWeek changes separately
   useEffect(() => {
@@ -197,7 +234,7 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
           </Button>
 
           <div className="flex items-center gap-4">
-            {weeks.slice(0, 4).map((week) => {
+            {weeks.slice(Math.max(0, currentIndex - 1), Math.min(weeks.length, currentIndex + 3)).map((week) => {
               const isSelected = selectedWeek === week.dateString;
               const isPast = week.status === "past";
               const isFuture = week.status === "upcoming";
@@ -245,6 +282,11 @@ export function WeekSelector({ selectedWeek, onWeekChange }) {
                 </Button>
               );
             })}
+            {weeks.length > 4 && (
+              <div className="text-xs text-gray-500">
+                {currentIndex + 1} of {weeks.length}
+              </div>
+            )}
           </div>
 
           <Button
