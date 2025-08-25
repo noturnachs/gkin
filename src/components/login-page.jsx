@@ -161,7 +161,7 @@ export function LoginPage() {
             <div className="space-y-1.5">
               <label
                 htmlFor="username"
-                className="block text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                className=" text-xs font-medium text-gray-700 flex items-center gap-1.5"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -213,7 +213,7 @@ export function LoginPage() {
 
             {/* Role Selection with Enhanced Visual Design */}
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-gray-700 flex items-center gap-1.5">
+              <label className=" text-xs font-medium text-gray-700 flex items-center gap-1.5">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="14"
