@@ -38,6 +38,7 @@ export function AssignmentsPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [dateAdded, setDateAdded] = useState(false);
   
   const [user] = useState(() => {
     // Try to get user from localStorage on initial load
@@ -147,6 +148,14 @@ export function AssignmentsPage() {
 
   const handleAddMoreDates = () => {
     addMoreFutureDates(4); // Add 4 more future dates
+    
+    // Show success feedback
+    setDateAdded(true);
+    
+    // Hide the message after 3 seconds
+    setTimeout(() => {
+      setDateAdded(false);
+    }, 3000);
   };
   
   // Handle pagination for weeks
@@ -351,6 +360,12 @@ export function AssignmentsPage() {
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md text-sm flex items-center">
             <CheckCircle className="w-4 h-4 mr-2" />
             Changes saved successfully!
+          </div>
+        )}
+        {dateAdded && (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md text-sm flex items-center">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            4 more dates added successfully!
           </div>
         )}
         
