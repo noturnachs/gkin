@@ -8,7 +8,6 @@ export function Header({
   subtitle = "Manage document workflow for weekly services",
   user,
   onLogout,
-  showGoogleDrive = true,
   showNotifications = true,
   showUserInfo = true,
   showLogout = true,
@@ -94,15 +93,6 @@ export function Header({
               <NotificationCenter />
             </div>
           )}
-          {showGoogleDrive && (
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 text-xs px-2 py-1"
-            >
-              <FileText className="w-4 h-4" />
-              Google Drive
-            </Button>
-          )}
           {showLogout && (
             <Button
               variant="outline"
@@ -172,16 +162,6 @@ export function Header({
                 </div>
               )}
             </div>
-          )}
-
-          {showGoogleDrive && (
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 text-sm"
-            >
-              <FileText className="w-4 h-4" />
-              Google Drive
-            </Button>
           )}
 
           {/* Combined User Info & Logout */}
