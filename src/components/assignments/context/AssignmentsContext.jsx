@@ -172,6 +172,45 @@ export const AssignmentsProvider = ({ children }) => {
     });
   };
 
+  const removeDate = (dateString) => {
+    setAssignments(prevAssignments => {
+      return prevAssignments.filter(service => service.dateString !== dateString);
+    });
+  };
+
+  const addSpecificDate = (dateString) => {
+    // Check if the date already exists
+    const exists = assignments.some(service => service.dateString === dateString);
+    if (exists) return; // Don't add if it already exists
+    
+    // Create a new service for this date
+    const date = new Date(dateString + 'T00:00:00Z');
+    const today = new Date();
+    const diffTime = date.getTime() - today.getTime();
+    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Use the role template from existing assignments
+    const roleTemplate = assignments[0].assignments.map(assignment => ({
+      role: assignment.role,
+      person: ""
+    }));
+    
+    const newService = {
+      date: date,
+      dateString: dateString,
+      title: "Sunday Service",
+      daysRemaining: daysRemaining,
+      status: daysRemaining < 0 ? "past" : "upcoming",
+      assignments: [...roleTemplate]
+    };
+    
+    // Add the new service and sort by date
+    setAssignments(prev => {
+      const updated = [...prev, newService];
+      return updated.sort((a, b) => new Date(a.dateString) - new Date(b.dateString));
+    });
+  };
+
   const value = {
     assignments,
     updateAssignment,
@@ -179,7 +218,9 @@ export const AssignmentsProvider = ({ children }) => {
     removeRole,
     getAssignmentsForDate,
     addMoreFutureDates,
-    saveAssignments
+    saveAssignments,
+    removeDate,
+    addSpecificDate
   };
 
   return (
