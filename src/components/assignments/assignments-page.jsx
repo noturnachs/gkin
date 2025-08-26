@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Calendar, Save, Plus, Trash2, ArrowLeft, ChevronRight, CheckCircle, Search, ChevronLeft, Filter } from "lucide-react";
+import { Calendar, Save, Plus, Trash2, ArrowLeft, ChevronRight, CheckCircle, Search, ChevronLeft, Filter, PlusCircle } from "lucide-react";
 import { Header } from "../header";
 import { Footer } from "../ui/footer";
 import { WeekSelector } from "../week-selector";
@@ -30,7 +30,9 @@ export function AssignmentsPage() {
     removeRole, 
     getAssignmentsForDate,
     addMoreFutureDates,
-    saveAssignments 
+    saveAssignments,
+    removeDate,
+    addSpecificDate
   } = useAssignments();
   
   // Add state for local changes and saving status
@@ -40,6 +42,10 @@ export function AssignmentsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [dateAdded, setDateAdded] = useState(false);
   
+  // Add state for date picker
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateToAdd, setDateToAdd] = useState("");
+
   const [user] = useState(() => {
     // Try to get user from localStorage on initial load
     const savedUser = localStorage.getItem("currentUser");
@@ -156,6 +162,23 @@ export function AssignmentsPage() {
     setTimeout(() => {
       setDateAdded(false);
     }, 3000);
+  };
+
+  const handleRemoveDate = (dateString) => {
+    if (window.confirm(`Are you sure you want to remove the service on ${formatDate(dateString)}?`)) {
+      removeDate(dateString);
+      setHasChanges(true);
+      
+      // If we're removing the currently selected week, select another one
+      if (dateString === selectedWeek) {
+        const remainingWeeks = assignments.filter(s => s.dateString !== dateString);
+        if (remainingWeeks.length > 0) {
+          setSelectedWeek(remainingWeeks[0].dateString);
+        } else {
+          setSelectedWeek(getDefaultSelectedWeek()); // Fallback to default if no weeks left
+        }
+      }
+    }
   };
   
   // Handle pagination for weeks
@@ -277,6 +300,26 @@ export function AssignmentsPage() {
   
   const duplicateAssignments = findDuplicateAssignments();
 
+  // Add handler for adding specific date
+  const handleAddSpecificDate = (e) => {
+    e.preventDefault();
+    if (dateToAdd) {
+      // Ensure the date is a Sunday
+      const date = new Date(dateToAdd + 'T00:00:00Z');
+      if (date.getUTCDay() !== 0) {
+        // Adjust to the next Sunday
+        const adjustment = 7 - date.getUTCDay();
+        date.setUTCDate(date.getUTCDate() + adjustment);
+        const sundayDate = date.toISOString().split('T')[0];
+        addSpecificDate(sundayDate);
+      } else {
+        addSpecificDate(dateToAdd);
+      }
+      setShowDatePicker(false);
+      setDateToAdd("");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
@@ -339,6 +382,55 @@ export function AssignmentsPage() {
               >
                 <Plus className="w-4 h-4" /> Add More Dates
               </Button>
+              
+              <div className="relative">
+                <Button
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className="flex items-center gap-1"
+                >
+                  <PlusCircle className="w-4 h-4" /> Add Specific Date
+                </Button>
+                
+                {showDatePicker && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-20 w-64">
+                    <form onSubmit={handleAddSpecificDate}>
+                      <div className="mb-2">
+                        <Label htmlFor="date-picker" className="text-xs font-medium text-gray-700">
+                          Select Sunday (will adjust to Sunday)
+                        </Label>
+                        <Input
+                          id="date-picker"
+                          type="date"
+                          value={dateToAdd}
+                          onChange={(e) => setDateToAdd(e.target.value)}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowDatePicker(false)}
+                          className="text-gray-600 hover:bg-gray-100 hover:text-gray-800 border-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          size="sm" 
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
               
               <Button
                 variant={hasChanges ? "default" : "outline"}
@@ -595,8 +687,19 @@ export function AssignmentsPage() {
                         
                         return (
                           <th key={displayDate} className="text-center p-3 text-sm font-medium text-gray-700">
-                            <div className="flex flex-col items-center">
-                              <Badge className="mb-1">{formatDate(displayDate)}</Badge>
+                            <div className="flex items-center justify-center gap-1">
+                              <Badge className="px-3 py-1 bg-gray-100 text-gray-800 hover:bg-gray-200 border-none">
+                                {formatDate(displayDate)}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveDate(service.dateString)}
+                                className="h-6 w-6 p-0 text-red-400 hover:text-red-600 hover:bg-transparent"
+                                title="Remove this date"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           </th>
                         );
