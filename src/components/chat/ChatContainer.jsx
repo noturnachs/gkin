@@ -117,6 +117,14 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
           // Force re-render with messages
           if (Array.isArray(initialMessages)) {
             setMessages([...initialMessages]);
+            
+            // Force scroll to bottom after a short delay to ensure rendering is complete
+            setTimeout(() => {
+              const chatContent = document.querySelector('.chat-content');
+              if (chatContent) {
+                chatContent.scrollTop = chatContent.scrollHeight;
+              }
+            }, 200);
           } else {
             setMessages([]);
           }
@@ -185,12 +193,19 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
     setIsConnected(connected);
   };
 
+  // Function to scroll to bottom of chat
+  const scrollToLatestMessage = () => {
+    setTimeout(() => {
+      const chatContent = document.querySelector('.chat-content');
+      if (chatContent) {
+        chatContent.scrollTop = chatContent.scrollHeight;
+      }
+    }, 50);
+  };
+
   // Handle new incoming messages
   const handleNewMessage = (message) => {
-    console.log('Socket received message:', message);
-    
     if (!message || !message.id) {
-      console.warn('Received invalid message without ID');
       return;
     }
     
@@ -200,20 +215,17 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
       messages.some(existingMsg => existingMsg.id === message.id) || 
       recentlySentMessagesRef.current.has(message.id);
     
-    console.log('Message is duplicate?', isDuplicate, 'Message ID:', message.id);
-    console.log('Current tracked IDs:', [...recentlySentMessagesRef.current]);
-    
     if (!isDuplicate) {
-      console.log('Adding new message to state');
       setMessages(prevMessages => {
         const newMessages = Array.isArray(prevMessages) ? [...prevMessages, message] : [message];
+        // Trigger scroll to bottom after state update
+        scrollToLatestMessage();
         return newMessages;
       });
     } else {
       // If it's a duplicate but from the socket, we can remove it from our tracking set
       // as we no longer need to track it
       if (recentlySentMessagesRef.current.has(message.id)) {
-        console.log('Removing message ID from tracking set:', message.id);
         recentlySentMessagesRef.current.delete(message.id);
       }
     }
@@ -277,7 +289,12 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
       }
       
       // Add the message to our local state immediately
-      setMessages(prevMessages => [...prevMessages, savedMessage]);
+      setMessages(prevMessages => {
+        const newMessages = [...prevMessages, savedMessage];
+        // Ensure we scroll to bottom after sending a message
+        scrollToLatestMessage();
+        return newMessages;
+      });
       
       setIsSending(false);
       return savedMessage;
@@ -297,7 +314,7 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
         isMobileView={isMobileView} 
       />
 
-      <CardContent className="flex-1 overflow-y-auto p-0 bg-gray-50">
+      <CardContent className="flex-1 overflow-y-auto p-0 bg-gray-50 chat-content">
         <ChatMessageList 
           messages={messages}
           isLoading={isLoading}

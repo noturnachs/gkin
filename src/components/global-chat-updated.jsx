@@ -59,6 +59,14 @@ export function GlobalChat({ defaultExpanded = false }) {
     if (!isExpanded) {
       // Reset unread count when opening
       markAllAsRead();
+      
+      // Scroll to bottom after chat is expanded
+      setTimeout(() => {
+        const chatContent = document.querySelector('.chat-content');
+        if (chatContent) {
+          chatContent.scrollTop = chatContent.scrollHeight;
+        }
+      }, 300);
     }
   };
 
