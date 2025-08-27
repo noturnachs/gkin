@@ -16,8 +16,10 @@ import {
   BookOpen,
   LogIn,
   DollarSign,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import authService from "../services/authService";
 
 const roles = [
   {
@@ -86,34 +88,35 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
   const [username, setUsername] = useState("");
+  const [passcode, setPasscode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Check if user is already logged in
   useEffect(() => {
-    const user = localStorage.getItem("currentUser");
-    if (user) {
+    if (authService.isAuthenticated()) {
       navigate("/");
     }
   }, [navigate]);
 
-  const handleLogin = () => {
-    if (!selectedRole || !username.trim()) return;
+  const handleLogin = async () => {
+    if (!selectedRole || !username.trim() || !passcode.trim()) {
+      setError("Please fill in all fields");
+      return;
+    }
 
     setIsLoading(true);
+    setError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      const user = {
-        id: Math.floor(Math.random() * 1000),
-        username: username,
-        role: selectedRole, // Store the entire role object
-      };
-
-      // Save user to localStorage
-      localStorage.setItem("currentUser", JSON.stringify(user));
+    try {
+      // Call authentication service to login
+      await authService.login(username, selectedRole.id, passcode);
       navigate("/");
+    } catch (error) {
+      setError(error.message || "Invalid credentials. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -210,6 +213,68 @@ export function LoginPage() {
                 )}
               </div>
             </div>
+            
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md flex items-center gap-1.5 text-sm">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+            
+            {/* Passcode Input */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="passcode"
+                className="text-xs font-medium text-gray-700 flex items-center gap-1.5"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-500"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Passcode
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  id="passcode"
+                  className="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
+                  placeholder="Enter your role passcode"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                />
+                {passcode && (
+                  <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Role Selection with Enhanced Visual Design */}
             <div className="space-y-2">
@@ -279,7 +344,7 @@ export function LoginPage() {
           <CardFooter className="flex justify-end pt-3 pb-4 bg-white px-4">
             <Button
               onClick={handleLogin}
-              disabled={!selectedRole || !username.trim() || isLoading}
+              disabled={!selectedRole || !username.trim() || !passcode.trim() || isLoading}
               className={`w-full h-9 flex items-center justify-center gap-1.5 ${
                 selectedRole
                   ? selectedRole.id === "liturgy"
@@ -290,7 +355,9 @@ export function LoginPage() {
                     ? "bg-green-600 hover:bg-green-700"
                     : selectedRole.id === "beamer"
                     ? "bg-orange-600 hover:bg-orange-700"
-                    : "bg-pink-600 hover:bg-pink-700"
+                    : selectedRole.id === "music"
+                    ? "bg-pink-600 hover:bg-pink-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-gray-600 hover:bg-gray-700"
               } text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all text-sm`}
             >
