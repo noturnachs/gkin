@@ -101,14 +101,7 @@ class ChatService {
       if (this.socket) {
         // Listen for messages
         this.socket.on('message', (message) => {
-          console.log('Socket received message event:', message);
-          if (this.messageListeners.length === 0) {
-            console.warn('No message listeners registered!');
-          }
-          this.messageListeners.forEach(listener => {
-            console.log('Calling message listener');
-            listener(message);
-          });
+          this.messageListeners.forEach(listener => listener(message));
         });
 
         // Listen for mentions
@@ -135,9 +128,7 @@ class ChatService {
    * @param {Function} listener - Function to call when a new message is received
    */
   onMessage(listener) {
-    console.log('Adding message listener, current count:', this.messageListeners.length);
     this.messageListeners.push(listener);
-    console.log('New message listener count:', this.messageListeners.length);
   }
 
   /**
@@ -145,9 +136,7 @@ class ChatService {
    * @param {Function} listener - The listener to remove
    */
   offMessage(listener) {
-    console.log('Removing message listener, current count:', this.messageListeners.length);
     this.messageListeners = this.messageListeners.filter(l => l !== listener);
-    console.log('New message listener count after removal:', this.messageListeners.length);
   }
 
   /**

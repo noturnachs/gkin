@@ -23,15 +23,98 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
     }
   }, {});
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
+  // Scroll to bottom when messages change or component mounts
+  const scrollToBottom = () => {
     if (chatEndRef.current) {
       const chatContainer = chatEndRef.current.parentElement;
       if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }
+  };
+  
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    // Only run this effect if there are messages
+    if (messages.length === 0) return;
+    
+    // Immediate scroll attempt
+    scrollToBottom();
+    
+    // Multiple delayed scroll attempts to ensure it works after content renders
+    // Use more frequent attempts in the first second
+    const scrollTimers = [];
+    
+    // Add 10 scroll attempts over the first second
+    for (let i = 1; i <= 10; i++) {
+      scrollTimers.push(setTimeout(() => scrollToBottom(), i * 100));
+    }
+    
+    // Add a few more attempts for good measure
+    scrollTimers.push(setTimeout(() => scrollToBottom(), 1500));
+    scrollTimers.push(setTimeout(() => scrollToBottom(), 2000));
+    
+    return () => scrollTimers.forEach(timer => clearTimeout(timer));
   }, [messages]);
+  
+  // Scroll to bottom on initial load and when component becomes visible
+  useEffect(() => {
+    // Immediate scroll attempt
+    scrollToBottom();
+    
+    // Set up multiple delayed attempts to ensure scrolling works
+    const scrollTimers = [
+      setTimeout(() => scrollToBottom(), 100),
+      setTimeout(() => scrollToBottom(), 300),
+      setTimeout(() => scrollToBottom(), 500),
+      setTimeout(() => scrollToBottom(), 1000)
+    ];
+    
+    // Create an observer to detect when the chat becomes visible
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // When chat becomes visible, scroll to bottom
+            setTimeout(() => scrollToBottom(), 100);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    // Create a mutation observer to detect when new messages are added to the DOM
+    const mutationObserver = new MutationObserver((mutations) => {
+      // Check if any nodes were added
+      const nodesAdded = mutations.some(mutation => 
+        mutation.type === 'childList' && mutation.addedNodes.length > 0
+      );
+      
+      if (nodesAdded) {
+        // If nodes were added, scroll to bottom
+        scrollToBottom();
+        // Also schedule a delayed scroll to ensure everything is rendered
+        setTimeout(() => scrollToBottom(), 100);
+      }
+    });
+    
+    // Start observing the chat container
+    if (chatEndRef.current && chatEndRef.current.parentElement) {
+      visibilityObserver.observe(chatEndRef.current.parentElement);
+      
+      // Observe for changes to the DOM
+      mutationObserver.observe(chatEndRef.current.parentElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    return () => {
+      scrollTimers.forEach(timer => clearTimeout(timer));
+      visibilityObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, []);
 
   if (isLoading) {
     return (
