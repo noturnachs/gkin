@@ -227,21 +227,23 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
                   className={`max-w-[75%] md:max-w-[70%] ${getBubbleClasses(isSender, isFirstMessage, isLastInSequence)} shadow-sm p-3`}
                 >
                   {isFirstMessage && (
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span
-                        className={`text-xs font-medium ${
-                          isSender ? "text-blue-100" : "text-gray-700"
-                        }`}
-                      >
-                        {isSender ? "You" : message.sender.username}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
                         <span
-                          className={`text-xs ml-1 ${
+                          className={`text-xs font-medium ${
+                            isSender ? "text-blue-100" : "text-gray-700"
+                          }`}
+                        >
+                          {isSender ? "You" : message.sender.username}
+                        </span>
+                        <span
+                          className={`text-xs ${
                             isSender ? "text-blue-200" : "text-gray-500"
                           }`}
                         >
                           ({message.sender.role})
                         </span>
-                      </span>
+                      </div>
                       <span
                         className={`text-xs ${
                           isSender ? "text-blue-200" : "text-gray-500"
