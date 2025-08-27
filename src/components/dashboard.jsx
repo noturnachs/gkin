@@ -38,6 +38,7 @@ import {
 } from "../lib/date-utils";
 import { RecentUpdates } from "./recent-updates";
 import { useAssignments } from "./assignments/context/AssignmentsContext";
+import authService from "../services/authService";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -102,12 +103,11 @@ function Dashboard() {
     return service;
   }, [selectedWeek, mockServices]);
 
-  // Handle logout with localStorage
+  // Handle logout using auth service
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem("currentUser");
-    // Redirect to login page
-    navigate("/login");
+    authService.logout();
+    // Note: authService.logout() already redirects to login page
   };
 
   // If user is null, redirect to login
