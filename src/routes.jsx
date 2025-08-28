@@ -6,6 +6,7 @@ import { EmailComposerPage } from "./components/email-composer-page";
 import { ProtectedRoute } from "./components/protected-route";
 import { AssignmentsPage } from "./components/assignments/assignments-page";
 import { AssignmentsProvider } from "./components/assignments/context/AssignmentsContext";
+import { PasscodeManager } from "./components/passcode-manager";
 
 // Routes configuration
 export const router = createBrowserRouter([
@@ -51,6 +52,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <AssignmentsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "passcode-manager",
+        element: (
+          <ProtectedRoute>
+            <PasscodeManager />
           </ProtectedRoute>
         ),
       },
