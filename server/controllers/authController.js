@@ -16,13 +16,15 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Username, role, and passcode are required' });
     }
 
-    // Check if role is valid
-    if (!config.passcodes[role]) {
+    // Check if role exists and passcode is correct
+    const roleResult = await db.query('SELECT * FROM role_passcodes WHERE role = $1', [role]);
+    
+    if (roleResult.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid role' });
     }
-
+    
     // Check if passcode is correct for the role
-    if (passcode !== config.passcodes[role]) {
+    if (passcode !== roleResult.rows[0].passcode) {
       return res.status(401).json({ message: 'Invalid passcode for this role' });
     }
     
