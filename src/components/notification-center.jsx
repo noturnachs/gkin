@@ -97,8 +97,13 @@ export function NotificationCenter() {
       {isOpen && (
         <div 
           ref={panelRef}
-          className="absolute right-0 mt-2 z-50"
-          style={{ width: '320px' }}
+          className="fixed md:absolute right-0 mt-2 z-50 w-full max-w-[320px] md:right-0"
+          style={{ 
+            top: "calc(100% + 8px)",
+            left: "auto",
+            maxHeight: "calc(100vh - 100px)",
+            overflowY: "auto"
+          }}
         >
           <NotificationPanel />
         </div>
@@ -217,16 +222,16 @@ export function NotificationPanel() {
     <Card className="border border-gray-300 bg-white shadow-lg overflow-hidden w-full">
       <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200">
         <CardTitle className="text-sm font-semibold text-gray-900">
-          Mentions
+          Notifications
         </CardTitle>
         <CardDescription className="text-gray-700">
-          Recent role mentions in chat
+          Recent notifications 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1 bg-white p-0 max-h-80 overflow-y-auto">
         {mentions.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
-            No mentions yet
+            No notifications yet
           </div>
         ) : (
           mentions.map((mention) => {
