@@ -2,16 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Upload, Image, QrCode, X } from "lucide-react";
+import { Link, QrCode, X } from "lucide-react";
 
 export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
   // State for form values
   const [formValues, setFormValues] = useState({
     title: "",
-    imageUploaded: false,
-    fileName: "",
+    qrCodeLink: "",
     description: "",
-    imagePreview: null,
   });
 
   // Reset form when modal opens
@@ -19,10 +17,8 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
     if (isOpen) {
       setFormValues({
         title: "",
-        imageUploaded: false,
-        fileName: "",
+        qrCodeLink: "",
         description: "",
-        imagePreview: null,
       });
     }
   }, [isOpen]);
@@ -36,77 +32,13 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
     }));
   };
 
-  // Handle file upload
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check if file is an image
-      if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
-        return;
-      }
-
-      // Create image preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormValues((prev) => ({
-          ...prev,
-          imageUploaded: true,
-          fileName: file.name,
-          imagePreview: e.target.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Handle image paste
-  const handlePaste = (e) => {
-    const items = (e.clipboardData || window.clipboardData).items;
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf("image") !== -1) {
-        const file = items[i].getAsFile();
-
-        // Create image preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setFormValues((prev) => ({
-            ...prev,
-            imageUploaded: true,
-            fileName: "Pasted image",
-            imagePreview: e.target.result,
-          }));
-        };
-        reader.readAsDataURL(file);
-        break;
-      }
-    }
-  };
-
-  // Handle file drop
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-
-    if (file) {
-      // Check if file is an image
-      if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
-        return;
-      }
-
-      // Create image preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormValues((prev) => ({
-          ...prev,
-          imageUploaded: true,
-          fileName: file.name,
-          imagePreview: e.target.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+  // Validate if the string is a valid URL
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
     }
   };
 
@@ -119,8 +51,13 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
       return;
     }
 
-    if (!formValues.imageUploaded) {
-      alert("Please upload a QR code image");
+    if (!formValues.qrCodeLink.trim()) {
+      alert("Please provide a link to the QR code");
+      return;
+    }
+
+    if (!isValidUrl(formValues.qrCodeLink)) {
+      alert("Please provide a valid URL for the QR code");
       return;
     }
 
@@ -164,7 +101,7 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
             <QrCode className="w-5 h-5 text-emerald-600" />
-            Upload QR Code
+            Add QR Code Link
           </h2>
           <button
             onClick={onClose}
@@ -206,71 +143,25 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <Label className="text-gray-700 mb-2 block">
-                Upload QR Code Image
+              <Label htmlFor="qrCodeLink" className="text-gray-700 mb-2 block">
+                QR Code Link
               </Label>
-              <div
-                className={`border-2 border-dashed rounded-lg p-4 text-center ${
-                  formValues.imageUploaded
-                    ? "border-emerald-300 bg-emerald-50"
-                    : "border-gray-300 hover:border-emerald-300 hover:bg-gray-50"
-                }`}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onPaste={handlePaste}
-                tabIndex={0}
-              >
-                {formValues.imageUploaded ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="relative w-32 h-32 border border-emerald-200 rounded-md overflow-hidden">
-                      <img
-                        src={formValues.imagePreview}
-                        alt="QR Code Preview"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <span className="text-emerald-600 font-medium">
-                      {formValues.fileName}
-                    </span>
-                    <button
-                      type="button"
-                      className="text-xs text-red-500 hover:text-red-700"
-                      onClick={() =>
-                        setFormValues((prev) => ({
-                          ...prev,
-                          imageUploaded: false,
-                          fileName: "",
-                          imagePreview: null,
-                        }))
-                      }
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <Image className="w-8 h-8 text-gray-400" />
-                    <span className="text-gray-500">
-                      Drag and drop your QR code image here, or
-                    </span>
-                    <label className="cursor-pointer text-emerald-600 hover:text-emerald-700 font-medium">
-                      Browse files
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/*"
-                      />
-                    </label>
-                    <span className="text-xs text-gray-500 mt-1">
-                      Supported formats: PNG, JPG, JPEG, GIF
-                    </span>
-                    <div className="mt-2 text-xs text-gray-500">
-                      You can also paste an image directly (Ctrl+V)
-                    </div>
-                  </div>
-                )}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Link className="h-4 w-4 text-gray-400" />
+                </div>
+                <Input
+                  id="qrCodeLink"
+                  name="qrCodeLink"
+                  value={formValues.qrCodeLink}
+                  onChange={handleChange}
+                  className="pl-10 border-gray-300 focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50"
+                  placeholder="Paste link to your QR code image (Google Drive, Dropbox, etc.)"
+                />
               </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Please provide a direct link to the QR code image with public access enabled
+              </p>
             </div>
           </div>
 
@@ -285,9 +176,9 @@ export function QrCodeUploadModal({ isOpen, onClose, onSubmit }) {
             <Button
               type="submit"
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              disabled={!formValues.imageUploaded || !formValues.title.trim()}
+              disabled={!formValues.qrCodeLink.trim() || !formValues.title.trim()}
             >
-              Upload QR Code
+              Save QR Code Link
             </Button>
           </div>
         </form>
