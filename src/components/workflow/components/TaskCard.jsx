@@ -138,7 +138,7 @@ export const TaskCard = ({ task, categoryId }) => {
           : "bg-gray-50 border-gray-200"
       }`}
     >
-      {/* Task icon with task-specific color - now clickable */}
+      {/* Task icon with task-specific color - now clickable with enhanced visual indicators */}
       <div 
         className={`mb-1 ${["concept", "sermon", "final", "slides"].includes(task.id) ? 
           "cursor-pointer hover:scale-110 transition-transform relative group" : ""}`}
@@ -150,16 +150,27 @@ export const TaskCard = ({ task, categoryId }) => {
         }}
         title={["concept", "sermon", "final", "slides"].includes(task.id) ? "Click to open in Google Drive" : ""}
       >
+        {/* Visual clickability indicator for all devices */}
         {["concept", "sermon", "final", "slides"].includes(task.id) && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <>
+            {/* Blue dot indicator that's always visible on mobile, shows on hover for desktop */}
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity"></div>
+            {/* Touch/click icon indicator for mobile */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-[10px] text-blue-600 font-medium md:hidden">
+              tap
+            </div>
+          </>
         )}
-        {isCompleted ? (
-          <CheckCircle className={`w-6 h-6 text-green-500`} />
-        ) : isActive ? (
-          <AlertCircle className={`w-6 h-6 ${taskStyle.icon} animate-pulse`} />
-        ) : (
-          <task.icon className={`w-6 h-6 ${taskStyle.icon}`} />
-        )}
+        <div className={["concept", "sermon", "final", "slides"].includes(task.id) ? 
+          "p-1 rounded-full border-2 border-dashed border-opacity-50 border-blue-300" : ""}>
+          {isCompleted ? (
+            <CheckCircle className={`w-6 h-6 text-green-500`} />
+          ) : isActive ? (
+            <AlertCircle className={`w-6 h-6 ${taskStyle.icon} animate-pulse`} />
+          ) : (
+            <task.icon className={`w-6 h-6 ${taskStyle.icon}`} />
+          )}
+        </div>
       </div>
 
       {/* Task name */}
