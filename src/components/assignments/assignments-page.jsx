@@ -83,12 +83,29 @@ export function AssignmentsPage() {
   };
 
   // Remove role with confirmation
-  const handleRemoveRole = (roleIndex) => {
-    if (window.confirm("Are you sure you want to remove this role from all services?")) {
-      // Get the role name from the current service
-      if (currentService && currentService.assignments && currentService.assignments[roleIndex]) {
-        const roleName = currentService.assignments[roleIndex].role;
-        removeRole(selectedWeek, roleName);
+  const handleRemoveRole = async (roleIndex) => {
+    if (window.confirm("Are you sure you want to remove this role? This will be saved immediately.")) {
+      try {
+        // Get the role name from the current service
+        if (currentService && currentService.assignments && currentService.assignments[roleIndex]) {
+          const roleName = currentService.assignments[roleIndex].role;
+          
+          // Remove from local state
+          removeRole(selectedWeek, roleName);
+          
+          // Get updated assignments (without the deleted role)
+          const updatedAssignments = currentService.assignments.filter((_, index) => index !== roleIndex);
+          
+          // Save immediately to database
+          await saveAssignments(selectedWeek, updatedAssignments);
+          
+          // Show success message briefly
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
+        }
+      } catch (error) {
+        console.error("Error removing role:", error);
+        alert("Failed to remove role. Please try again.");
       }
     }
   };
