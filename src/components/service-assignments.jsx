@@ -7,15 +7,13 @@ import { getStatusColor } from "../lib/date-utils";
 import { useAssignments } from "./assignments/context/AssignmentsContext";
 
 export function ServiceAssignments({ selectedDate }) {
-  const { getAssignmentsForDate, assignments } = useAssignments();
+  const { getAssignmentsForDate, assignments, loading } = useAssignments();
   
-  // Don't try to get assignments if no date is provided or assignments aren't loaded yet
-  const currentService = selectedDate && assignments && assignments.length > 0 
-    ? getAssignmentsForDate(selectedDate) 
-    : null;
+  // Get current service for the selected date - this will create a default service if none exists
+  const currentService = selectedDate ? getAssignmentsForDate(selectedDate) : null;
 
-  // If no assignments loaded yet, show loading
-  if (!assignments || assignments.length === 0) {
+  // Show loading only when actually loading from backend
+  if (loading) {
     return (
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
@@ -33,7 +31,7 @@ export function ServiceAssignments({ selectedDate }) {
     );
   }
 
-  // If no current service, show no service message
+  // If no current service, show message to select a date
   if (!currentService) {
     return (
       <Card className="border border-gray-200 shadow-sm">
@@ -45,8 +43,7 @@ export function ServiceAssignments({ selectedDate }) {
         </CardHeader>
         <CardContent className="p-3 flex items-center justify-center">
           <div className="text-sm text-gray-500 text-center">
-            <div>No service found for selected date</div>
-            <div className="mt-1 text-xs">({selectedDate})</div>
+            <div>Select a date to view service assignments</div>
             <Link to="/assignments" className="mt-2 inline-block">
               <Button size="sm" variant="outline">
                 Manage Assignments
