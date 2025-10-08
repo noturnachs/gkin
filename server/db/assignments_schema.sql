@@ -1,6 +1,4 @@
--- Drop the existing constraint if it exists and recreate
-DROP TABLE IF EXISTS assignment_roles CASCADE;
-DROP TABLE IF EXISTS service_assignments CASCADE;
+-- Create assignments tables if they don't exist (without dropping existing data)
 
 -- Create assignments table for storing service assignments
 CREATE TABLE IF NOT EXISTS service_assignments (
