@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Calendar, Save, Plus, Trash2, ArrowLeft, CheckCircle, Search, Filter, PlusCircle, RefreshCw } from "lucide-react";
+import { Calendar, Save, Plus, Trash2, ArrowLeft, CheckCircle, Search, RefreshCw } from "lucide-react";
 import { Header } from "../header";
 import { Footer } from "../ui/footer";
 import { WeekSelector } from "../week-selector";
@@ -21,8 +21,6 @@ export function AssignmentsPage() {
   const [newRoleName, setNewRoleName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateToAdd, setDateToAdd] = useState("");
 
   const {
     assignments,
@@ -30,10 +28,7 @@ export function AssignmentsPage() {
     addRole,
     removeRole,
     getAssignmentsForDate,
-    addMoreFutureDates,
     saveAssignments,
-    removeDate,
-    addSpecificDate,
     resetAssignments
   } = useAssignments();
 
@@ -82,47 +77,6 @@ export function AssignmentsPage() {
   const handleRemoveRole = (roleIndex) => {
     if (window.confirm("Are you sure you want to remove this role from all services?")) {
       removeRole(roleIndex);
-    }
-  };
-
-  // Add more dates
-  const handleAddMoreDates = () => {
-    addMoreFutureDates(4);
-  };
-
-  // Remove specific date
-  const handleRemoveDate = (dateString) => {
-    if (window.confirm(`Are you sure you want to remove the service on ${formatDate(dateString)}?`)) {
-      removeDate(dateString);
-      // If we're removing the currently selected week, select another one
-      if (dateString === selectedWeek) {
-        const remainingWeeks = assignments.filter(s => s.dateString !== dateString);
-        if (remainingWeeks.length > 0) {
-          setSelectedWeek(remainingWeeks[0].dateString);
-        } else {
-          setSelectedWeek(getDefaultSelectedWeek());
-        }
-      }
-    }
-  };
-
-  // Add specific date
-  const handleAddSpecificDate = (e) => {
-    e.preventDefault();
-    if (dateToAdd) {
-      // Ensure the date is a Sunday
-      const date = new Date(dateToAdd + 'T00:00:00Z');
-      if (date.getUTCDay() !== 0) {
-        // Adjust to the next Sunday
-        const adjustment = 7 - date.getUTCDay();
-        date.setUTCDate(date.getUTCDate() + adjustment);
-        const sundayDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        addSpecificDate(sundayDate);
-      } else {
-        addSpecificDate(dateToAdd);
-      }
-      setShowDatePicker(false);
-      setDateToAdd("");
     }
   };
 
@@ -181,119 +135,73 @@ export function AssignmentsPage() {
           showLogout={true}
         />
 
-        {/* Action buttons */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        {/* Action buttons - Mobile First Design */}
+        <div className="space-y-3 md:space-y-0 md:flex md:items-center md:justify-between">
+          {/* Back Button - Full width on mobile */}
           <Button
             variant="outline"
-            size="sm"
+            className="w-full md:w-auto flex items-center justify-center gap-2 h-12 px-4 border-2 border-gray-300 hover:border-blue-300 text-base font-medium"
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-1"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            <ArrowLeft className="w-5 h-5" /> Back to Dashboard
           </Button>
 
-          <div className="flex flex-col md:flex-row items-center gap-2">
-            <div className="flex w-full md:w-auto items-center gap-2">
-              <Button
-                variant={viewMode === "weekly" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("weekly")}
-                className={viewMode === "weekly" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
-              >
-                Weekly View
-              </Button>
-              <Button
-                variant={viewMode === "consolidated" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("consolidated")}
-                className={viewMode === "consolidated" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
-              >
-                All Weeks
-              </Button>
-            </div>
+          {/* View Mode Toggles - Full width on mobile */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "weekly" ? "default" : "outline"}
+              onClick={() => setViewMode("weekly")}
+              className={`flex-1 md:flex-initial h-12 px-4 text-base font-medium ${
+                viewMode === "weekly" 
+                  ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                  : "border-2 border-gray-300 hover:border-blue-300"
+              }`}
+            >
+              Weekly View
+            </Button>
+            <Button
+              variant={viewMode === "consolidated" ? "default" : "outline"}
+              onClick={() => setViewMode("consolidated")}
+              className={`flex-1 md:flex-initial h-12 px-4 text-base font-medium ${
+                viewMode === "consolidated" 
+                  ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                  : "border-2 border-gray-300 hover:border-blue-300"
+              }`}
+            >
+              All Weeks
+            </Button>
+          </div>
 
-            <div className="flex w-full md:w-auto items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddMoreDates}
-                className="flex items-center gap-1"
-              >
-                <Plus className="w-4 h-4" /> Add 4 Weeks
-              </Button>
+          {/* Action Buttons - Only Save and Reset */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={resetAssignments}
+              className="flex-1 md:flex-initial flex items-center justify-center gap-1 h-12 px-4 border-2 border-orange-300 text-orange-600 hover:text-orange-700 hover:border-orange-400 text-base font-medium"
+              title="Clear all person assignments and reset to default roles only"
+            >
+              <RefreshCw className="w-5 h-5" /> 
+              <span className="hidden sm:inline">Clear Assignments</span>
+              <span className="sm:hidden">Clear</span>
+            </Button>
 
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="flex items-center gap-1"
-                >
-                  <PlusCircle className="w-4 h-4" /> Add Date
-                </Button>
-
-                {showDatePicker && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-20 w-64">
-                    <form onSubmit={handleAddSpecificDate}>
-                      <div className="mb-2">
-                        <Label htmlFor="date-picker" className="text-xs font-medium text-gray-700">
-                          Select Sunday (will adjust to Sunday)
-                        </Label>
-                        <Input
-                          id="date-picker"
-                          type="date"
-                          value={dateToAdd}
-                          onChange={(e) => setDateToAdd(e.target.value)}
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowDatePicker(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                          Add
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetAssignments}
-                className="flex items-center gap-1 text-orange-600 hover:text-orange-700"
-                title="Reset all assignments to default roles"
-              >
-                <RefreshCw className="w-4 h-4" /> Reset
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Save className="w-4 h-4" />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+            <Button
+              variant="default"
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="flex-1 md:flex-initial flex items-center justify-center gap-1 h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium"
+            >
+              <Save className="w-5 h-5" />
+              <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save Changes"}</span>
+              <span className="sm:hidden">{isSaving ? "..." : "Save"}</span>
+            </Button>
           </div>
         </div>
 
         {saveSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md text-sm flex items-center">
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Changes saved successfully!
+          <div className="bg-green-50 border-2 border-green-200 text-green-800 px-4 py-3 text-base flex items-center shadow-sm">
+            <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span className="font-medium">Changes saved successfully!</span>
           </div>
         )}
 
@@ -307,92 +215,127 @@ export function AssignmentsPage() {
           </div>
         )}
 
-        {/* Search bar for consolidated view */}
+        {/* Search bar for consolidated view - Mobile Optimized */}
         {viewMode === "consolidated" && (
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <Input
-                type="text"
-                placeholder="Search roles or people..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
+            <Input
+              type="text"
+              placeholder="Search roles or people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-12 text-base border-2 border-gray-300 focus:border-blue-400"
+            />
           </div>
         )}
 
         {/* Main content */}
         {viewMode === "weekly" ? (
-          // Weekly view
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
-                <CardTitle className="text-base font-bold flex items-center gap-1">
-                  <Calendar className="w-4 h-4 text-blue-600" />
-                  Edit Assignments for {currentService ? formatDate(currentService.dateString) : 'No Service Found'}
+          // Weekly view - Mobile First Layout
+          <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
+            {/* Edit Card */}
+            <Card className="border-2 border-gray-200 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2 border-blue-200 p-4 md:p-3">
+                <CardTitle className="text-lg md:text-base font-bold flex items-center gap-2 md:gap-1 text-blue-900">
+                  <Calendar className="w-5 h-5 md:w-4 md:h-4 text-blue-600" />
+                  <span className="hidden sm:inline">Edit Assignments for</span>
+                  <span className="sm:hidden">Edit</span>
+                  <span className="text-blue-700">{currentService ? formatDate(currentService.dateString) : 'No Service Found'}</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3">
+              <CardContent className="p-4 md:p-3">
                 {currentService ? (
                   <>
-                    {currentService.assignments.map((assignment, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 border-b border-gray-100 py-3 last:border-0">
-                        <div className="col-span-4 flex items-center">
-                          <Label className="text-sm font-medium text-gray-700">
-                            {assignment.role}
-                          </Label>
-                        </div>
-                        <div className="col-span-7">
+                    {/* Mobile Layout - Stacked */}
+                    <div className="space-y-4 lg:hidden">
+                      {currentService.assignments.map((assignment, index) => (
+                        <div key={index} className="bg-gray-50 border border-gray-200 p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-base font-semibold text-gray-800">
+                              {assignment.role}
+                            </Label>
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleRemoveRole(index)}
+                              className="h-12 w-12 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </div>
                           <Input
                             value={assignment.person}
                             onChange={(e) => updateAssignment(currentService.dateString, index, e.target.value)}
-                            className="text-sm"
+                            className="text-base h-12 border-2 border-gray-300 focus:border-blue-400"
                             placeholder="Enter person name"
                           />
                         </div>
-                        <div className="col-span-1 flex items-center justify-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveRole(index)}
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
 
-                    <form onSubmit={handleAddRole} className="mt-4 pt-3 border-t border-gray-100">
+                    {/* Desktop Layout - Grid */}
+                    <div className="hidden lg:block space-y-2">
+                      {currentService.assignments.map((assignment, index) => (
+                        <div key={index} className="grid grid-cols-12 gap-2 border-b border-gray-100 py-3 last:border-0">
+                          <div className="col-span-4 flex items-center">
+                            <Label className="text-base font-medium text-gray-700">
+                              {assignment.role}
+                            </Label>
+                          </div>
+                          <div className="col-span-7">
+                            <Input
+                              value={assignment.person}
+                              onChange={(e) => updateAssignment(currentService.dateString, index, e.target.value)}
+                              className="text-base h-10 border-2 border-gray-300 focus:border-blue-400"
+                              placeholder="Enter person name"
+                            />
+                          </div>
+                          <div className="col-span-1 flex items-center justify-center">
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleRemoveRole(index)}
+                              className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Role Form */}
+                    <form onSubmit={handleAddRole} className="mt-6 pt-4 border-t-2 border-gray-100">
                       <div className="flex gap-2">
                         <Input
                           placeholder="Add new role..."
                           value={newRoleName}
                           onChange={(e) => setNewRoleName(e.target.value)}
-                          className="text-sm"
+                          className="text-base h-12 border-2 border-gray-300 focus:border-blue-400"
                         />
-                        <Button type="submit" className="flex items-center gap-1">
-                          <Plus className="h-4 w-4" /> Add Role
+                        <Button 
+                          type="submit" 
+                          className="flex items-center gap-1 h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium whitespace-nowrap"
+                        >
+                          <Plus className="h-5 w-5" /> 
+                          <span className="hidden sm:inline">Add Role</span>
+                          <span className="sm:hidden">Add</span>
                         </Button>
                       </div>
                     </form>
                   </>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No service found for the selected date.</p>
-                    <p className="text-sm mt-2">Please select a different date or add this date to your services.</p>
+                  <div className="text-center py-12 md:py-8 text-gray-500">
+                    <Calendar className="w-16 h-16 md:w-12 md:h-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-base md:text-sm">No service found for the selected date.</p>
+                    <p className="text-sm md:text-xs mt-2">Please select a different date or add this date to your services.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Preview card */}
-            <Card className="border border-gray-200 shadow-sm">
+            {/* Preview card - Hidden on mobile, shown on desktop */}
+            <Card className="hidden lg:block border border-gray-200 shadow-sm">
               <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
                 <CardTitle className="text-base font-bold">Preview</CardTitle>
               </CardHeader>
@@ -420,37 +363,36 @@ export function AssignmentsPage() {
             </Card>
           </div>
         ) : (
-          // Consolidated view
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="bg-gray-50 border-b border-gray-200 p-3">
-              <CardTitle className="text-base font-bold flex items-center gap-1">
-                <Calendar className="w-4 h-4 text-blue-600" />
+          // Consolidated view - Mobile Optimized
+          <Card className="border-2 border-gray-200 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2 border-blue-200 p-4 md:p-3">
+              <CardTitle className="text-lg md:text-base font-bold flex items-center gap-2 md:gap-1 text-blue-900">
+                <Calendar className="w-5 h-5 md:w-4 md:h-4 text-blue-600" />
                 All Service Assignments ({filteredAssignments.length} services)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
+              {/* Mobile Warning */}
+              <div className="lg:hidden bg-amber-50 border-b border-amber-200 p-3 text-amber-800 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                  Scroll horizontally to view all dates
+                </div>
+              </div>
+              
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[800px]">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left p-3 text-sm font-medium text-gray-700 sticky left-0 bg-gray-50 z-10">
+                    <tr className="bg-gray-50 border-b-2 border-gray-200">
+                      <th className="text-left p-4 text-base font-semibold text-gray-800 sticky left-0 bg-gray-50 z-10 min-w-[120px] border-r border-gray-200">
                         Role
                       </th>
                       {filteredAssignments.slice(0, 8).map(service => (
-                        <th key={service.dateString} className="text-center p-3 text-sm font-medium text-gray-700">
-                          <div className="flex items-center justify-center gap-1">
-                            <Badge className="px-3 py-1 bg-gray-100 text-gray-800 hover:bg-gray-200 border-none">
+                        <th key={service.dateString} className="text-center p-4 text-base font-medium text-gray-700 min-w-[140px]">
+                          <div className="flex flex-col items-center gap-2">
+                            <Badge className="px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 border-none text-base font-medium">
                               {formatDate(service.dateString)}
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveDate(service.dateString)}
-                              className="h-6 w-6 p-0 text-red-400 hover:text-red-600 hover:bg-transparent"
-                              title="Remove this date"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
                           </div>
                         </th>
                       ))}
@@ -461,7 +403,7 @@ export function AssignmentsPage() {
                       const roleName = assignments[0].assignments[roleIndex].role;
                       return (
                         <tr key={roleIndex} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="p-3 text-sm font-medium text-gray-700 sticky left-0 bg-white z-10 border-r border-gray-100">
+                          <td className="p-4 text-base font-semibold text-gray-800 sticky left-0 bg-white z-10 border-r border-gray-200 min-w-[120px]">
                             {roleName}
                           </td>
                           {filteredAssignments.slice(0, 8).map(service => {
@@ -472,11 +414,15 @@ export function AssignmentsPage() {
                               duplicateAssignments[service.dateString][person];
 
                             return (
-                              <td key={service.dateString} className="p-2 text-center">
+                              <td key={service.dateString} className="p-3 text-center">
                                 <Input
                                   value={person}
                                   onChange={(e) => updateAssignment(service.dateString, roleIndex, e.target.value)}
-                                  className={`text-sm text-center ${isDuplicate ? 'border-orange-300 bg-orange-50' : ''}`}
+                                  className={`text-base text-center h-12 border-2 ${
+                                    isDuplicate 
+                                      ? 'border-orange-300 bg-orange-50 focus:border-orange-400' 
+                                      : 'border-gray-300 focus:border-blue-400'
+                                  }`}
                                   placeholder="Name"
                                 />
                               </td>
@@ -489,20 +435,22 @@ export function AssignmentsPage() {
                 </table>
               </div>
 
-              <form onSubmit={handleAddRole} className="p-3 mt-2 border-t border-gray-100">
+              {/* Add Role Form */}
+              <form onSubmit={handleAddRole} className="p-4 mt-2 border-t-2 border-gray-100 bg-gray-50">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add new role..."
                     value={newRoleName}
                     onChange={(e) => setNewRoleName(e.target.value)}
-                    className="text-sm"
+                    className="text-base h-12 border-2 border-gray-300 focus:border-blue-400 bg-white"
                   />
                   <Button
                     type="submit"
-                    className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-medium whitespace-nowrap px-4"
-                    size="sm"
+                    className="flex items-center gap-1 h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium whitespace-nowrap"
                   >
-                    <Plus className="h-4 w-4" /> Add Role
+                    <Plus className="h-5 w-5" /> 
+                    <span className="hidden sm:inline">Add Role</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </div>
               </form>
@@ -510,19 +458,28 @@ export function AssignmentsPage() {
           </Card>
         )}
 
-        {/* Duplicate assignments warning */}
+        {/* Duplicate assignments warning - Mobile Optimized */}
         {Object.keys(duplicateAssignments).length > 0 && (
-          <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md text-sm">
-            <h3 className="font-bold mb-1">Potential Scheduling Conflicts</h3>
-            <ul className="list-disc pl-5 space-y-1">
-              {Object.entries(duplicateAssignments).map(([dateString, people]) => (
-                Object.entries(people).map(([person, roles]) => (
-                  <li key={`${dateString}-${person}`}>
-                    <span className="font-medium">{person}</span> is assigned to multiple roles on {formatDate(dateString)}
-                  </li>
-                ))
-              ))}
-            </ul>
+          <div className="bg-orange-50 border-2 border-orange-200 text-orange-800 px-4 py-4 text-base shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-orange-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+              </div>
+              <div>
+                <h3 className="font-bold mb-2 text-base">Potential Scheduling Conflicts</h3>
+                <ul className="space-y-2">
+                  {Object.entries(duplicateAssignments).map(([dateString, people]) => (
+                    Object.entries(people).map(([person, roles]) => (
+                      <li key={`${dateString}-${person}`} className="flex flex-col md:flex-row md:items-center gap-1">
+                        <span className="font-semibold text-orange-900">{person}</span> 
+                        <span className="text-base">is assigned to multiple roles on</span>
+                        <span className="font-medium text-orange-700">{formatDate(dateString)}</span>
+                      </li>
+                    ))
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         )}
 
