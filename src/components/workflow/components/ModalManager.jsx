@@ -82,6 +82,7 @@ export const ModalManager = () => {
         onClose={() => setIsDocumentModalOpen(false)}
         onSubmit={handleDocumentSubmit}
         documentType={currentDocumentType}
+        dateString={dateString}
       />
 
       <SendToPastorModal

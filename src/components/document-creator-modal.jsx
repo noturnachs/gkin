@@ -26,21 +26,13 @@ export function DocumentCreatorModal({
   onClose,
   onSubmit,
   documentType = "concept",
+  dateString,
 }) {
-  const [selectedService, setSelectedService] = useState("");
-  const [upcomingServices, setUpcomingServices] = useState([]);
   const [driveLink, setDriveLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLinkValid, setIsLinkValid] = useState(false);
 
-  // Fetch upcoming services on component mount
-  useEffect(() => {
-    const services = getUpcomingSundays(6); // Get next 6 Sundays
-    setUpcomingServices(services);
-    if (services.length > 0) {
-      setSelectedService(services[0].dateString);
-    }
-  }, []);
+  // No need to fetch upcoming services anymore
 
   // Reset form when modal opens
   useEffect(() => {
@@ -67,11 +59,6 @@ export function DocumentCreatorModal({
 
   // Function to handle completion
   const handleComplete = async () => {
-    if (!selectedService) {
-      alert("Please select a service date");
-      return;
-    }
-
     if (!driveLink.trim() || !isLinkValid) {
       alert("Please enter a valid Google Drive link");
       return;
@@ -80,14 +67,7 @@ export function DocumentCreatorModal({
     setIsSubmitting(true);
 
     try {
-      // Get the formatted title for the document
-      const selectedServiceObj = upcomingServices.find(
-        (service) => service.dateString === selectedService
-      );
-
-      const documentTitle = `${
-        selectedServiceObj?.title || selectedService
-      } - ${
+      const documentTitle = `${dateString} - ${
         documentType === "concept"
           ? "Concept Doc"
           : documentType === "sermon"
@@ -97,7 +77,7 @@ export function DocumentCreatorModal({
 
       // Submit the data to parent component
       const result = await onSubmit({
-        serviceDate: selectedService,
+        serviceDate: dateString,
         documentLink: driveLink,
         documentTitle,
         documentType,
@@ -158,34 +138,24 @@ export function DocumentCreatorModal({
 
             <CardContent className="space-y-4 p-3 sm:p-4">
               <div className="space-y-1.5">
-                <label
-                  htmlFor="service-date"
-                  className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-1.5"
-                >
+                <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                  Service Date
-                </label>
-                <select
-                  id="service-date"
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  value={selectedService}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                >
-                  {upcomingServices.length === 0 ? (
-                    <option value="">Loading services...</option>
-                  ) : (
-                    upcomingServices.map((service) => (
-                      <option
-                        key={service.dateString}
-                        value={service.dateString}
-                      >
-                        {service.title}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  <span className="text-sm font-medium text-gray-700">
+                    Service Date
+                  </span>
+                </div>
+                <div className="p-2 border border-gray-200 bg-gray-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-800">
+                    {dateString}
+                  </p>
+                </div>
                 <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
-                  Select the service this document is for
+                  {documentType === "concept"
+                    ? "Concept Document"
+                    : documentType === "final"
+                    ? "Final Document"
+                    : "Document"}{" "}
+                  for this service date
                 </p>
               </div>
 
@@ -273,7 +243,7 @@ export function DocumentCreatorModal({
                 <Button
                   onClick={handleComplete}
                   className="h-8 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                  disabled={isSubmitting || !isLinkValid || !selectedService}
+                  disabled={isSubmitting || !isLinkValid}
                   size="sm"
                 >
                   {isSubmitting ? (
