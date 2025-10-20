@@ -32,6 +32,10 @@ async function initializeDatabase() {
       path.join(__dirname, "sermon_translations_schema.sql"),
       "utf8"
     );
+    const musicLinksSchemaSQL = fs.readFileSync(
+      path.join(__dirname, "music_links_schema.sql"),
+      "utf8"
+    );
 
     // Execute schema SQL
     await db.query(schemaSQL);
@@ -40,6 +44,7 @@ async function initializeDatabase() {
     await db.query(workflowSchemaSQL);
     await db.query(lyricsTranslationSchemaSQL);
     await db.query(sermonTranslationsSchemaSQL);
+    await db.query(musicLinksSchemaSQL);
     console.log("Database schema created successfully");
 
     // Check if role_passcodes table is empty
