@@ -2,6 +2,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import workflowService from "../../../services/workflowService";
 import lyricsService from "../../../services/lyricsService";
+import musicLinksService from "../../../services/musicLinksService";
 
 const WorkflowContext = createContext();
 
@@ -61,8 +62,12 @@ export const WorkflowProvider = ({
     useState(false);
   const [isEditMusicLinksModalOpen, setIsEditMusicLinksModalOpen] =
     useState(false);
+  const [isViewMusicLinksModalOpen, setIsViewMusicLinksModalOpen] =
+    useState(false);
   const [documentToEdit, setDocumentToEdit] = useState(null);
   const [musicLinksToEdit, setMusicLinksToEdit] = useState(null);
+  const [musicLinksToView, setMusicLinksToView] = useState(null);
+  const [isFetchingMusicLinks, setIsFetchingMusicLinks] = useState(false);
 
   // Load workflow tasks for the current service
   useEffect(() => {
@@ -138,6 +143,43 @@ export const WorkflowProvider = ({
     };
 
     fetchWorkflowTasks();
+  }, [dateString]);
+
+  // Load music links for the current service date
+  useEffect(() => {
+    const fetchMusicLinks = async () => {
+      if (!dateString) return;
+
+      try {
+        // Fetch music links from the API
+        const response = await musicLinksService.getMusicLinks(dateString);
+        const apiMusicLinks = response.musicLinks || [];
+
+        // If we have links from the API, update the completedTasks state
+        if (apiMusicLinks.length > 0) {
+          setCompletedTasks((prev) => {
+            // If we already have a music task, update it with the API data
+            if (prev.music) {
+              return {
+                ...prev,
+                music: {
+                  ...prev.music,
+                  musicLinks: apiMusicLinks,
+                  // Keep other properties like status, documentLink, etc.
+                },
+              };
+            }
+            // If we don't have a music task yet, don't add one
+            return prev;
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching music links on init:", error);
+        // No need to show an error to the user, just log it
+      }
+    };
+
+    fetchMusicLinks();
   }, [dateString]);
 
   // Update task status in the backend
@@ -355,10 +397,16 @@ export const WorkflowProvider = ({
     setIsEditDocumentLinkModalOpen,
     isEditMusicLinksModalOpen,
     setIsEditMusicLinksModalOpen,
+    isViewMusicLinksModalOpen,
+    setIsViewMusicLinksModalOpen,
     documentToEdit,
     setDocumentToEdit,
     musicLinksToEdit,
     setMusicLinksToEdit,
+    musicLinksToView,
+    setMusicLinksToView,
+    isFetchingMusicLinks,
+    setIsFetchingMusicLinks,
 
     // Helper functions
     hasRole,

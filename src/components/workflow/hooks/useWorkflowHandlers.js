@@ -21,6 +21,7 @@ export const useWorkflowHandlers = () => {
     sermonTranslation: false,
     slidesSubmission: false,
     musicSubmission: false,
+    musicLinks: false,
   });
 
   const {
@@ -48,8 +49,11 @@ export const useWorkflowHandlers = () => {
     setIsMusicUploadModalOpen,
     setIsEditDocumentLinkModalOpen,
     setIsEditMusicLinksModalOpen,
+    setIsViewMusicLinksModalOpen,
     setDocumentToEdit,
     setMusicLinksToEdit,
+    setMusicLinksToView,
+    setIsFetchingMusicLinks,
     onStartAction,
     updateTaskStatus,
     deleteDocumentLink,
@@ -440,39 +444,64 @@ export const useWorkflowHandlers = () => {
     onStartAction && onStartAction(`view-${taskId}`);
   };
 
-  // Handle viewing multiple music links
-  const handleViewMusicLinks = () => {
-    console.log("Viewing music links");
+  // Handle viewing multiple music links in a modal
+  const handleViewMusicLinks = async () => {
+    console.log("Viewing music links in modal");
 
-    // Get the music links from the task status data
-    const musicLinks = completedTasks?.music?.musicLinks || [];
+    // Set loading states
+    setIsFetchingMusicLinks(true);
+    setLoadingStates((prev) => ({ ...prev, musicLinks: true }));
 
-    if (musicLinks.length === 0) {
-      // No links available, show error message
-      alert("No music links available.");
-      return;
-    }
+    // Open the modal first to show loading state
+    setMusicLinksToView({
+      musicLinks: completedTasks?.music?.musicLinks || [],
+      title: completedTasks?.music?.title || "Music Links",
+    });
+    setIsViewMusicLinksModalOpen(true);
 
-    if (musicLinks.length === 1) {
-      // Only one link, open it directly
-      window.open(musicLinks[0].url, "_blank");
+    try {
+      // Fetch music links from the API
+      const response = await musicLinksService.getMusicLinks(dateString);
+      const apiMusicLinks = response.musicLinks || [];
+
+      // Update the modal data with API results
+      setMusicLinksToView({
+        musicLinks: apiMusicLinks,
+        title: response.title || completedTasks?.music?.title || "Music Links",
+      });
+
+      // Also update local state with API data for UI consistency
+      if (apiMusicLinks.length > 0) {
+        setCompletedTasks((prev) => ({
+          ...prev,
+          music: {
+            ...prev.music,
+            musicLinks: apiMusicLinks,
+            title: response.title || prev.music?.title,
+          },
+        }));
+      }
 
       // If you need to call the parent handler
       onStartAction && onStartAction(`view-music`);
-      return;
+    } catch (error) {
+      console.error("Error fetching music links from API:", error);
+
+      // If API call fails, just use the local state data
+      const musicLinks = completedTasks?.music?.musicLinks || [];
+
+      if (musicLinks.length === 0) {
+        // Keep the modal open but show empty state
+        setMusicLinksToView({
+          musicLinks: [],
+          title: completedTasks?.music?.title || "Music Links",
+        });
+      }
+    } finally {
+      // Clear loading states
+      setIsFetchingMusicLinks(false);
+      setLoadingStates((prev) => ({ ...prev, musicLinks: false }));
     }
-
-    // Multiple links available, open the first one and show a message about the others
-    window.open(musicLinks[0].url, "_blank");
-
-    // Show a message with all available links
-    toast.success(
-      "Multiple music links available. Click on each link in the card to open them.",
-      { duration: 5000 }
-    );
-
-    // If you need to call the parent handler
-    onStartAction && onStartAction(`view-music`);
   };
 
   // Handle pastor editing document
