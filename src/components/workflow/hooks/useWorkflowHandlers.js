@@ -530,26 +530,46 @@ export const useWorkflowHandlers = () => {
     setIsLyricsModalOpen(true);
   };
 
-  const handleLyricsSubmit = (lyricsData) => {
+  const handleLyricsSubmit = async (lyricsData) => {
     console.log("Lyrics submitted:", lyricsData);
 
-    // Update the local state to store the lyrics
-    setCompletedTasks((prev) => ({
-      ...prev,
-      lyrics: "completed",
-      lyricsData: lyricsData,
-    }));
+    try {
+      // Set loading state
+      setLoadingStates((prev) => ({ ...prev, lyricsSubmit: true }));
 
-    // Close the modal
-    setIsLyricsModalOpen(false);
+      // Import the lyrics service dynamically
+      const lyricsService = (await import("../../../services/lyricsService"))
+        .default;
 
-    // Update the service status if needed
-    if (onStartAction) {
-      onStartAction("lyrics-added");
+      // Save the lyrics to the database
+      await lyricsService.submitLyrics(dateString, lyricsData.songs);
+
+      // Update the local state to store the lyrics
+      setCompletedTasks((prev) => ({
+        ...prev,
+        lyrics: "completed",
+        lyricsData: lyricsData,
+      }));
+
+      // Update workflow task status
+      await updateTaskStatus("translate_lyrics", "in-progress");
+
+      // Close the modal
+      setIsLyricsModalOpen(false);
+
+      // Update the service status if needed
+      if (onStartAction) {
+        onStartAction("lyrics-added");
+      }
+
+      // Show a success message
+      alert("Song lyrics have been saved to the database successfully!");
+    } catch (error) {
+      console.error("Error saving lyrics to database:", error);
+      alert("Failed to save lyrics to the database. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, lyricsSubmit: false }));
     }
-
-    // Show a success message
-    alert("Song lyrics have been saved successfully!");
   };
 
   const handleTranslateLyrics = () => {
@@ -582,7 +602,7 @@ export const useWorkflowHandlers = () => {
     // Update the local state to store the translations
     setCompletedTasks((prev) => ({
       ...prev,
-      "translate-liturgy": "completed",
+      translate_lyrics: "completed",
       translationData: translationData,
     }));
 

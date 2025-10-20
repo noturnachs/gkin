@@ -57,11 +57,12 @@ export const workflowCategories = [
     color: "bg-green-100 border-green-300 text-green-800",
     subtasks: [
       {
-        id: "translate-liturgy",
+        id: "translate_lyrics",
         name: "Translate Lyrics",
         icon: MessageSquare,
         description: "Translate song lyrics content",
         actionLabel: "Translate",
+        route: "/translation/lyrics",
       },
       {
         id: "translate-sermon",

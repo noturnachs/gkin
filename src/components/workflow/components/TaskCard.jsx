@@ -53,7 +53,7 @@ const taskTypeStyles = {
   },
 
   // Translation tasks - green theme
-  "translate-liturgy": {
+  translate_lyrics: {
     primary: "bg-green-600 hover:bg-green-700",
     secondary: "bg-green-500 hover:bg-green-600",
     badge: "bg-green-100 text-green-700 border-green-200",
@@ -162,13 +162,9 @@ export const TaskCard = ({ task, categoryId }) => {
       {/* Task icon with task-specific color - now clickable with enhanced visual indicators */}
       <div
         className={`mb-1 ${
-          [
-            "concept",
-            "sermon",
-            "final",
-            "slides",
-            "translate-liturgy",
-          ].includes(task.id)
+          ["concept", "sermon", "final", "slides", "translate_lyrics"].includes(
+            task.id
+          )
             ? "cursor-pointer hover:scale-110 transition-transform relative group"
             : ""
         }`}
@@ -176,32 +172,32 @@ export const TaskCard = ({ task, categoryId }) => {
           // Handle different task types when icon is clicked
           if (["concept", "sermon", "final", "slides"].includes(task.id)) {
             handleViewDocument(task.id);
-          } else if (task.id === "translate-liturgy") {
+          } else if (task.id === "translate_lyrics") {
             handleViewTranslatedLyrics();
           }
         }}
         title={
           ["concept", "sermon", "final", "slides"].includes(task.id)
             ? "Click to open in Google Drive"
-            : task.id === "translate-liturgy"
+            : task.id === "translate_lyrics"
             ? "Click to view translated lyrics"
             : ""
         }
       >
         {/* Visual clickability indicator for all devices */}
         {(["concept", "sermon", "final", "slides"].includes(task.id) ||
-          task.id === "translate-liturgy") && (
+          task.id === "translate_lyrics") && (
           <>
             {/* Blue dot indicator that's always visible on mobile, shows on hover for desktop */}
             <div
               className={`absolute -top-1 -right-1 w-3 h-3 ${
-                task.id === "translate-liturgy" ? "bg-green-500" : "bg-blue-500"
+                task.id === "translate_lyrics" ? "bg-green-500" : "bg-blue-500"
               } rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity`}
             ></div>
             {/* Touch/click icon indicator for mobile */}
             <div
               className={`absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-[10px] ${
-                task.id === "translate-liturgy"
+                task.id === "translate_lyrics"
                   ? "text-green-600"
                   : "text-blue-600"
               } font-medium md:hidden`}
@@ -214,7 +210,7 @@ export const TaskCard = ({ task, categoryId }) => {
           className={
             ["concept", "sermon", "final", "slides"].includes(task.id)
               ? "p-1 rounded-full border-2 border-dashed border-opacity-50 border-blue-300"
-              : task.id === "translate-liturgy"
+              : task.id === "translate_lyrics"
               ? "p-1 rounded-full border-2 border-dashed border-opacity-50 border-green-300"
               : ""
           }
@@ -561,27 +557,21 @@ export const TaskCard = ({ task, categoryId }) => {
         )}
 
         {/* Lyrics translation task */}
-        {task.id === "translate-liturgy" && (
+        {task.id === "translate_lyrics" && (
           <>
             <Button
               size="sm"
               className={primaryButtonClass}
-              onClick={handleAddLyrics}
+              onClick={() => {
+                if (task.route) {
+                  window.location.href = task.route;
+                }
+              }}
             >
-              {completedTasks?.lyrics === "completed"
-                ? "Edit Lyrics"
-                : "Add Song Lyrics"}
+              Go to Translation Page
             </Button>
 
-            <Button
-              size="sm"
-              className={secondaryButtonClass}
-              onClick={handleTranslateLyrics}
-            >
-              Translate Lyrics
-            </Button>
-
-            {completedTasks?.["translate-liturgy"] === "completed" && (
+            {completedTasks?.["translate_lyrics"] === "completed" && (
               <Button
                 size="sm"
                 className={viewButtonClass}
