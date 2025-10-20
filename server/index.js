@@ -56,6 +56,7 @@ const workflowRoutes = require("./routes/workflow");
 const emailRoutes = require("./routes/email");
 const lyricsRoutes = require("./routes/lyrics");
 const sermonRoutes = require("./routes/sermon");
+const musicLinksRoutes = require("./routes/musicLinks");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -67,6 +68,7 @@ app.use("/api/workflow", workflowRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/lyrics", lyricsRoutes);
 app.use("/api/sermon", sermonRoutes);
+app.use("/api/music-links", musicLinksRoutes);
 
 // Default route
 app.get("/", (req, res) => {

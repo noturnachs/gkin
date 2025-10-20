@@ -711,14 +711,35 @@ export const TaskCard = ({ task, categoryId }) => {
 
             {isCompleted && (
               <div className="space-y-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className={viewButtonClass}
-                  onClick={() => handleViewDocument("music")}
-                >
-                  View Music
-                </Button>
+                {/* If we have multiple music links, show them all */}
+                {completedTasks?.music?.musicLinks &&
+                completedTasks.music.musicLinks.length > 0 ? (
+                  <div className="space-y-2">
+                    {completedTasks.music.musicLinks.map((link, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        className={`${viewButtonClass} flex justify-between items-center w-full`}
+                        onClick={() => window.open(link.url, "_blank")}
+                      >
+                        <span className="truncate max-w-[80%] text-left">
+                          {link.name || `Music ${index + 1}`}
+                        </span>
+                        <Link className="w-3 h-3 ml-1 flex-shrink-0" />
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={viewButtonClass}
+                    onClick={() => handleViewDocument("music")}
+                  >
+                    View Music
+                  </Button>
+                )}
 
                 <Button
                   size="sm"
@@ -726,8 +747,16 @@ export const TaskCard = ({ task, categoryId }) => {
                   onClick={() => handleEditDocumentLink("music")}
                 >
                   <Link className="w-3 h-3 mr-1" />
-                  Edit Link
+                  Edit Links
                 </Button>
+
+                {/* Show notes if available */}
+                {completedTasks?.music?.notes && (
+                  <div className="text-xs text-gray-600 mt-1 p-2 bg-gray-50 border border-gray-100 rounded">
+                    <span className="font-medium">Notes:</span>{" "}
+                    {completedTasks.music.notes}
+                  </div>
+                )}
               </div>
             )}
           </>

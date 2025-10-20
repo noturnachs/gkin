@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useWorkflow } from "../context/WorkflowContext";
 import { toast } from "react-hot-toast";
 import sermonService from "../../../services/sermonService";
+import musicLinksService from "../../../services/musicLinksService";
 
 export const useWorkflowHandlers = () => {
   // Loading states
@@ -19,6 +20,7 @@ export const useWorkflowHandlers = () => {
     qrcodeDelete: false,
     sermonTranslation: false,
     slidesSubmission: false,
+    musicSubmission: false,
   });
 
   const {
@@ -880,37 +882,78 @@ export const useWorkflowHandlers = () => {
     setIsMusicUploadModalOpen(true);
   };
 
-  const handleMusicUploadSubmit = (musicData) => {
-    console.log("Music upload submitted:", musicData);
+  const handleMusicUploadSubmit = async (musicData) => {
+    console.log("Music links submitted:", musicData);
 
-    // Get the document link from completedTasks
-    const documentLink =
-      completedTasks?.documentLinks?.music || musicData?.documentLink;
+    try {
+      // Set loading state for music submission
+      setLoadingStates((prev) => ({ ...prev, musicSubmission: true }));
 
-    // Update the task status in the backend
-    updateTaskStatus("music", "completed", documentLink, "music");
+      // Get the primary link (first link) for the database
+      const primaryLink =
+        musicData.musicLinks && musicData.musicLinks.length > 0
+          ? musicData.musicLinks[0].url
+          : "";
 
-    // Update the local state to store the music data
-    setCompletedTasks((prev) => ({
-      ...prev,
-      music: {
-        status: "completed",
-        documentLink: documentLink,
-        assignedTo: "music",
-      },
-      musicData: musicData,
-    }));
+      if (!primaryLink) {
+        toast.error("No music links provided");
+        return Promise.reject(new Error("No music links provided"));
+      }
 
-    // Close the modal
-    setIsMusicUploadModalOpen(false);
+      // Get current timestamp for local updates
+      const updatedAt = new Date().toISOString();
 
-    // Update the service status if needed
-    if (onStartAction) {
-      onStartAction("music-uploaded");
+      // Get the current user role
+      const userRole =
+        typeof currentUserRole === "string"
+          ? currentUserRole
+          : currentUserRole?.id || currentUserRole?.role?.id || "music";
+
+      // Save music links to the database using the music links service
+      await musicLinksService.saveMusicLinks(
+        dateString,
+        musicData.musicLinks,
+        musicData.title,
+        musicData.notes
+      );
+
+      // Update the local state to store all the music data
+      setCompletedTasks((prev) => ({
+        ...prev,
+        music: {
+          status: "completed",
+          documentLink: primaryLink,
+          assignedTo: "music",
+          updatedAt: updatedAt,
+          updatedBy: userRole,
+          title: musicData.title,
+          // Store all links in the task data
+          musicLinks: musicData.musicLinks,
+          notes: musicData.notes,
+        },
+        musicData: musicData,
+      }));
+
+      // Close the modal
+      setIsMusicUploadModalOpen(false);
+
+      // Update the service status if needed
+      if (onStartAction) {
+        onStartAction("music-uploaded");
+      }
+
+      // Show a success message using toast instead of alert
+      toast.success(`Music links have been saved successfully!`);
+
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error saving music links:", error);
+      toast.error("Failed to save music links");
+      return Promise.reject(error);
+    } finally {
+      // Reset loading state
+      setLoadingStates((prev) => ({ ...prev, musicSubmission: false }));
     }
-
-    // Show a success message
-    alert(`Music file "${musicData.title}" has been uploaded successfully!`);
   };
 
   // Handle opening the edit document link modal

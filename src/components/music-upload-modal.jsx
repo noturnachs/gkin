@@ -3,70 +3,150 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Link, Music, X } from "lucide-react";
+import { Link, Music, X, Plus, Trash2, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
-export function MusicUploadModal({ isOpen, onClose, onSubmit }) {
+export function MusicUploadModal({ isOpen, onClose, onSubmit, dateString }) {
   // State for form values
-  const [formValues, setFormValues] = useState({
-    title: "",
-    musicLink: "",
-    notes: "",
-  });
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [musicLinks, setMusicLinks] = useState([{ name: "", url: "" }]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setFormValues({
-        title: "",
-        musicLink: "",
-        notes: "",
-      });
+      setTitle("");
+      setNotes("");
+      setMusicLinks([{ name: "", url: "" }]);
+      setIsSubmitting(false);
+      setErrors({});
     }
   }, [isOpen]);
 
-  // Handle form changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Generate title based on the date if not provided
+  const generateTitle = () => {
+    if (title.trim()) return title;
+
+    if (!dateString) return "Music for upcoming service";
+
+    try {
+      const date = new Date(dateString);
+      const formattedDate = date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+      return `Music for service on ${formattedDate}`;
+    } catch (e) {
+      return `Music for service on ${dateString}`;
+    }
   };
 
-  // Validate if the string is a valid Google Drive link
-  const isValidDriveLink = (link) => {
-    // Basic validation - checks if it contains drive.google.com
-    return link.includes("drive.google.com");
+  // Add a new music link input field
+  const addMusicLink = () => {
+    setMusicLinks([...musicLinks, { name: "", url: "" }]);
+  };
+
+  // Remove a music link input field
+  const removeMusicLink = (index) => {
+    if (musicLinks.length === 1) {
+      // Don't remove the last item, just clear it
+      setMusicLinks([{ name: "", url: "" }]);
+      return;
+    }
+
+    const newLinks = [...musicLinks];
+    newLinks.splice(index, 1);
+    setMusicLinks(newLinks);
+  };
+
+  // Update a music link field
+  const updateMusicLink = (index, field, value) => {
+    const newLinks = [...musicLinks];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setMusicLinks(newLinks);
+
+    // Clear errors when user types
+    if (errors[`link${index}`]) {
+      setErrors((prev) => ({ ...prev, [`link${index}`]: null }));
+    }
+  };
+
+  // Validate if the string is a valid music link
+  const isValidLink = (link) => {
+    // Basic validation - checks if it's a URL or contains drive.google.com/youtube.com
+    if (!link) return false;
+    return (
+      link.includes("drive.google.com") ||
+      link.includes("youtube.com") ||
+      link.includes("youtu.be") ||
+      link.includes("soundcloud.com") ||
+      link.includes("http://") ||
+      link.includes("https://")
+    );
+  };
+
+  // Validate the form
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Check if at least one link is valid
+    let hasValidLink = false;
+
+    musicLinks.forEach((link, index) => {
+      if (link.url.trim() && !isValidLink(link.url)) {
+        newErrors[`link${index}`] = "Please provide a valid URL";
+        isValid = false;
+      } else if (link.url.trim()) {
+        hasValidLink = true;
+      }
+    });
+
+    if (!hasValidLink) {
+      newErrors.general = "Please provide at least one music link";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formValues.title.trim()) {
-      alert("Please enter a title for the music file");
+    if (!validateForm()) {
       return;
     }
 
-    if (!formValues.musicLink.trim()) {
-      alert("Please provide a Google Drive link to the music file");
-      return;
-    }
+    setIsSubmitting(true);
 
-    if (!isValidDriveLink(formValues.musicLink)) {
-      alert("Please provide a valid Google Drive link");
-      return;
-    }
+    try {
+      // Filter out empty links
+      const filteredLinks = musicLinks.filter((link) => link.url.trim());
 
-    onSubmit({
-      ...formValues,
-      uploadedAt: new Date().toISOString(),
-    });
+      // Generate title if not provided
+      const finalTitle = generateTitle();
+
+      await onSubmit({
+        title: finalTitle,
+        notes,
+        musicLinks: filteredLinks,
+        uploadedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error submitting music links:", error);
+      toast.error("Failed to save music links");
+      setIsSubmitting(false);
+    }
   };
 
   // Handle backdrop click
   const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !isSubmitting) {
       onClose();
     }
   };
@@ -74,14 +154,14 @@ export function MusicUploadModal({ isOpen, onClose, onSubmit }) {
   // Handle Escape key press
   useEffect(() => {
     const handleEscape = (e) => {
-      if (isOpen && e.key === "Escape") {
+      if (isOpen && e.key === "Escape" && !isSubmitting) {
         onClose();
       }
     };
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen) return null;
 
@@ -92,58 +172,136 @@ export function MusicUploadModal({ isOpen, onClose, onSubmit }) {
     >
       <div
         className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 my-8 animate-fadeIn"
-        style={{ maxHeight: "calc(100vh - 4rem)" }}
+        style={{ maxHeight: "calc(100vh - 4rem)", overflowY: "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
             <Music className="w-5 h-5 text-indigo-600" />
-            Add Music Link
+            Add Music Links
           </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             aria-label="Close"
+            disabled={isSubmitting}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4">
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
               <Label htmlFor="title" className="text-gray-700">
-                Music Title
+                Music Title (Optional)
               </Label>
               <Input
                 id="title"
-                name="title"
-                value={formValues.title}
-                onChange={handleChange}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                placeholder="Enter music title (e.g., Choir Accompaniment)"
+                placeholder="Enter music title or leave empty for auto-generation"
+                disabled={isSubmitting}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                If left empty, a title will be generated based on the service
+                date
+              </p>
             </div>
 
-            <div>
-              <Label htmlFor="musicLink" className="text-gray-700 mb-2 block">
-                Music File Link
-              </Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Link className="h-4 w-4 text-gray-400" />
-                </div>
-                <Input
-                  id="musicLink"
-                  name="musicLink"
-                  value={formValues.musicLink}
-                  onChange={handleChange}
-                  className="pl-10 border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  placeholder="Paste Google Drive link to your music file"
-                />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-gray-700">Music Links</Label>
+                <Button
+                  type="button"
+                  onClick={addMusicLink}
+                  className="text-xs h-7 px-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200"
+                  disabled={isSubmitting}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Link
+                </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Please share your Google Drive link with viewing permissions enabled
+
+              {musicLinks.map((link, index) => (
+                <div
+                  key={index}
+                  className="p-3 border border-gray-200 rounded-md bg-gray-50"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Link {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeMusicLink(index)}
+                      className="text-red-500 hover:text-red-700"
+                      disabled={isSubmitting || musicLinks.length === 1}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <Label
+                        htmlFor={`linkName${index}`}
+                        className="text-xs text-gray-600"
+                      >
+                        Name/Description
+                      </Label>
+                      <Input
+                        id={`linkName${index}`}
+                        value={link.name}
+                        onChange={(e) =>
+                          updateMusicLink(index, "name", e.target.value)
+                        }
+                        className="border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm h-8"
+                        placeholder="E.g., Piano Accompaniment, Minus One"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor={`linkUrl${index}`}
+                        className="text-xs text-gray-600"
+                      >
+                        URL
+                      </Label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                          <Link className="h-3 w-3 text-gray-400" />
+                        </div>
+                        <Input
+                          id={`linkUrl${index}`}
+                          value={link.url}
+                          onChange={(e) =>
+                            updateMusicLink(index, "url", e.target.value)
+                          }
+                          className="pl-8 border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm h-8"
+                          placeholder="Paste link to music file (Google Drive, YouTube, etc.)"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      {errors[`link${index}`] && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors[`link${index}`]}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {errors.general && (
+                <p className="text-sm text-red-500">{errors.general}</p>
+              )}
+
+              <p className="text-xs text-gray-500">
+                You can add links to Google Drive, YouTube, SoundCloud, or any
+                other music source
               </p>
             </div>
 
@@ -153,11 +311,11 @@ export function MusicUploadModal({ isOpen, onClose, onSubmit }) {
               </Label>
               <Input
                 id="notes"
-                name="notes"
-                value={formValues.notes}
-                onChange={handleChange}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
                 className="border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                placeholder="Any additional notes about the music file"
+                placeholder="Any additional notes about the music"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -167,14 +325,23 @@ export function MusicUploadModal({ isOpen, onClose, onSubmit }) {
               type="button"
               onClick={onClose}
               className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              disabled={isSubmitting}
             >
-              Save Music Link
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Music Links"
+              )}
             </Button>
           </div>
         </form>

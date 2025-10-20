@@ -153,6 +153,7 @@ export const ModalManager = () => {
         isOpen={isMusicUploadModalOpen}
         onClose={() => setIsMusicUploadModalOpen(false)}
         onSubmit={handleMusicUploadSubmit}
+        dateString={dateString}
       />
 
       <EditDocumentLinkModal
