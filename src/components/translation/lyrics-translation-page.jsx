@@ -197,7 +197,7 @@ export function LyricsTranslationPage() {
         </div>
       </div>
 
-      {error && (
+      {error && error !== "No lyrics found" && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
           <AlertCircle className="h-5 w-5 mr-2" />
           {error}
@@ -322,8 +322,15 @@ export function LyricsTranslationPage() {
               </h3>
               <p className="text-gray-500 max-w-md mb-6">
                 {!currentServiceDate
-                  ? "Select a date from the calendar above to see if there are any lyrics for that service."
-                  : "There are no lyrics added for this service date yet."}
+                  ? "No lyrics have been added yet."
+                  : `No lyrics have been added for ${new Date(
+                      currentServiceDate
+                    ).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })} service yet.`}
               </p>
               {canTranslate && (
                 <div className="flex flex-col sm:flex-row gap-3">

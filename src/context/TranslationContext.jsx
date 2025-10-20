@@ -89,10 +89,17 @@ export const TranslationProvider = ({ children }) => {
         setCurrentServiceDate(dateString);
       } catch (err) {
         console.error(`Error fetching lyrics for date ${dateString}:`, err);
-        // Don't show error for 404 (no lyrics found) - this is an expected state
-        if (err.response && err.response.status === 404) {
+        // Handle 404 or "Service not found" errors as expected states
+        if (
+          (err.response && err.response.status === 404) ||
+          (err.message &&
+            (err.message.includes("Service not found") ||
+              err.message.includes("Not Found")))
+        ) {
+          // This is an expected state - no lyrics exist for this date yet
           setLyrics([]);
           setCurrentServiceDate(dateString);
+          // Don't show an error toast for this case
         } else {
           setError("Failed to load lyrics. Please try again later.");
           toast.error("Failed to load lyrics for this date");
