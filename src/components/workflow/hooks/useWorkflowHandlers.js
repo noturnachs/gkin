@@ -91,10 +91,27 @@ export const useWorkflowHandlers = () => {
     // Here you would handle the saved document
     console.log("Document submitted:", documentData);
 
+    // Get the document link from completedTasks or from the submitted data
+    const documentLink =
+      completedTasks?.documentLinks?.[documentData.documentType] ||
+      documentData?.documentLink;
+
+    // Update the task status in the backend
+    updateTaskStatus(
+      documentData.documentType,
+      "completed",
+      documentLink,
+      "liturgy"
+    );
+
     // Update the local completed tasks state
     setCompletedTasks((prev) => ({
       ...prev,
-      [documentData.documentType]: "completed",
+      [documentData.documentType]: {
+        status: "completed",
+        documentLink: documentLink,
+        assignedTo: "liturgy",
+      },
       // Store the actual document data if needed
       [`${documentData.documentType}Data`]: documentData,
     }));
@@ -213,23 +230,6 @@ export const useWorkflowHandlers = () => {
   const handleViewDocument = (taskId) => {
     console.log(`Viewing document: ${taskId}`);
 
-    // Get document links from context if available
-    const documentLinks = completedTasks?.documentLinks || {
-      // Default Google Drive links for each document type
-      concept:
-        "https://docs.google.com/document/d/1GZkHMPLQnlxQQVQHPZavvPFRRRDCyaHABt_8KlhQxYE/edit",
-      sermon:
-        "https://docs.google.com/document/d/1pMnDsVb7CtcFm2SJE4N1ZHmzgzwcyYQcV2V5Q7JX5oU/edit",
-      final:
-        "https://docs.google.com/document/d/1aN8vgWk2x6KYYUrWWqAYhDKJBq0Ot-VZNQQ3AmJUEgc/edit",
-      qrcode:
-        "https://drive.google.com/file/d/1Qr5wgtaKGQZhMWQEw2MgzGcVhBTTdJLk/view",
-      slides:
-        "https://docs.google.com/presentation/d/1mKQz8oU2QYRdvmJBxLiMNVnWkCkE4MUjea8Z9UzUQMI/edit",
-      music:
-        "https://drive.google.com/drive/folders/1xKjfMKqw2J7Z8QX5tY2L3EcDXHWA8nP9",
-    };
-
     // Get the document name for the alert
     const documentTypes = {
       concept: "Concept Document",
@@ -240,8 +240,24 @@ export const useWorkflowHandlers = () => {
       music: "Music Files",
     };
 
-    // Get the document URL
-    const documentUrl = documentLinks[taskId];
+    // Get the document link from the task status data
+    let documentUrl;
+
+    if (completedTasks[taskId] && completedTasks[taskId].documentLink) {
+      // Get from task status data (from backend)
+      documentUrl = completedTasks[taskId].documentLink;
+      console.log(`Using document link from task status: ${documentUrl}`);
+    } else if (
+      completedTasks?.documentLinks &&
+      completedTasks.documentLinks[taskId]
+    ) {
+      // Use links from the input
+      documentUrl = completedTasks.documentLinks[taskId];
+      console.log(`Using document link from input: ${documentUrl}`);
+    } else {
+      console.log(`No document link available for ${taskId}`);
+      documentUrl = null;
+    }
 
     if (documentUrl) {
       // Open the document in a new tab
@@ -252,9 +268,11 @@ export const useWorkflowHandlers = () => {
         alert(`Opening ${documentTypes[taskId] || taskId} in Google Drive`);
       }
     } else {
-      // Fallback to just showing an alert
+      // Show an alert when no document URL is available
       alert(
-        `No Google Drive link available for ${documentTypes[taskId] || taskId}`
+        `No document link available for ${
+          documentTypes[taskId] || taskId
+        }. Please provide a link first.`
       );
     }
 
@@ -266,22 +284,6 @@ export const useWorkflowHandlers = () => {
   const handlePastorEdit = (taskId) => {
     console.log(`Pastor editing document: ${taskId}`);
 
-    // Get document links from context if available
-    const documentLinks = completedTasks?.documentLinks || {
-      concept:
-        "https://docs.google.com/document/d/1GZkHMPLQnlxQQVQHPZavvPFRRRDCyaHABt_8KlhQxYE/edit",
-      sermon:
-        "https://docs.google.com/document/d/1pMnDsVb7CtcFm2SJE4N1ZHmzgzwcyYQcV2V5Q7JX5oU/edit",
-      final:
-        "https://docs.google.com/document/d/1aN8vgWk2x6KYYUrWWqAYhDKJBq0Ot-VZNQQ3AmJUEgc/edit",
-      qrcode:
-        "https://drive.google.com/file/d/1Qr5wgtaKGQZhMWQEw2MgzGcVhBTTdJLk/view",
-      slides:
-        "https://docs.google.com/presentation/d/1mKQz8oU2QYRdvmJBxLiMNVnWkCkE4MUjea8Z9UzUQMI/edit",
-      music:
-        "https://drive.google.com/drive/folders/1xKjfMKqw2J7Z8QX5tY2L3EcDXHWA8nP9",
-    };
-
     // Get document types
     const documentTypes = {
       concept: "Concept Document",
@@ -291,10 +293,29 @@ export const useWorkflowHandlers = () => {
       slides: "Presentation Slides",
     };
 
-    // Get the document URL
-    const documentUrl = documentLinks[taskId];
+    // Get the document link from the task status data
+    let documentUrl;
+
+    if (completedTasks[taskId] && completedTasks[taskId].documentLink) {
+      // Get from task status data (from backend)
+      documentUrl = completedTasks[taskId].documentLink;
+      console.log(`Using document link from task status: ${documentUrl}`);
+    } else if (
+      completedTasks?.documentLinks &&
+      completedTasks.documentLinks[taskId]
+    ) {
+      // Use links from the input
+      documentUrl = completedTasks.documentLinks[taskId];
+      console.log(`Using document link from input: ${documentUrl}`);
+    } else {
+      console.log(`No document link available for ${taskId}`);
+      documentUrl = null;
+    }
 
     if (documentUrl) {
+      // Update task status to reflect pastor is reviewing
+      updateTaskStatus(taskId, "in-progress", documentUrl, "pastor");
+
       // Open the document in a new tab
       window.open(documentUrl, "_blank");
 
@@ -311,10 +332,20 @@ export const useWorkflowHandlers = () => {
           );
 
           if (confirmed) {
+            // Update task status to completed after pastor review
+            updateTaskStatus(taskId, "completed", documentUrl, "pastor");
+
             handlePastorNotifyTeams(taskId);
           }
         },
         { once: true }
+      );
+    } else {
+      // Show an alert when no document URL is available
+      alert(
+        `No document link available for ${
+          documentTypes[taskId] || taskId
+        }. Please provide a link first.`
       );
     }
   };
@@ -488,10 +519,21 @@ export const useWorkflowHandlers = () => {
   const handleSlidesUploadSubmit = (slidesData) => {
     console.log("Slides upload submitted:", slidesData);
 
+    // Get the document link from completedTasks
+    const documentLink =
+      completedTasks?.documentLinks?.slides || slidesData?.documentLink;
+
+    // Update the task status in the backend
+    updateTaskStatus("slides", "completed", documentLink, "beamer");
+
     // Update the local state to store the slides data
     setCompletedTasks((prev) => ({
       ...prev,
-      slides: "completed",
+      slides: {
+        status: "completed",
+        documentLink: documentLink,
+        assignedTo: "beamer",
+      },
       slidesData: slidesData,
     }));
 
@@ -546,10 +588,21 @@ export const useWorkflowHandlers = () => {
   const handleMusicUploadSubmit = (musicData) => {
     console.log("Music upload submitted:", musicData);
 
+    // Get the document link from completedTasks
+    const documentLink =
+      completedTasks?.documentLinks?.music || musicData?.documentLink;
+
+    // Update the task status in the backend
+    updateTaskStatus("music", "completed", documentLink, "music");
+
     // Update the local state to store the music data
     setCompletedTasks((prev) => ({
       ...prev,
-      music: "completed",
+      music: {
+        status: "completed",
+        documentLink: documentLink,
+        assignedTo: "music",
+      },
       musicData: musicData,
     }));
 
