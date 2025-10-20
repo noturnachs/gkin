@@ -9,6 +9,9 @@ export const useWorkflowHandlers = () => {
     documentDelete: false,
     documentSave: false,
     conceptDocument: false,
+    sermonDocument: false,
+    sermonEdit: false,
+    sermonDelete: false,
   });
 
   const {
@@ -40,6 +43,7 @@ export const useWorkflowHandlers = () => {
     updateTaskStatus,
     deleteDocumentLink,
     dateString,
+    currentUserRole,
   } = useWorkflow();
 
   // Handle QR code upload simulation
@@ -207,34 +211,79 @@ export const useWorkflowHandlers = () => {
     }
   };
 
-  // Add this function after your other handler functions
+  // Handle opening the sermon upload modal
   const handleUploadSermon = (taskId) => {
     console.log(`Upload sermon for task: ${taskId}`);
-    setIsSermonUploadModalOpen(true);
+
+    // Set loading state
+    setLoadingStates((prev) => ({ ...prev, sermonEdit: true }));
+
+    try {
+      setIsSermonUploadModalOpen(true);
+    } finally {
+      // Reset loading state after modal is opened
+      setLoadingStates((prev) => ({ ...prev, sermonEdit: false }));
+    }
   };
 
-  // Add this handler for sermon upload submission
-  const handleSermonUploadSubmit = (sermonData) => {
+  // Handler for sermon upload submission
+  const handleSermonUploadSubmit = async (sermonData) => {
     console.log("Sermon upload submitted:", sermonData);
 
-    // Update the local completed tasks state
-    setCompletedTasks((prev) => ({
-      ...prev,
-      sermon: "completed",
-      // Store the actual sermon data
-      sermonData: sermonData,
-    }));
+    // Add a default title if not provided
+    const enhancedSermonData = {
+      ...sermonData,
+      sermonTitle:
+        sermonData.sermonTitle ||
+        `Sermon Document (${new Date().toLocaleDateString()})`,
+    };
 
-    // Close the upload modal
-    setIsSermonUploadModalOpen(false);
+    // Set loading state for sermon document
+    setLoadingStates((prev) => ({ ...prev, sermonDocument: true }));
 
-    // Update the service status for this task if needed
-    if (onStartAction) {
-      onStartAction(`sermon-uploaded`);
+    try {
+      // Update the task status in the backend using the same pattern as concept documents
+      await updateTaskStatus(
+        "sermon",
+        "completed",
+        sermonData.sermonLink, // Use the link from the form data
+        "pastor" // Assign to pastor role
+      );
+
+      // Update the local completed tasks state with proper metadata
+      setCompletedTasks((prev) => ({
+        ...prev,
+        sermon: {
+          status: "completed",
+          documentLink: sermonData.sermonLink,
+          assignedTo: "pastor",
+          updatedAt: new Date().toISOString(),
+          updatedBy: currentUserRole
+            ? typeof currentUserRole === "string"
+              ? currentUserRole
+              : currentUserRole?.id || currentUserRole?.role?.id || "pastor"
+            : "pastor", // Fallback to pastor if currentUserRole is not available
+        },
+        // Store the actual sermon data with default title if needed
+        sermonData: enhancedSermonData,
+      }));
+
+      // Update the service status for this task if needed
+      if (onStartAction) {
+        onStartAction(`sermon-uploaded`);
+      }
+
+      // Close the upload modal - no alert needed
+      setIsSermonUploadModalOpen(false);
+
+      return true;
+    } catch (error) {
+      console.error("Error saving sermon document:", error);
+      return false;
+    } finally {
+      // Reset loading state
+      setLoadingStates((prev) => ({ ...prev, sermonDocument: false }));
     }
-
-    // Show a success message
-    alert(`Sermon "${sermonData.sermonTitle}" has been uploaded successfully!`);
   };
 
   // Update your handleActionStart function to remove role restrictions
