@@ -712,35 +712,34 @@ export const TaskCard = ({ task, categoryId }) => {
 
             {isCompleted && (
               <div className="space-y-2">
-                {/* If we have multiple music links, show them all */}
-                {completedTasks?.music?.musicLinks &&
-                completedTasks.music.musicLinks.length > 0 ? (
-                  <div className="space-y-2">
-                    {completedTasks.music.musicLinks.map((link, index) => (
-                      <Button
-                        key={index}
-                        size="sm"
-                        variant="outline"
-                        className={`${viewButtonClass} flex justify-between items-center w-full`}
-                        onClick={() => window.open(link.url, "_blank")}
-                      >
-                        <span className="truncate max-w-[80%] text-left">
-                          {link.name || `Music ${index + 1}`}
-                        </span>
-                        <Link className="w-3 h-3 ml-1 flex-shrink-0" />
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
+                {/* Show View Music button that opens modal */}
+                <div className="space-y-2">
                   <Button
                     size="sm"
                     variant="outline"
-                    className={viewButtonClass}
+                    className={`${viewButtonClass} flex items-center justify-center`}
                     onClick={handleViewMusicLinks}
+                    disabled={loadingStates.musicLinks}
                   >
-                    View Music
+                    {loadingStates.musicLinks ? (
+                      <>
+                        <span className="w-3 h-3 mr-1 rounded-full border-2 border-t-transparent border-blue-500 animate-spin"></span>
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <Music className="w-3 h-3 mr-1" />
+                        View Music
+                        {completedTasks?.music?.musicLinks &&
+                          completedTasks.music.musicLinks.length > 0 && (
+                            <span className="ml-1 bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+                              {completedTasks.music.musicLinks.length}
+                            </span>
+                          )}
+                      </>
+                    )}
                   </Button>
-                )}
+                </div>
 
                 <Button
                   size="sm"

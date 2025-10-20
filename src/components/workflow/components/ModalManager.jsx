@@ -12,6 +12,7 @@ import { QrCodeUploadModal } from "../../qr-code-upload-modal";
 import { MusicUploadModal } from "../../music-upload-modal";
 import { EditDocumentLinkModal } from "./EditDocumentLinkModal";
 import { EditMusicLinksModal } from "./EditMusicLinksModal";
+import { ViewMusicLinksModal } from "./ViewMusicLinksModal";
 
 import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
@@ -55,10 +56,15 @@ export const ModalManager = () => {
     setIsEditDocumentLinkModalOpen,
     isEditMusicLinksModalOpen,
     setIsEditMusicLinksModalOpen,
+    isViewMusicLinksModalOpen,
+    setIsViewMusicLinksModalOpen,
     documentToEdit,
     setDocumentToEdit,
     musicLinksToEdit,
     setMusicLinksToEdit,
+    musicLinksToView,
+    setMusicLinksToView,
+    isFetchingMusicLinks,
     dateString,
   } = useWorkflow();
 
@@ -189,6 +195,17 @@ export const ModalManager = () => {
         onDelete={handleDeleteMusicLinks}
         metadata={musicLinksToEdit?.metadata}
         dateString={dateString}
+      />
+
+      <ViewMusicLinksModal
+        isOpen={isViewMusicLinksModalOpen}
+        onClose={() => {
+          setIsViewMusicLinksModalOpen(false);
+          setMusicLinksToView(null);
+        }}
+        musicLinks={musicLinksToView?.musicLinks}
+        title={musicLinksToView?.title}
+        isLoading={isFetchingMusicLinks}
       />
     </>
   );
