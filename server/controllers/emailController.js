@@ -1,0 +1,76 @@
+const nodemailer = require("nodemailer");
+
+/**
+ * Send an email
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ */
+const sendEmail = async (req, res) => {
+  try {
+    const { to, subject, message, documentType, documentLink } = req.body;
+
+    if (!to || !subject || !message) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Create a transporter using the provided email credentials
+    const transporter = nodemailer.createTransport({
+      host: "smtp.privateemail.com", // Correct SMTP server for privateemail.com
+      port: 465,
+      secure: true, // use SSL
+      auth: {
+        user: "user2003@andrewscreem.com",
+        pass: "$DANdan2003$",
+      },
+    });
+
+    // Prepare email content with the document link
+    let emailContent = message;
+    if (documentLink) {
+      emailContent += `\n\nYou can access the document here: ${documentLink}`;
+    }
+
+    console.log("Attempting to send email to:", to);
+
+    let info;
+    try {
+      // Send the email
+      info = await transporter.sendMail({
+        from: '"GKIN System" <user2003@andrewscreem.com>',
+        to,
+        subject,
+        text: emailContent,
+      });
+
+      console.log("Email sent successfully: %s", info.messageId);
+
+      res.json({
+        message: "Email sent successfully",
+        messageId: info.messageId,
+      });
+      return; // End the function here after successful email
+    } catch (emailError) {
+      console.error("SMTP Error:", emailError);
+      // Log more details about the error
+      if (emailError.code === "ECONNREFUSED") {
+        console.error(
+          "Connection refused. Check if the SMTP server is accessible from your network."
+        );
+      } else if (emailError.code === "EAUTH") {
+        console.error(
+          "Authentication failed. Check your username and password."
+        );
+      }
+      throw emailError; // Re-throw to be caught by the outer try/catch
+    }
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to send email", error: error.message });
+  }
+};
+
+module.exports = {
+  sendEmail,
+};

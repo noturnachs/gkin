@@ -4,8 +4,11 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Mail } from "lucide-react";
 import { Textarea } from "./ui/textarea";
+import { useWorkflow } from "./workflow/context/WorkflowContext";
 
 export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
+  // Import the WorkflowContext to get the actual document link
+  const { completedTasks } = useWorkflow();
   // Default values
   const documentTypes = {
     concept: "Concept Document",
@@ -17,7 +20,7 @@ export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
 
   // State for form values
   const [formValues, setFormValues] = useState({
-    email: "pastor@gkin.org", // Default pastor email
+    email: "user2003@andrewscreem.com", // Default pastor email (using your personal email)
     subject: `[GKIN] ${documentTitle} for Review`,
     message: `Dear Pastor,\n\nPlease find attached the ${documentTitle} for the upcoming service.\n\nKind regards,\nLiturgy Team`,
   });
@@ -26,7 +29,7 @@ export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
   useEffect(() => {
     if (isOpen) {
       setFormValues({
-        email: "pastor@gkin.org",
+        email: "user2003@andrewscreem.com",
         subject: `[GKIN] ${documentTitle} for Review`,
         message: `Dear Pastor,\n\nPlease find attached the ${documentTitle} for the upcoming service.\n\nKind regards,\nLiturgy Team`,
       });
@@ -176,11 +179,13 @@ export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
                 Document Link (will be included in the email)
               </h3>
               <div className="text-blue-600 text-sm break-all bg-white p-2 rounded border border-blue-100">
-                {documentType === "concept"
-                  ? "https://docs.google.com/document/d/1example-concept-document/edit"
-                  : documentType === "final"
-                  ? "https://docs.google.com/document/d/1example-final-document/edit"
-                  : "https://docs.google.com/document/d/1example-document/edit"}
+                {completedTasks[documentType]?.documentLink ||
+                  completedTasks?.documentLinks?.[documentType] ||
+                  (documentType === "concept"
+                    ? "https://docs.google.com/document/d/1example-concept-document/edit"
+                    : documentType === "final"
+                    ? "https://docs.google.com/document/d/1example-final-document/edit"
+                    : "https://docs.google.com/document/d/1example-document/edit")}
               </div>
             </div>
           </div>
