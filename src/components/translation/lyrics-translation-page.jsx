@@ -27,15 +27,26 @@ export function LyricsTranslationPage() {
   const [selectedLyric, setSelectedLyric] = useState(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
+  const [isSubmittingLyrics, setIsSubmittingLyrics] = useState(false);
+
+  // Add console log to debug lyrics data
+  console.log("Current lyrics data:", {
+    lyrics,
+    currentServiceDate,
+    selectedWeek,
+  });
 
   // Filter lyrics based on active tab
   const filteredLyrics = (lyrics || []).filter((lyric) => {
     if (activeTab === "pending") {
       return !lyric.translation || lyric.translation.status === "pending";
     } else if (activeTab === "translated") {
-      return lyric.translation && lyric.translation.status === "completed";
-    } else if (activeTab === "approved") {
-      return lyric.translation && lyric.translation.status === "approved";
+      // Include both completed and approved translations in the "Translated" tab
+      return (
+        lyric.translation &&
+        (lyric.translation.status === "completed" ||
+          lyric.translation.status === "approved")
+      );
     }
     return true;
   });
@@ -77,21 +88,29 @@ export function LyricsTranslationPage() {
       return;
     }
 
+    console.log("Submitting lyrics for date:", selectedWeek, lyricsData.songs);
+    setIsSubmittingLyrics(true);
     submitLyrics(selectedWeek, lyricsData.songs)
-      .then(() => {
+      .then((response) => {
+        console.log("Lyrics submission response:", response);
         setIsLyricsModalOpen(false);
+        toast.success("Lyrics added successfully!");
+
+        // Force refresh lyrics for the selected date
+        fetchLyricsByDate(selectedWeek);
       })
       .catch((error) => {
         console.error("Error submitting lyrics:", error);
+        toast.error("Failed to add lyrics. Please try again.");
+      })
+      .finally(() => {
+        setIsSubmittingLyrics(false);
       });
   };
 
   // Determine if user can translate (translator role)
   const canTranslate =
     user && (user.role === "translator" || user.role === "admin");
-
-  // Determine if user can approve translations (admin role)
-  const canApprove = user && user.role === "admin";
 
   // Create a ref to track initial fetch
   const initialFetchDone = useRef(false);
@@ -103,6 +122,14 @@ export function LyricsTranslationPage() {
       initialFetchDone.current = true;
     }
   }, [fetchAllLyrics]);
+
+  // Add an effect to monitor selectedWeek changes
+  useEffect(() => {
+    if (selectedWeek) {
+      console.log("Selected week changed, fetching lyrics for:", selectedWeek);
+      fetchLyricsByDate(selectedWeek);
+    }
+  }, [selectedWeek, fetchLyricsByDate]);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -144,7 +171,7 @@ export function LyricsTranslationPage() {
               <div className="flex flex-col space-y-3 mb-4">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold">Song Lyrics</h2>
-                  <TabsList className="grid grid-cols-3 h-8">
+                  <TabsList className="grid grid-cols-2 h-8">
                     <TabsTrigger value="pending" className="text-xs">
                       Pending
                       {filteredLyrics.length > 0 && activeTab === "pending" && (
@@ -155,9 +182,6 @@ export function LyricsTranslationPage() {
                     </TabsTrigger>
                     <TabsTrigger value="translated" className="text-xs">
                       Translated
-                    </TabsTrigger>
-                    <TabsTrigger value="approved" className="text-xs">
-                      Approved
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -231,29 +255,7 @@ export function LyricsTranslationPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="approved" className="mt-0">
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                  </div>
-                ) : filteredLyrics.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Check className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                    <p>No approved translations found</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                    {filteredLyrics.map((lyric) => (
-                      <LyricsCard
-                        key={lyric.id}
-                        lyric={lyric}
-                        isSelected={selectedLyric?.id === lyric.id}
-                        onClick={() => handleSelectLyric(lyric)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+              {/* Approved tab removed as per user request */}
             </Tabs>
           </div>
         </div>
@@ -265,7 +267,6 @@ export function LyricsTranslationPage() {
               lyric={selectedLyric}
               onClose={handleCloseForm}
               canTranslate={canTranslate}
-              canApprove={canApprove}
             />
           ) : (lyrics || []).length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
@@ -318,6 +319,7 @@ export function LyricsTranslationPage() {
         onClose={handleCloseLyricsModal}
         onSubmit={handleLyricsSubmit}
         initialData={null}
+        isSubmitting={isSubmittingLyrics}
       />
     </div>
   );
