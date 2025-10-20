@@ -235,20 +235,50 @@ export const useWorkflowHandlers = () => {
   };
 
   // Handle submission from send to music modal
-  const handleSendToMusicSubmit = (emailData) => {
+  const handleSendToMusicSubmit = async (emailData) => {
     console.log("Sending document to music team:", emailData);
 
-    // Here you would typically make an API call to send the email
+    try {
+      // Get the actual document link from completedTasks
+      let documentLink;
+      if (
+        completedTasks[emailData.documentType] &&
+        completedTasks[emailData.documentType].documentLink
+      ) {
+        documentLink = completedTasks[emailData.documentType].documentLink;
+      } else if (
+        completedTasks?.documentLinks &&
+        completedTasks.documentLinks[emailData.documentType]
+      ) {
+        documentLink = completedTasks.documentLinks[emailData.documentType];
+      } else {
+        documentLink = emailData.documentLink; // Use the one from the form as fallback
+      }
 
-    // Show success message
-    alert(`Document sent to music team at ${emailData.email}!`);
+      // Import the email service
+      const emailService = (await import("../../../services/emailService"))
+        .default;
 
-    // Close the modal
-    setIsSendToMusicModalOpen(false);
+      // Make API call to send the email
+      await emailService.sendEmail({
+        to: emailData.email,
+        subject: emailData.subject,
+        message: emailData.message,
+        documentType: emailData.documentType,
+        documentLink: documentLink,
+      });
 
-    // Update the status if needed
-    if (onStartAction) {
-      onStartAction(`${emailData.documentType}-sent-to-music`);
+      // Update the status if needed
+      if (onStartAction) {
+        onStartAction(`${emailData.documentType}-sent-to-music`);
+      }
+
+      // Return success - the modal will handle showing feedback
+      return true;
+    } catch (error) {
+      console.error("Error sending email:", error);
+      // Propagate the error to the modal
+      throw error;
     }
   };
 
