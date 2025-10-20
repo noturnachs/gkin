@@ -374,6 +374,29 @@ export const TaskCard = ({ task, categoryId }) => {
                       {task.id === "sermon" ? "View Sermon" : "View Document"}
                     </Button>
 
+                    {/* Add Send to Pastor and Send to Music buttons for completed concept and final documents */}
+                    {(task.id === "concept" || task.id === "final") && (
+                      <>
+                        <Button
+                          size="sm"
+                          className={secondaryButtonClass}
+                          onClick={() => handleSendToPastor(task.id)}
+                        >
+                          <ArrowRight className="w-3 h-3 mr-1" />
+                          Send to Pastor
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          className={secondaryButtonClass}
+                          onClick={() => handleSendToMusic(task.id)}
+                        >
+                          <Music className="w-3 h-3 mr-1" />
+                          Send to Music
+                        </Button>
+                      </>
+                    )}
+
                     <Button
                       size="sm"
                       className={`w-full border text-xs py-1.5 h-9 rounded-md font-medium hover:shadow transition-all border-gray-300 text-gray-700 hover:bg-gray-50`}
