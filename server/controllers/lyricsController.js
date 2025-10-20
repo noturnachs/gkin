@@ -224,21 +224,49 @@ const submitTranslation = async (req, res) => {
 
     const serviceId = originalResult.rows[0].service_assignment_id;
 
-    // Insert or update translation
-    const translationResult = await client.query(
-      `INSERT INTO lyrics_translations 
-       (original_id, translated_title, translated_lyrics, translated_by, status) 
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (original_id) 
-       DO UPDATE SET 
-         translated_title = EXCLUDED.translated_title,
-         translated_lyrics = EXCLUDED.translated_lyrics,
-         translated_by = EXCLUDED.translated_by,
-         status = EXCLUDED.status,
-         updated_at = CURRENT_TIMESTAMP
-       RETURNING id, translated_title, translated_lyrics, status, updated_at`,
-      [originalId, translatedTitle, translatedLyrics, req.user.id, "completed"]
+    // First check if a translation already exists
+    const existingTranslation = await client.query(
+      `SELECT id FROM lyrics_translations WHERE original_id = $1`,
+      [originalId]
     );
+
+    let translationResult;
+
+    if (existingTranslation.rows.length > 0) {
+      // Update existing translation
+      translationResult = await client.query(
+        `UPDATE lyrics_translations 
+         SET translated_title = $1,
+             translated_lyrics = $2,
+             translated_by = $3,
+             status = $4,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE original_id = $5
+         RETURNING id, translated_title, translated_lyrics, status, updated_at`,
+        [
+          translatedTitle,
+          translatedLyrics,
+          req.user.id,
+          "completed",
+          originalId,
+        ]
+      );
+    } else {
+      // Insert new translation
+      translationResult = await client.query(
+        `INSERT INTO lyrics_translations 
+         (original_id, translated_title, translated_lyrics, translated_by, status) 
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, translated_title, translated_lyrics, status, updated_at`,
+        [
+          originalId,
+          translatedTitle,
+          translatedLyrics,
+          req.user.id,
+          "completed",
+        ]
+      );
+    }
 
     // Update original lyrics status
     await client.query(
@@ -278,55 +306,55 @@ const submitTranslation = async (req, res) => {
 };
 
 /**
- * Approve a translation
+ * Approve a translation - functionality not used in current implementation
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
-const approveTranslation = async (req, res) => {
-  const client = await db.getClient();
+// const approveTranslation = async (req, res) => {
+//   const client = await db.getClient();
 
-  try {
-    const { translationId } = req.params;
+//   try {
+//     const { translationId } = req.params;
 
-    if (!translationId) {
-      return res.status(400).json({ message: "translationId is required" });
-    }
+//     if (!translationId) {
+//       return res.status(400).json({ message: "translationId is required" });
+//     }
 
-    await client.query("BEGIN");
+//     await client.query("BEGIN");
 
-    // Update translation status
-    const result = await client.query(
-      `UPDATE lyrics_translations 
-       SET status = 'approved', approved_by = $1, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2
-       RETURNING id, status, updated_at`,
-      [req.user.id, translationId]
-    );
+//     // Update translation status
+//     const result = await client.query(
+//       `UPDATE lyrics_translations
+//        SET status = 'approved', approved_by = $1, updated_at = CURRENT_TIMESTAMP
+//        WHERE id = $2
+//        RETURNING id, status, updated_at`,
+//       [req.user.id, translationId]
+//     );
 
-    if (result.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ message: "Translation not found" });
-    }
+//     if (result.rows.length === 0) {
+//       await client.query("ROLLBACK");
+//       return res.status(404).json({ message: "Translation not found" });
+//     }
 
-    await client.query("COMMIT");
+//     await client.query("COMMIT");
 
-    res.json({
-      message: "Translation approved successfully",
-      translation: result.rows[0],
-    });
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("Error approving translation:", error);
-    res.status(500).json({ message: "Internal server error" });
-  } finally {
-    client.release();
-  }
-};
+//     res.json({
+//       message: "Translation approved successfully",
+//       translation: result.rows[0],
+//     });
+//   } catch (error) {
+//     await client.query("ROLLBACK");
+//     console.error("Error approving translation:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   } finally {
+//     client.release();
+//   }
+// };
 
 module.exports = {
   getLyricsForTranslation,
   getLyricsByServiceDate,
   submitLyrics,
   submitTranslation,
-  approveTranslation,
+  // approveTranslation, // Not used in current implementation
 };

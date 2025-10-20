@@ -8,13 +8,12 @@ import { Card } from "../ui/card";
 import { Globe, Save, Check, X, AlertCircle, Clock } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-export function TranslationForm({ lyric, onClose, canTranslate, canApprove }) {
-  const { submitTranslation, approveTranslation } = useTranslation();
+export function TranslationForm({ lyric, onClose, canTranslate }) {
+  const { submitTranslation } = useTranslation();
 
   const [translatedTitle, setTranslatedTitle] = useState("");
   const [translatedLyrics, setTranslatedLyrics] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
 
   // Initialize form with existing translation if available
   useEffect(() => {
@@ -54,35 +53,12 @@ export function TranslationForm({ lyric, onClose, canTranslate, canApprove }) {
     }
   };
 
-  // Handle translation approval
-  const handleApprove = async () => {
-    if (!lyric.translation || !lyric.translation.id) {
-      toast.error("No translation available to approve");
-      return;
-    }
-
-    setIsApproving(true);
-
-    try {
-      await approveTranslation(lyric.translation.id, lyric.id);
-
-      // Success is handled in the context
-    } catch (error) {
-      // Error is handled in the context
-      console.error("Error in translation approval:", error);
-    } finally {
-      setIsApproving(false);
-    }
-  };
+  // Approval functionality removed as per user request
 
   // Determine if form is editable
   const isEditable =
     canTranslate &&
     (!lyric.translation || lyric.translation.status !== "approved");
-
-  // Determine if translation can be approved
-  const showApproveButton =
-    canApprove && lyric.translation && lyric.translation.status === "completed";
 
   // Get status badge
   const getStatusBadge = () => {
@@ -244,26 +220,7 @@ export function TranslationForm({ lyric, onClose, canTranslate, canApprove }) {
             </Button>
           )}
 
-          {showApproveButton && (
-            <Button
-              type="button"
-              onClick={handleApprove}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={isApproving}
-            >
-              {isApproving ? (
-                <>
-                  <Clock className="h-4 w-4 mr-2 animate-spin" />
-                  Approving...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Approve Translation
-                </>
-              )}
-            </Button>
-          )}
+          {/* Approval button removed as per user request */}
         </div>
       </form>
     </Card>

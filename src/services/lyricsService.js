@@ -24,7 +24,9 @@ const lyricsService = {
    */
   getLyricsByDate: async (dateString) => {
     try {
-      return await api.get(`/lyrics/${dateString}`);
+      const response = await api.get(`/lyrics/${dateString}`);
+      console.log(`Lyrics service response for ${dateString}:`, response);
+      return response;
     } catch (error) {
       console.error(`Error fetching lyrics for date ${dateString}:`, error);
       throw error;

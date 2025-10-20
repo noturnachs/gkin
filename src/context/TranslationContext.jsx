@@ -28,7 +28,22 @@ export const TranslationProvider = ({ children }) => {
 
     try {
       const response = await lyricsService.getAllLyrics();
-      setLyrics(response.data || []);
+      // Handle different possible response structures
+      if (response && response.data) {
+        if (Array.isArray(response.data)) {
+          // If the response is already an array
+          setLyrics(response.data);
+        } else if (response.data.lyrics) {
+          // If the response has a lyrics property
+          setLyrics(response.data.lyrics);
+        } else {
+          // Default to empty array if structure is unexpected
+          setLyrics([]);
+        }
+      } else {
+        // Default to empty array if no data
+        setLyrics([]);
+      }
       setCurrentServiceDate(null);
     } catch (err) {
       console.error("Error fetching lyrics:", err);
@@ -49,12 +64,28 @@ export const TranslationProvider = ({ children }) => {
     async (dateString) => {
       if (!user || !dateString) return;
 
+      console.log(`Fetching lyrics for date: ${dateString}`);
       setLoading(true);
       setError(null);
 
       try {
         const response = await lyricsService.getLyricsByDate(dateString);
-        setLyrics(response.data.lyrics || []);
+        console.log(`API response for ${dateString}:`, response);
+
+        // Handle different possible response structures
+        if (response && response.lyrics) {
+          console.log("Setting lyrics from response.lyrics:", response.lyrics);
+          setLyrics(response.lyrics);
+        } else if (response && Array.isArray(response)) {
+          console.log("Setting lyrics from array response:", response);
+          setLyrics(response);
+        } else {
+          console.log(
+            "No recognizable lyrics format in response, setting empty array"
+          );
+          setLyrics([]);
+        }
+
         setCurrentServiceDate(dateString);
       } catch (err) {
         console.error(`Error fetching lyrics for date ${dateString}:`, err);
@@ -85,19 +116,11 @@ export const TranslationProvider = ({ children }) => {
         const response = await lyricsService.submitLyrics(dateString, songs);
         toast.success("Lyrics submitted successfully");
 
-        // Refresh lyrics for the current date
-        if (currentServiceDate === dateString) {
-          fetchLyricsByDate(dateString);
-        } else {
-          setCurrentServiceDate(dateString);
-          setLyrics((prevLyrics) => {
-            const newSongs = response.data.songs;
-            // Add the new songs to the existing lyrics
-            return [...newSongs, ...prevLyrics];
-          });
-        }
+        // Always refresh lyrics for the selected date to ensure UI is updated
+        await fetchLyricsByDate(dateString);
+        setCurrentServiceDate(dateString);
 
-        return response.data;
+        return response;
       } catch (err) {
         console.error("Error submitting lyrics:", err);
         setError("Failed to submit lyrics. Please try again later.");
@@ -128,6 +151,11 @@ export const TranslationProvider = ({ children }) => {
         toast.success("Translation submitted successfully");
 
         // Update the lyrics state with the new translation
+        console.log("Translation response:", response);
+
+        // Handle the response structure correctly
+        const translationData = response.translation || {};
+
         setLyrics((prevLyrics) =>
           prevLyrics.map((lyric) =>
             lyric.id === originalId
@@ -135,7 +163,7 @@ export const TranslationProvider = ({ children }) => {
                   ...lyric,
                   status: "translated",
                   translation: {
-                    ...response.data.translation,
+                    ...translationData,
                     translated_by: {
                       name: user.username,
                       avatar: user.avatar_url,
@@ -146,7 +174,7 @@ export const TranslationProvider = ({ children }) => {
           )
         );
 
-        return response.data;
+        return response;
       } catch (err) {
         console.error("Error submitting translation:", err);
         setError("Failed to submit translation. Please try again later.");
@@ -187,7 +215,7 @@ export const TranslationProvider = ({ children }) => {
           )
         );
 
-        return response.data;
+        return response;
       } catch (err) {
         console.error("Error approving translation:", err);
         setError("Failed to approve translation. Please try again later.");

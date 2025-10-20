@@ -23,11 +23,11 @@ router.post(
   lyricsController.submitTranslation
 );
 
-// Approve a translation
-router.post(
-  "/approve/:translationId",
-  verifyToken,
-  lyricsController.approveTranslation
-);
+// Approve a translation - functionality not used in current implementation
+// router.post(
+//   "/approve/:translationId",
+//   verifyToken,
+//   lyricsController.approveTranslation
+// );
 
 module.exports = router;

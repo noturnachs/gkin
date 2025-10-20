@@ -1,4 +1,6 @@
 -- Create lyrics translation tables
+-- Note: The approval functionality is not used in the current implementation.
+-- The database schema still includes approval-related fields for future flexibility.
 
 -- Create lyrics_originals table for storing original song lyrics
 CREATE TABLE IF NOT EXISTS lyrics_originals (
@@ -7,7 +9,7 @@ CREATE TABLE IF NOT EXISTS lyrics_originals (
   title VARCHAR(255) NOT NULL,
   lyrics TEXT NOT NULL,
   submitted_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  status VARCHAR(20) DEFAULT 'pending', -- Status: 'pending', 'in_translation', 'translated', 'approved'
+  status VARCHAR(20) DEFAULT 'pending', -- Status: 'pending', 'in_translation', 'translated' (approval functionality not used)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -20,7 +22,7 @@ CREATE TABLE IF NOT EXISTS lyrics_translations (
   translated_lyrics TEXT,
   translated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  status VARCHAR(20) DEFAULT 'pending', -- Status: 'pending', 'in_progress', 'completed', 'approved'
+  status VARCHAR(20) DEFAULT 'pending', -- Status: 'pending', 'in_progress', 'completed' (approval functionality not used)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(original_id)
