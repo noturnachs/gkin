@@ -55,10 +55,9 @@ export function TranslationForm({ lyric, onClose, canTranslate }) {
 
   // Approval functionality removed as per user request
 
-  // Determine if form is editable
+  // Determine if form is editable - all users can translate unless the translation is approved
   const isEditable =
-    canTranslate &&
-    (!lyric.translation || lyric.translation.status !== "approved");
+    !lyric.translation || lyric.translation.status !== "approved";
 
   // Get status badge
   const getStatusBadge = () => {

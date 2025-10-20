@@ -1,6 +1,7 @@
 // src/components/workflow/context/WorkflowContext.jsx
 import { createContext, useState, useContext, useEffect } from "react";
 import workflowService from "../../../services/workflowService";
+import lyricsService from "../../../services/lyricsService";
 
 const WorkflowContext = createContext();
 
@@ -74,12 +75,48 @@ export const WorkflowProvider = ({
       try {
         const response = await workflowService.getWorkflowTasks(dateString);
 
+        // Also check if there are any translated lyrics for this date
+        let hasTranslatedLyrics = false;
+        try {
+          const lyricsResponse = await lyricsService.getLyricsByDate(
+            dateString
+          );
+          if (lyricsResponse && lyricsResponse.lyrics) {
+            // Check if any lyrics have translations
+            hasTranslatedLyrics = lyricsResponse.lyrics.some(
+              (lyric) =>
+                lyric.translation &&
+                (lyric.translation.status === "completed" ||
+                  lyric.translation.status === "approved")
+            );
+          }
+        } catch (lyricsErr) {
+          // If there's an error or no lyrics, we'll assume no translations
+          console.log("No lyrics found or error fetching lyrics:", lyricsErr);
+        }
+
         if (response && response.tasks) {
           // Reset completedTasks and only include tasks for the current date
-          setCompletedTasks({
+          const tasks = {
             documentLinks: {}, // Keep an empty documentLinks object for backward compatibility
             ...response.tasks,
-          });
+          };
+
+          // If we have translated lyrics but the task isn't marked as completed,
+          // mark it as completed
+          if (
+            hasTranslatedLyrics &&
+            (!tasks["translate_lyrics"] ||
+              tasks["translate_lyrics"].status !== "completed")
+          ) {
+            tasks["translate_lyrics"] = {
+              status: "completed",
+              updatedAt: new Date().toISOString(),
+              updatedBy: "translator",
+            };
+          }
+
+          setCompletedTasks(tasks);
 
           // Special handling for qrcode status
           if (response.tasks.qrcode) {
