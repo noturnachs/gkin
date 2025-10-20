@@ -105,6 +105,14 @@ export const TaskCard = ({ task, categoryId }) => {
     updateTaskStatus,
     dateString,
   } = useWorkflow();
+
+  // Helper function to check if a document link exists for a task
+  const hasDocumentLink = (taskId) => {
+    return !!(
+      (completedTasks[taskId] && completedTasks[taskId].documentLink) ||
+      (completedTasks?.documentLinks && completedTasks.documentLinks[taskId])
+    );
+  };
   const {
     handleActionStart,
     handleViewDocument,
@@ -343,8 +351,20 @@ export const TaskCard = ({ task, categoryId }) => {
 
                 <Button
                   size="sm"
-                  className={secondaryButtonClass}
-                  onClick={() => handleSendToPastor(task.id)}
+                  className={`${secondaryButtonClass} ${
+                    !hasDocumentLink(task.id)
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    hasDocumentLink(task.id) && handleSendToPastor(task.id)
+                  }
+                  disabled={!hasDocumentLink(task.id)}
+                  title={
+                    !hasDocumentLink(task.id)
+                      ? "No document link available"
+                      : "Send to Pastor"
+                  }
                 >
                   <ArrowRight className="w-3 h-3 mr-1" />
                   Send to Pastor
@@ -352,8 +372,20 @@ export const TaskCard = ({ task, categoryId }) => {
 
                 <Button
                   size="sm"
-                  className={secondaryButtonClass}
-                  onClick={() => handleSendToMusic(task.id)}
+                  className={`${secondaryButtonClass} ${
+                    !hasDocumentLink(task.id)
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    hasDocumentLink(task.id) && handleSendToMusic(task.id)
+                  }
+                  disabled={!hasDocumentLink(task.id)}
+                  title={
+                    !hasDocumentLink(task.id)
+                      ? "No document link available"
+                      : "Send to Music"
+                  }
                 >
                   <Music className="w-3 h-3 mr-1" />
                   Send to Music
@@ -379,8 +411,21 @@ export const TaskCard = ({ task, categoryId }) => {
                       <>
                         <Button
                           size="sm"
-                          className={secondaryButtonClass}
-                          onClick={() => handleSendToPastor(task.id)}
+                          className={`${secondaryButtonClass} ${
+                            !hasDocumentLink(task.id)
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            hasDocumentLink(task.id) &&
+                            handleSendToPastor(task.id)
+                          }
+                          disabled={!hasDocumentLink(task.id)}
+                          title={
+                            !hasDocumentLink(task.id)
+                              ? "No document link available"
+                              : "Send to Pastor"
+                          }
                         >
                           <ArrowRight className="w-3 h-3 mr-1" />
                           Send to Pastor
@@ -388,8 +433,21 @@ export const TaskCard = ({ task, categoryId }) => {
 
                         <Button
                           size="sm"
-                          className={secondaryButtonClass}
-                          onClick={() => handleSendToMusic(task.id)}
+                          className={`${secondaryButtonClass} ${
+                            !hasDocumentLink(task.id)
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            hasDocumentLink(task.id) &&
+                            handleSendToMusic(task.id)
+                          }
+                          disabled={!hasDocumentLink(task.id)}
+                          title={
+                            !hasDocumentLink(task.id)
+                              ? "No document link available"
+                              : "Send to Music"
+                          }
                         >
                           <Music className="w-3 h-3 mr-1" />
                           Send to Music

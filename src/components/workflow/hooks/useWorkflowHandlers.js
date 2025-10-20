@@ -864,16 +864,10 @@ export const useWorkflowHandlers = () => {
       const success = await deleteDocumentLink(taskId);
 
       if (success) {
-        // Show success message
-        alert(`Task ${taskId} has been completely deleted from the database!`);
-
         // Call onStartAction to update any UI that depends on task status
         if (onStartAction) {
           onStartAction(`${taskId}-deleted`);
         }
-      } else {
-        // Show error message
-        alert(`Failed to delete task ${taskId}.`);
       }
 
       return success;
