@@ -1,14 +1,14 @@
-const jwt = require('jsonwebtoken');
-const config = require('../config/config');
+const jwt = require("jsonwebtoken");
+const config = require("../config/config");
 
 /**
  * Middleware to verify JWT token
  */
 const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
+  const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
+    return res.status(401).json({ message: "No token provided" });
   }
 
   try {
@@ -16,7 +16,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
@@ -27,11 +27,11 @@ const verifyToken = (req, res, next) => {
 const checkRole = (roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'User not authenticated' });
+      return res.status(401).json({ message: "User not authenticated" });
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ message: "Access denied" });
     }
 
     next();
@@ -40,5 +40,5 @@ const checkRole = (roles) => {
 
 module.exports = {
   verifyToken,
-  checkRole
+  checkRole,
 };

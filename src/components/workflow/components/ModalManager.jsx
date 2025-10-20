@@ -4,7 +4,6 @@ import { SendToPastorModal } from "../../send-to-pastor-modal";
 import { SendToMusicModal } from "../../send-to-music-modal";
 import { SermonUploadModal } from "../../sermon-upload-modal";
 import { PastorNotifyModal } from "../../pastor-notify-modal";
-import { LyricsInputModal } from "../../lyrics-input-modal";
 import { TranslationModal } from "../../translation-modal";
 import { ViewTranslatedLyricsModal } from "../../view-translated-lyrics-modal";
 import { SermonTranslationModal } from "../../sermon-translation-modal";
@@ -112,12 +111,7 @@ export const ModalManager = () => {
         documentType={currentDocumentToNotify}
       />
 
-      <LyricsInputModal
-        isOpen={isLyricsModalOpen}
-        onClose={() => setIsLyricsModalOpen(false)}
-        onSubmit={handleLyricsSubmit}
-        initialData={completedTasks?.lyricsData}
-      />
+      {/* Lyrics input is now handled directly in the translation page */}
 
       <TranslationModal
         isOpen={isTranslationModalOpen}

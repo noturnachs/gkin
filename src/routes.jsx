@@ -8,6 +8,8 @@ import { AssignmentsPage } from "./components/assignments/assignments-page";
 import { AssignmentsProvider } from "./components/assignments/context/AssignmentsContext";
 // PasscodeManager is now part of AdminTools
 import { AdminTools } from "./components/admin/admin-tools";
+import { LyricsTranslationPage } from "./components/translation/lyrics-translation-page";
+import { TranslationProvider } from "./context/TranslationContext";
 
 // Routes configuration
 export const router = createBrowserRouter([
@@ -15,7 +17,9 @@ export const router = createBrowserRouter([
     path: "/",
     element: (
       <AssignmentsProvider>
-        <App />
+        <TranslationProvider>
+          <App />
+        </TranslationProvider>
       </AssignmentsProvider>
     ),
     children: [
@@ -61,6 +65,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute requireAdmin={true}>
             <AdminTools />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "translation/lyrics",
+        element: (
+          <ProtectedRoute>
+            <LyricsTranslationPage />
           </ProtectedRoute>
         ),
       },
