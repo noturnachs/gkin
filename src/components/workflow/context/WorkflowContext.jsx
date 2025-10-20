@@ -72,10 +72,11 @@ export const WorkflowProvider = ({
         const response = await workflowService.getWorkflowTasks(dateString);
 
         if (response && response.tasks) {
-          setCompletedTasks((prevState) => ({
-            ...prevState,
+          // Reset completedTasks and only include tasks for the current date
+          setCompletedTasks({
+            documentLinks: {}, // Keep an empty documentLinks object for backward compatibility
             ...response.tasks,
-          }));
+          });
 
           // Special handling for qrcode status
           if (response.tasks.qrcode) {
@@ -133,14 +134,17 @@ export const WorkflowProvider = ({
 
       // Fetch the updated data to ensure we have the correct server-side metadata
       const refreshedData = await workflowService.getWorkflowTasks(dateString);
-      if (refreshedData && refreshedData.tasks && refreshedData.tasks[taskId]) {
-        setCompletedTasks((prevState) => ({
-          ...prevState,
-          [taskId]: {
-            ...prevState[taskId],
-            ...refreshedData.tasks[taskId],
-          },
-        }));
+      if (refreshedData && refreshedData.tasks) {
+        // Only update the specific task that was changed, preserve other tasks for current date
+        if (refreshedData.tasks[taskId]) {
+          setCompletedTasks((prevState) => ({
+            ...prevState,
+            [taskId]: {
+              ...prevState[taskId],
+              ...refreshedData.tasks[taskId],
+            },
+          }));
+        }
       }
 
       return true;
