@@ -301,9 +301,21 @@ export const TaskCard = ({ task, categoryId }) => {
                 size="sm"
                 className={primaryButtonClass}
                 onClick={() => handleUploadSermon(task.id)}
+                disabled={
+                  loadingStates?.sermonEdit || loadingStates?.sermonDocument
+                }
               >
-                <Upload className="w-3 h-3 mr-1" />
-                Upload Sermon
+                {loadingStates?.sermonEdit || loadingStates?.sermonDocument ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    {loadingStates?.sermonDocument ? "Saving..." : "Loading..."}
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3 h-3 mr-1" />
+                    Upload Sermon
+                  </>
+                )}
               </Button>
             )}
 
@@ -368,7 +380,8 @@ export const TaskCard = ({ task, categoryId }) => {
                       onClick={() => handleEditDocumentLink(task.id)}
                       disabled={loadingStates?.documentEdit}
                     >
-                      {loadingStates?.documentEdit && task.id === "concept" ? (
+                      {loadingStates?.documentEdit &&
+                      (task.id === "concept" || task.id === "sermon") ? (
                         <>
                           <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                           Loading...

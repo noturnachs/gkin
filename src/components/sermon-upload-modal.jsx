@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Book, Link as LinkIcon } from "lucide-react";
+import { Book, Link as LinkIcon, Loader2 } from "lucide-react";
 
 export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
+  // State for loading
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // State for form values
   const [formValues, setFormValues] = useState({
-    sermonTitle: "",
     sermonLink: "",
   });
 
@@ -15,7 +16,6 @@ export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
   useEffect(() => {
     if (isOpen) {
       setFormValues({
-        sermonTitle: "",
         sermonLink: "",
       });
     }
@@ -31,29 +31,55 @@ export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formValues.sermonTitle.trim()) {
-      alert("Please enter a sermon title");
-      return;
-    }
-
+    // Form validation
+    let errorMessage = "";
     if (!formValues.sermonLink.trim()) {
-      alert("Please enter a Google Drive/Doc link");
+      errorMessage = "Please enter a Google Drive/Doc link";
+    } else if (!formValues.sermonLink.startsWith("http")) {
+      errorMessage =
+        "Please enter a valid URL (starting with http:// or https://)";
+    }
+
+    if (errorMessage) {
+      // Display error without using alert
+      const errorElement = document.getElementById("sermon-form-error");
+      if (errorElement) {
+        errorElement.textContent = errorMessage;
+        errorElement.style.display = "block";
+      }
       return;
     }
 
-    // Simple validation to check if it looks like a URL
-    if (!formValues.sermonLink.startsWith('http')) {
-      alert("Please enter a valid URL (starting with http:// or https://)");
-      return;
+    // Clear any previous errors
+    const errorElement = document.getElementById("sermon-form-error");
+    if (errorElement) {
+      errorElement.style.display = "none";
     }
 
-    onSubmit({
-      ...formValues,
-      uploadedAt: new Date().toISOString(),
-    });
+    // Set submitting state
+    setIsSubmitting(true);
+
+    try {
+      // Submit the data
+      await onSubmit({
+        ...formValues,
+        uploadedAt: new Date().toISOString(),
+      });
+
+      // Note: The modal will be closed by the parent component after successful submission
+    } catch (error) {
+      console.error("Error submitting sermon:", error);
+      if (errorElement) {
+        errorElement.textContent =
+          "An error occurred while saving the sermon. Please try again.";
+        errorElement.style.display = "block";
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle backdrop click
@@ -119,21 +145,13 @@ export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
           className="p-4 overflow-y-auto"
           style={{ maxHeight: "calc(100vh - 8rem)" }}
         >
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="sermonTitle" className="text-gray-700">
-                Sermon Title *
-              </Label>
-              <Input
-                id="sermonTitle"
-                name="sermonTitle"
-                value={formValues.sermonTitle}
-                onChange={handleChange}
-                className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
+          {/* Error message display */}
+          <div
+            id="sermon-form-error"
+            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm hidden"
+          ></div>
 
+          <div className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="sermonLink" className="text-gray-700">
                 Google Drive/Doc Link *
@@ -154,7 +172,8 @@ export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
                 />
               </div>
               <p className="text-xs text-gray-500">
-                Please enter a Google Drive or Google Docs link to your sermon document
+                Please enter a Google Drive or Google Docs link to your sermon
+                document
               </p>
             </div>
           </div>
@@ -170,12 +189,16 @@ export function SermonUploadModal({ isOpen, onClose, onSubmit }) {
             <Button
               type="submit"
               className="bg-purple-600 hover:bg-purple-700 text-white"
-              disabled={
-                !formValues.sermonTitle.trim() ||
-                !formValues.sermonLink.trim()
-              }
+              disabled={isSubmitting || !formValues.sermonLink.trim()}
             >
-              Save Sermon
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Sermon"
+              )}
             </Button>
           </div>
         </form>
