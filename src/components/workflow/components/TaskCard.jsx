@@ -14,6 +14,7 @@ import {
   User,
   Loader2,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useWorkflow } from "../context/WorkflowContext";
 import { useWorkflowHandlers } from "../hooks/useWorkflowHandlers";
 import { MusicUploadModal } from "../../music-upload-modal";
@@ -162,9 +163,14 @@ export const TaskCard = ({ task, categoryId }) => {
       {/* Task icon with task-specific color - now clickable with enhanced visual indicators */}
       <div
         className={`mb-1 ${
-          ["concept", "sermon", "final", "slides", "translate_lyrics"].includes(
-            task.id
-          )
+          [
+            "concept",
+            "sermon",
+            "final",
+            "slides",
+            "translate_lyrics",
+            "translate-sermon",
+          ].includes(task.id)
             ? "cursor-pointer hover:scale-110 transition-transform relative group"
             : ""
         }`}
@@ -177,6 +183,9 @@ export const TaskCard = ({ task, categoryId }) => {
             if (task.route) {
               window.location.href = `${task.route}?tab=translated&date=${dateString}`;
             }
+          } else if (task.id === "translate-sermon") {
+            // Open the sermon translation modal instead of redirecting directly
+            handleTranslateSermon();
           }
         }}
         title={
@@ -184,23 +193,28 @@ export const TaskCard = ({ task, categoryId }) => {
             ? "Click to open in Google Drive"
             : task.id === "translate_lyrics"
             ? "Click to go to lyrics translation page"
+            : task.id === "translate-sermon"
+            ? "Click to open sermon document for translation"
             : ""
         }
       >
         {/* Visual clickability indicator for all devices */}
         {(["concept", "sermon", "final", "slides"].includes(task.id) ||
-          task.id === "translate_lyrics") && (
+          task.id === "translate_lyrics" ||
+          task.id === "translate-sermon") && (
           <>
             {/* Blue dot indicator that's always visible on mobile, shows on hover for desktop */}
             <div
               className={`absolute -top-1 -right-1 w-3 h-3 ${
-                task.id === "translate_lyrics" ? "bg-green-500" : "bg-blue-500"
+                task.id === "translate_lyrics" || task.id === "translate-sermon"
+                  ? "bg-green-500"
+                  : "bg-blue-500"
               } rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity`}
             ></div>
             {/* Touch/click icon indicator for mobile */}
             <div
               className={`absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-[10px] ${
-                task.id === "translate_lyrics"
+                task.id === "translate_lyrics" || task.id === "translate-sermon"
                   ? "text-green-600"
                   : "text-blue-600"
               } font-medium md:hidden`}
@@ -213,7 +227,7 @@ export const TaskCard = ({ task, categoryId }) => {
           className={
             ["concept", "sermon", "final", "slides"].includes(task.id)
               ? "p-1 rounded-full border-2 border-dashed border-opacity-50 border-blue-300"
-              : task.id === "translate_lyrics"
+              : task.id === "translate_lyrics" || task.id === "translate-sermon"
               ? "p-1 rounded-full border-2 border-dashed border-opacity-50 border-green-300"
               : ""
           }
@@ -588,13 +602,59 @@ export const TaskCard = ({ task, categoryId }) => {
 
         {/* Sermon translation task */}
         {task.id === "translate-sermon" && (
-          <Button
-            size="sm"
-            className={primaryButtonClass}
-            onClick={handleTranslateSermon}
-          >
-            Translate Sermon
-          </Button>
+          <>
+            <Button
+              size="sm"
+              className={primaryButtonClass}
+              onClick={handleTranslateSermon}
+            >
+              Translate Sermon
+            </Button>
+
+            {completedTasks?.["translate-sermon"] === "completed" && (
+              <div className="space-y-2">
+                <Button
+                  size="sm"
+                  className={viewButtonClass}
+                  onClick={() => {
+                    // Open the sermon document again if needed
+                    let documentUrl;
+
+                    if (
+                      completedTasks["sermon"] &&
+                      completedTasks["sermon"].documentLink
+                    ) {
+                      documentUrl = completedTasks["sermon"].documentLink;
+                    } else if (
+                      completedTasks?.documentLinks &&
+                      completedTasks.documentLinks["sermon"]
+                    ) {
+                      documentUrl = completedTasks.documentLinks["sermon"];
+                    }
+
+                    if (documentUrl) {
+                      window.open(documentUrl, "_blank");
+                    } else {
+                      toast.error("Sermon document link is not available.");
+                    }
+                  }}
+                >
+                  View Translation
+                </Button>
+
+                {/* Show translator info if available */}
+                {completedTasks?.sermonTranslationData?.translator && (
+                  <div className="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
+                    <User className="w-3 h-3" />
+                    <span>
+                      Translated by{" "}
+                      {completedTasks.sermonTranslationData.translator.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {/* Beamer slides task */}

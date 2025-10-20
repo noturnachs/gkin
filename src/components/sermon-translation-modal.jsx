@@ -2,16 +2,27 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Book, X, Save, ExternalLink, Link as LinkIcon } from "lucide-react";
+import {
+  Book,
+  X,
+  Save,
+  ExternalLink,
+  Link as LinkIcon,
+  User,
+  Loader2,
+} from "lucide-react";
+import authService from "../services/authService";
 
 export function SermonTranslationModal({
   isOpen,
   onClose,
   onSubmit,
   sermonData,
+  isSubmitting = false,
 }) {
   // No need for form values anymore, just tracking if translation is complete
   const [translationComplete, setTranslationComplete] = useState(false);
+  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
 
   // Reset state when modal opens
   useEffect(() => {
@@ -25,7 +36,8 @@ export function SermonTranslationModal({
     e.preventDefault();
 
     if (!translationComplete) {
-      alert("Please confirm that you have completed the translation");
+      // Use inline error message instead of alert
+      document.getElementById("translation-error").classList.remove("hidden");
       return;
     }
 
@@ -35,6 +47,13 @@ export function SermonTranslationModal({
       originalSermonTitle: sermonData?.sermonTitle || "",
       originalSermonLink: sermonData?.sermonLink || "",
       translatedAt: new Date().toISOString(),
+      dateString: sermonData?.dateString || "",
+      translator: {
+        id: currentUser?.id,
+        name: currentUser?.username,
+        role: currentUser?.role,
+        avatar: currentUser?.avatar_url,
+      },
     });
   };
 
@@ -98,20 +117,19 @@ export function SermonTranslationModal({
               {/* Original sermon section */}
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h3 className="font-medium text-gray-700 mb-2">
-                  Original Sermon
+                  Sermon for{" "}
+                  {new Date(sermonData.dateString).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  service
                 </h3>
                 <div className="space-y-3">
-                  <div>
-                    <Label className="text-sm text-gray-600">Title</Label>
-                    <div className="p-2 bg-white border border-gray-200 rounded-md text-gray-700">
-                      {sermonData.sermonTitle || "No title available"}
-                    </div>
-                  </div>
-
                   {sermonData.sermonLink && (
                     <div>
                       <Label className="text-sm text-gray-600">
-                        Google Doc Link
+                        Sermon Document Link
                       </Label>
                       <div className="p-2 bg-white border border-gray-200 rounded-md text-gray-700 flex items-center gap-2">
                         <LinkIcon className="w-4 h-4 text-blue-500" />
@@ -121,7 +139,7 @@ export function SermonTranslationModal({
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
                         >
-                          {sermonData.sermonLink}
+                          Open Google Doc
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
@@ -159,17 +177,39 @@ export function SermonTranslationModal({
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center">
-                  <input
-                    type="checkbox"
-                    id="translationComplete"
-                    checked={translationComplete}
-                    onChange={() => setTranslationComplete(!translationComplete)}
-                    className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="translationComplete" className="ml-3 text-gray-700 font-medium">
-                    I confirm that I have completed the translation in the document
-                  </label>
+                <div className="mt-6">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="translationComplete"
+                      checked={translationComplete}
+                      onChange={() => {
+                        setTranslationComplete(!translationComplete);
+                        // Hide error message when checkbox is checked
+                        if (!translationComplete) {
+                          document
+                            .getElementById("translation-error")
+                            .classList.add("hidden");
+                        }
+                      }}
+                      className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="translationComplete"
+                      className="ml-3 text-gray-700 font-medium"
+                    >
+                      I confirm that I have completed the translation in the
+                      document
+                    </label>
+                  </div>
+
+                  {/* Error message - hidden by default */}
+                  <div
+                    id="translation-error"
+                    className="mt-2 text-red-600 text-sm hidden"
+                  >
+                    Please confirm that you have completed the translation
+                  </div>
                 </div>
               </div>
             </div>
@@ -180,16 +220,26 @@ export function SermonTranslationModal({
               type="button"
               onClick={onClose}
               className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={!sermonData || !translationComplete}
+              disabled={!sermonData || !translationComplete || isSubmitting}
             >
-              <Save className="w-4 h-4 mr-2" />
-              Confirm Translation Complete
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Confirm Translation Complete
+                </>
+              )}
             </Button>
           </div>
         </form>

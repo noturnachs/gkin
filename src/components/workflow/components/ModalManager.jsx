@@ -72,6 +72,7 @@ export const ModalManager = () => {
     handleMusicUploadSubmit,
     handleSaveDocumentLink,
     handleDeleteDocumentLink,
+    loadingStates,
   } = useWorkflowHandlers();
 
   return (
@@ -131,6 +132,7 @@ export const ModalManager = () => {
         onClose={() => setIsSermonTranslationModalOpen(false)}
         onSubmit={handleSermonTranslationSubmit}
         sermonData={currentSermon}
+        isSubmitting={loadingStates.sermonTranslation}
       />
 
       <SlidesUploadModal

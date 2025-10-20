@@ -1,6 +1,8 @@
 // src/components/workflow/hooks/useWorkflowHandlers.js
 import { useState } from "react";
 import { useWorkflow } from "../context/WorkflowContext";
+import { toast } from "react-hot-toast";
+import sermonService from "../../../services/sermonService";
 
 export const useWorkflowHandlers = () => {
   // Loading states
@@ -15,6 +17,7 @@ export const useWorkflowHandlers = () => {
     qrcodeDocument: false,
     qrcodeEdit: false,
     qrcodeDelete: false,
+    sermonTranslation: false,
   });
 
   const {
@@ -621,33 +624,101 @@ export const useWorkflowHandlers = () => {
   // Add this handler function for sermon translation
   const handleTranslateSermon = () => {
     console.log("Opening sermon translation modal");
-    // Get the current sermon data from the completedTasks
-    const sermonData = completedTasks?.sermonData || null;
+
+    // Get the sermon document link
+    let documentUrl;
+    if (completedTasks["sermon"] && completedTasks["sermon"].documentLink) {
+      documentUrl = completedTasks["sermon"].documentLink;
+    } else if (
+      completedTasks?.documentLinks &&
+      completedTasks.documentLinks["sermon"]
+    ) {
+      documentUrl = completedTasks.documentLinks["sermon"];
+    }
+
+    // Get the sermon title
+    const sermonTitle =
+      completedTasks?.sermonData?.sermonTitle || "Sermon Document";
+
+    // Create sermon data object with the link
+    const sermonData = {
+      sermonTitle: sermonTitle,
+      sermonLink: documentUrl,
+      dateString: dateString,
+    };
+
+    // Set the current sermon data and open the modal
     setCurrentSermon(sermonData);
     setIsSermonTranslationModalOpen(true);
   };
 
   // Add this handler for sermon translation submission
-  const handleSermonTranslationSubmit = (translationData) => {
+  const handleSermonTranslationSubmit = async (translationData) => {
     console.log("Sermon translation submitted:", translationData);
 
-    // Update the local state to store the translations
-    setCompletedTasks((prev) => ({
-      ...prev,
-      "translate-sermon": "completed",
-      sermonTranslationData: translationData,
-    }));
+    try {
+      // Set loading state
+      setLoadingStates((prev) => ({ ...prev, sermonTranslation: true }));
 
-    // Close the modal
-    setIsSermonTranslationModalOpen(false);
+      // Get the sermon document link from the workflow tasks
+      let documentLink;
+      if (completedTasks["sermon"] && completedTasks["sermon"].documentLink) {
+        documentLink = completedTasks["sermon"].documentLink;
+      } else if (
+        completedTasks?.documentLinks &&
+        completedTasks.documentLinks["sermon"]
+      ) {
+        documentLink = completedTasks.documentLinks["sermon"];
+      }
 
-    // Update the service status if needed
-    if (onStartAction) {
-      onStartAction("sermon-translated");
+      if (!documentLink) {
+        toast.error("Sermon document link not found");
+        return;
+      }
+
+      // Submit the translation to the backend using the sermon service with dateString and document link
+      const response = await sermonService.submitSermonTranslation(
+        dateString,
+        documentLink,
+        translationData.translationComplete,
+        translationData.translator
+      );
+
+      console.log("Sermon translation response:", response);
+
+      // Update the local state to store the translations
+      setCompletedTasks((prev) => ({
+        ...prev,
+        "translate-sermon": "completed",
+        sermonTranslationData: {
+          ...translationData,
+          documentLink,
+          translator:
+            response.sermonTranslation?.translator ||
+            translationData.translator,
+          translatedAt:
+            response.sermonTranslation?.translated_at ||
+            translationData.translatedAt,
+        },
+      }));
+
+      // Close the modal
+      setIsSermonTranslationModalOpen(false);
+
+      // Update the service status if needed
+      if (onStartAction) {
+        onStartAction("sermon-translated");
+      }
+
+      // Show a success message using toast instead of alert
+      toast.success("Sermon translation has been marked as completed!");
+    } catch (error) {
+      console.error("Error updating sermon translation status:", error);
+      toast.error("Failed to update sermon translation status");
+    } finally {
+      // Reset loading state
+      setLoadingStates((prev) => ({ ...prev, sermonTranslation: false }));
     }
-
-    // Show a success message
-    alert("Sermon translation has been saved successfully!");
   };
 
   // FOR DEMO ONLY: Add a function to simulate sermon creation
