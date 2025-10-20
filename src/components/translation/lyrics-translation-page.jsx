@@ -126,9 +126,8 @@ export function LyricsTranslationPage() {
       });
   };
 
-  // Determine if user can translate (translator role)
-  const canTranslate =
-    user && (user.role === "translator" || user.role === "admin");
+  // All authenticated users can translate
+  const canTranslate = !!user; // Just check if user is logged in
 
   // Create a ref to track initial fetch
   const initialFetchDone = useRef(false);
@@ -332,8 +331,8 @@ export function LyricsTranslationPage() {
                       year: "numeric",
                     })} service yet.`}
               </p>
-              {canTranslate && (
-                <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                {canTranslate && (
                   <Button
                     onClick={handleOpenLyricsModal}
                     className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
@@ -341,15 +340,15 @@ export function LyricsTranslationPage() {
                     <Plus className="w-4 h-4" />
                     Add Song Lyrics
                   </Button>
-                  <Button
-                    onClick={() => (window.location.href = "/dashboard")}
-                    variant="outline"
-                    className="border-gray-300"
-                  >
-                    Go to Dashboard
-                  </Button>
-                </div>
-              )}
+                )}
+                <Button
+                  onClick={() => (window.location.href = "/dashboard")}
+                  variant="outline"
+                  className="border-gray-300"
+                >
+                  Go to Dashboard
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
