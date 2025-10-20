@@ -180,20 +180,52 @@ export const useWorkflowHandlers = () => {
   };
 
   // Handle submission from send to pastor modal
-  const handleSendToPastorSubmit = (emailData) => {
+  const handleSendToPastorSubmit = async (emailData) => {
     console.log("Sending document to pastor:", emailData);
 
-    // Here you would typically make an API call to send the email
+    try {
+      // Get the actual document link from completedTasks
+      let documentLink;
+      if (
+        completedTasks[emailData.documentType] &&
+        completedTasks[emailData.documentType].documentLink
+      ) {
+        documentLink = completedTasks[emailData.documentType].documentLink;
+      } else if (
+        completedTasks?.documentLinks &&
+        completedTasks.documentLinks[emailData.documentType]
+      ) {
+        documentLink = completedTasks.documentLinks[emailData.documentType];
+      } else {
+        documentLink = emailData.documentLink; // Use the one from the form as fallback
+      }
 
-    // Show success message
-    alert(`Document sent to ${emailData.email}!`);
+      // Import the email service
+      const emailService = (await import("../../../services/emailService"))
+        .default;
 
-    // Close the modal
-    setIsSendToPastorModalOpen(false);
+      // Make API call to send the email
+      await emailService.sendEmail({
+        to: emailData.email,
+        subject: emailData.subject,
+        message: emailData.message,
+        documentType: emailData.documentType,
+        documentLink: documentLink,
+      });
 
-    // Update the status if needed
-    if (onStartAction) {
-      onStartAction(`${emailData.documentType}-sent-to-pastor`);
+      // Show success message
+      alert(`Document sent to ${emailData.email}!`);
+
+      // Close the modal
+      setIsSendToPastorModalOpen(false);
+
+      // Update the status if needed
+      if (onStartAction) {
+        onStartAction(`${emailData.documentType}-sent-to-pastor`);
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert(`Failed to send email: ${error.message}`);
     }
   };
 

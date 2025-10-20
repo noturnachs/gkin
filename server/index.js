@@ -53,6 +53,7 @@ const passcodeRoutes = require("./routes/passcode");
 const adminRoutes = require("./routes/admin");
 const assignmentsRoutes = require("./routes/assignments");
 const workflowRoutes = require("./routes/workflow");
+const emailRoutes = require("./routes/email");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -61,6 +62,7 @@ app.use("/api/passcodes", passcodeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/assignments", assignmentsRoutes);
 app.use("/api/workflow", workflowRoutes);
+app.use("/api/email", emailRoutes);
 
 // Default route
 app.get("/", (req, res) => {
