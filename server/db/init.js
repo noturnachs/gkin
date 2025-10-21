@@ -46,6 +46,10 @@ async function initializeDatabase() {
       path.join(__dirname, "email_history_schema.sql"),
       "utf8"
     );
+    const emailSettingsSchemaSQL = fs.readFileSync(
+      path.join(__dirname, "email_settings_schema.sql"),
+      "utf8"
+    );
 
     // Execute schema SQL
     await db.query(schemaSQL);
@@ -62,6 +66,15 @@ async function initializeDatabase() {
     
     // Add new fields to email_history table
     await addServiceDateAndRecipientTypeToEmailHistory();
+    
+    // Initialize email settings table
+    try {
+      await db.query(emailSettingsSchemaSQL);
+      console.log("Email settings table initialized successfully");
+    } catch (error) {
+      console.warn("Email settings table initialization warning:", error.message);
+      // Continue execution as this might be due to existing objects
+    }
     
     console.log("Database schema created successfully");
 

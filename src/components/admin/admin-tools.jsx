@@ -24,8 +24,14 @@ import {
   Shield,
   Activity,
   Database,
+  Mail,
+  Send,
+  Save,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import adminService from "../../services/adminService";
+import emailSettingsService from "../../services/emailSettingsService";
 import { useNotifications } from "../../context/NotificationContext";
 import { PasscodeManager } from "./passcode-manager";
 import { Link } from "react-router-dom";
@@ -39,6 +45,9 @@ export function AdminTools() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [stats, setStats] = useState(null);
   const [systemStatus, setSystemStatus] = useState(null);
+  const [emailSettings, setEmailSettings] = useState([]);
+  const [showPasswords, setShowPasswords] = useState({});
+  const [testEmail, setTestEmail] = useState('');
   const [error, setError] = useState(null);
   const { refreshMentions } = useNotifications();
 
@@ -50,8 +59,89 @@ export function AdminTools() {
       fetchSystemStatus();
     } else if (activeTab === "settings") {
       fetchSystemStatus();
+      fetchEmailSettings();
     }
   }, [activeTab]);
+
+  // Fetch email settings
+  const fetchEmailSettings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await emailSettingsService.getEmailSettings();
+
+      if (response && response.settings) {
+        setEmailSettings(response.settings);
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+    } catch (error) {
+      console.error("Email settings fetch error:", error);
+      setError(error.message || "Failed to fetch email settings");
+      setEmailSettings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update email settings
+  const updateEmailSettings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const settingsToUpdate = emailSettings.map(setting => ({
+        setting_name: setting.setting_name,
+        setting_value: setting.setting_value,
+        is_encrypted: setting.is_encrypted
+      }));
+
+      await emailSettingsService.updateEmailSettings(settingsToUpdate);
+      
+      alert("Email settings updated successfully!");
+      fetchEmailSettings(); // Refresh settings
+    } catch (error) {
+      setError(error.message || "Failed to update email settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Test email configuration
+  const testEmailConfiguration = async () => {
+    if (!testEmail) {
+      setError("Please enter a test email address");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await emailSettingsService.testEmailSettings(testEmail);
+      alert("Test email sent successfully! Check your inbox.");
+    } catch (error) {
+      setError(error.message || "Failed to send test email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle email setting change
+  const handleEmailSettingChange = (index, value) => {
+    const updatedSettings = [...emailSettings];
+    updatedSettings[index].setting_value = value;
+    setEmailSettings(updatedSettings);
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = (settingName) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [settingName]: !prev[settingName]
+    }));
+  };
 
   // Fetch system status
   const fetchSystemStatus = async () => {
@@ -97,7 +187,7 @@ export function AdminTools() {
       id: "settings", 
       label: "Settings", 
       icon: Settings,
-      description: "System configuration"
+      description: "System and email configuration"
     },
   ];
 
@@ -509,6 +599,155 @@ export function AdminTools() {
 
     return (
       <div className="space-y-6">
+        {/* Email Configuration Card */}
+        <Card className="border-0 shadow-md bg-white">
+          <CardHeader className="bg-gray-50 border-b border-gray-200">
+            <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
+              <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                <Mail className="w-5 h-5 text-blue-600" />
+              </div>
+              Email Configuration
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Configure SMTP settings for system email notifications
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Button
+                variant="outline"
+                onClick={fetchEmailSettings}
+                disabled={loading}
+                className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-6 py-3 flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin text-gray-600" />
+                    <span>Loading Settings...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-5 w-5 text-gray-600" />
+                    <span>Refresh Settings</span>
+                  </>
+                )}
+              </Button>
+
+              {error && (
+                <div className="flex items-center text-red-600 text-sm bg-red-50 px-4 py-2 rounded-lg border border-red-200">
+                  <AlertTriangle className="h-5 w-5 mr-2" />
+                  <span>{error}</span>
+                </div>
+              )}
+            </div>
+
+            {emailSettings.length > 0 && (
+              <div className="space-y-6">
+                {/* Email Settings Form */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">SMTP Configuration</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {emailSettings.map((setting, index) => (
+                      <div key={setting.setting_name} className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 capitalize">
+                          {setting.setting_name.replace('smtp_', '').replace('_', ' ')}
+                        </label>
+                        {setting.setting_name.includes('password') ? (
+                          <div className="relative">
+                            <input
+                              type={showPasswords[setting.setting_name] ? "text" : "password"}
+                              value={setting.setting_value === '••••••••' ? '' : setting.setting_value}
+                              onChange={(e) => handleEmailSettingChange(index, e.target.value)}
+                              placeholder={setting.setting_value === '••••••••' ? 'Enter new password' : ''}
+                              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(setting.setting_name)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                              {showPasswords[setting.setting_name] ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        ) : setting.setting_name === 'smtp_secure' ? (
+                          <select
+                            value={setting.setting_value}
+                            onChange={(e) => handleEmailSettingChange(index, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="true">Yes (SSL/TLS)</option>
+                            <option value="false">No (Plain)</option>
+                          </select>
+                        ) : (
+                          <input
+                            type={setting.setting_name === 'smtp_port' ? "number" : "text"}
+                            value={setting.setting_value}
+                            onChange={(e) => handleEmailSettingChange(index, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Save and Test Section */}
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Save Settings */}
+                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-900 mb-3">Save Configuration</h5>
+                    <Button
+                      onClick={updateEmailSettings}
+                      disabled={loading}
+                      className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 flex items-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save Settings</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Test Configuration */}
+                  <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-900 mb-3">Test Configuration</h5>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={testEmail}
+                        onChange={(e) => setTestEmail(e.target.value)}
+                        placeholder="Enter test email address"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <Button
+                        onClick={testEmailConfiguration}
+                        disabled={loading || !testEmail}
+                        variant="outline"
+                        className="border-blue-300 text-blue-600 hover:bg-blue-50 px-4 py-2 flex items-center gap-2"
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>Test</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* System Status Card */}
         <Card className="border-0 shadow-md bg-white">
           <CardHeader className="bg-gray-50 border-b border-gray-200">
