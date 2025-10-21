@@ -101,18 +101,6 @@ export function WorkflowBoard({
       refreshKey={refreshKey}
     >
       <div className="space-y-3 md:space-y-4">
-        {/* Refresh button */}
-        <div className="flex justify-end">
-          <button 
-            onClick={handleRefresh}
-            className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center space-x-1"
-            title="Refresh workflow data"
-          >
-            <span>🔄</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-
         {/* Loading indicator */}
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
