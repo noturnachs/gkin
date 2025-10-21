@@ -44,6 +44,7 @@ export function LyricsTranslationPage() {
   );
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [isSubmittingLyrics, setIsSubmittingLyrics] = useState(false);
+  const [successBanner, setSuccessBanner] = useState(null);
 
   // Add console log to debug lyrics data
   console.log("Current lyrics data:", {
@@ -87,6 +88,34 @@ export function LyricsTranslationPage() {
   // Handle translation form close
   const handleCloseForm = () => {
     setSelectedLyric(null);
+  };
+
+  // Handle successful translation with banner feedback
+  const handleTranslationSuccess = (lyricTitle) => {
+    setSuccessBanner({
+      message: `Translation for "${lyricTitle}" saved successfully!`,
+      timestamp: Date.now(),
+    });
+
+    // Auto-hide banner after 5 seconds
+    setTimeout(() => {
+      setSuccessBanner(null);
+    }, 5000);
+
+    // If user was on pending tab, auto-switch to translated tab after showing banner
+    // Keep the selected lyric so user can see their completed translation
+    if (activeTab === "pending") {
+      setTimeout(() => {
+        setActiveTab("translated");
+        // The selectedLyric should remain the same, but we need to update it with the latest data
+        // This will happen automatically through the context state update
+      }, 2000);
+    }
+  };
+
+  // Handle banner dismissal
+  const handleDismissBanner = () => {
+    setSuccessBanner(null);
   };
 
   // Handle opening lyrics modal
@@ -154,6 +183,16 @@ export function LyricsTranslationPage() {
     }
   }, [selectedWeek, fetchLyricsByDate]);
 
+  // Keep selected lyric updated when lyrics data changes (after translation submission)
+  useEffect(() => {
+    if (selectedLyric && lyrics && lyrics.length > 0) {
+      const updatedLyric = lyrics.find(lyric => lyric.id === selectedLyric.id);
+      if (updatedLyric && JSON.stringify(updatedLyric) !== JSON.stringify(selectedLyric)) {
+        setSelectedLyric(updatedLyric);
+      }
+    }
+  }, [lyrics, selectedLyric]);
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Back to Dashboard Button */}
@@ -195,6 +234,23 @@ export function LyricsTranslationPage() {
           </p>
         </div>
       </div>
+
+      {/* Success Banner */}
+      {successBanner && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md mb-6 flex items-center justify-between">
+          <div className="flex items-center">
+            <Check className="h-5 w-5 mr-2 text-green-600" />
+            <span className="font-medium">{successBanner.message}</span>
+          </div>
+          <button
+            onClick={handleDismissBanner}
+            className="text-green-600 hover:text-green-800 font-bold text-lg leading-none"
+            aria-label="Dismiss banner"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {error && error !== "No lyrics found" && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
@@ -312,6 +368,7 @@ export function LyricsTranslationPage() {
               lyric={selectedLyric}
               onClose={handleCloseForm}
               canTranslate={canTranslate}
+              onTranslationSuccess={handleTranslationSuccess}
             />
           ) : (lyrics || []).length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col items-center justify-center text-center">
