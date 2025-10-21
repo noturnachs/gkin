@@ -29,4 +29,7 @@ router.post('/clear-messages', adminController.clearAllMessages);
 // Get message statistics
 router.get('/message-stats', adminController.getMessageStats);
 
+// Get system status
+router.get('/system-status', adminController.getSystemStatus);
+
 module.exports = router;

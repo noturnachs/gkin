@@ -30,6 +30,20 @@ const adminService = {
       console.error('Error getting message statistics:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get system status and health information
+   * @returns {Promise} Promise with system status
+   */
+  async getSystemStatus() {
+    try {
+      const response = await api.get('/admin/system-status');
+      return response;
+    } catch (error) {
+      console.error('Error getting system status:', error);
+      throw error;
+    }
   }
 };
 
