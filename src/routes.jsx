@@ -10,6 +10,7 @@ import { AssignmentsProvider } from "./components/assignments/context/Assignment
 import { AdminTools } from "./components/admin/admin-tools";
 import { LyricsTranslationPage } from "./components/translation/lyrics-translation-page";
 import { TranslationProvider } from "./context/TranslationContext";
+import { AllUpdatesPage } from "./components/all-updates-page";
 
 // Routes configuration
 export const router = createBrowserRouter([
@@ -73,6 +74,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <LyricsTranslationPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "all-updates",
+        element: (
+          <ProtectedRoute>
+            <AllUpdatesPage />
           </ProtectedRoute>
         ),
       },
