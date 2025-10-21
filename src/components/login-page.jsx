@@ -117,9 +117,10 @@ export function LoginPage() {
     const savedCredentials = localStorage.getItem('gkin-remember-me');
     if (savedCredentials) {
       try {
-        const { username: savedUsername, roleId, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
+        const { username: savedUsername, roleId, passcode: savedPasscode, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
         if (wasRemembered) {
           setUsername(savedUsername);
+          setPasscode(savedPasscode || "");
           setRememberMe(true);
           // Find and set the saved role
           const savedRole = roles.find(role => role.id === roleId);
@@ -152,6 +153,7 @@ export function LoginPage() {
         const credentialsToSave = {
           username: username.trim(),
           roleId: selectedRole.id,
+          passcode: passcode.trim(),
           rememberMe: true
         };
         localStorage.setItem('gkin-remember-me', JSON.stringify(credentialsToSave));
@@ -169,16 +171,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-3">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         {/* Logo/Brand Header */}
-        <div className="flex justify-center mb-4">
-          <div className="bg-white p-2 rounded-lg shadow-md border border-gray-200 flex items-center gap-1.5">
-            <div className="bg-blue-600 text-white p-1.5 rounded-md">
+        <div className="flex justify-center mb-8">
+          <div className="bg-white p-3 rounded-xl shadow-md border border-gray-100 flex items-center gap-2">
+            <div className="bg-blue-600 text-white p-2 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -190,35 +192,35 @@ export function LoginPage() {
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
             </div>
-            <h1 className="text-base font-bold text-gray-800">GKIN RWDH</h1>
+            <h1 className="text-lg font-bold text-gray-800">GKIN RWDH</h1>
           </div>
         </div>
 
-        <Card className="border-0 shadow-lg overflow-hidden">
+        <Card className="border-0 shadow-lg overflow-hidden bg-white">
           {/* Card Header with Decorative Element */}
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 h-1.5"></div>
-            <CardHeader className="pt-6 pb-4 text-center bg-white">
-              <CardTitle className="text-xl font-bold text-gray-900">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 h-2"></div>
+            <CardHeader className="pt-8 pb-6 text-center bg-white">
+              <CardTitle className="text-2xl font-bold text-gray-900 mb-1">
                 Welcome Back
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-0.5 text-sm">
+              <CardDescription className="text-gray-600 text-base">
                 Sign in to the Dienst Dashboard
               </CardDescription>
             </CardHeader>
           </div>
 
-          <CardContent className="pt-4 pb-2 space-y-4 bg-white px-4">
+          <CardContent className="pt-6 pb-4 space-y-6 bg-white px-6">
             {/* Username Input with Modern Styling */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="username"
-                className=" text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -236,7 +238,7 @@ export function LoginPage() {
                 <input
                   type="text"
                   id="username"
-                  className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
+                  className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                   placeholder="Enter your name"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -246,22 +248,22 @@ export function LoginPage() {
             
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md flex items-center gap-1.5 text-sm">
-                <AlertCircle size={16} />
-                <span>{error}</span>
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                <AlertCircle size={18} />
+                <span className="font-medium">{error}</span>
               </div>
             )}
             
             {/* Passcode Input */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="passcode"
-                className="text-xs font-medium text-gray-700 flex items-center gap-1.5"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -279,22 +281,22 @@ export function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="passcode"
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
+                  className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                   placeholder="Enter your role passcode"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                 />
-                <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="p-0.5 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="w-4 h-4 text-gray-500" />
+                      <EyeOff className="w-5 h-5 text-gray-500" />
                     ) : (
-                      <Eye className="w-4 h-4 text-gray-500" />
+                      <Eye className="w-5 h-5 text-gray-500" />
                     )}
                   </button>
                 </div>
@@ -302,12 +304,12 @@ export function LoginPage() {
             </div>
 
             {/* Role Selection with Enhanced Visual Design */}
-            <div className="space-y-2">
-              <label className=" text-xs font-medium text-gray-700 flex items-center gap-1.5">
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -323,25 +325,25 @@ export function LoginPage() {
                 </svg>
                 Select Your Role
               </label>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-3">
                 {roles.map((role) => (
                   <div
                     key={role.id}
-                    className={`flex items-center p-2 rounded-md cursor-pointer border transition-all ${
+                    className={`flex items-center p-3 rounded-xl cursor-pointer border-2 transition-colors hover:shadow-md ${
                       selectedRole?.id === role.id
-                        ? `${role.borderColor} ${role.bgColor} border-2`
+                        ? `${role.borderColor} ${role.bgColor} shadow-md`
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                     onClick={() => setSelectedRole(role)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full ${role.color} flex items-center justify-center shadow-sm`}
+                      className={`w-10 h-10 rounded-xl ${role.color} flex items-center justify-center shadow-sm`}
                     >
-                      <role.icon className="w-4 h-4 text-white" />
+                      <role.icon className="w-5 h-5 text-white" />
                     </div>
-                    <div className="ml-2.5 flex-1 min-w-0">
+                    <div className="ml-3 flex-1 min-w-0">
                       <div
-                        className={`font-medium text-xs truncate ${
+                        className={`font-semibold text-sm truncate ${
                           selectedRole?.id === role.id
                             ? role.textColor
                             : "text-gray-800"
@@ -349,14 +351,14 @@ export function LoginPage() {
                       >
                         {role.name}
                       </div>
-                      <div className="text-[10px] text-gray-500 truncate">
+                      <div className="text-xs text-gray-500 truncate mt-0.5">
                         {role.description}
                       </div>
                     </div>
                     {selectedRole?.id === role.id && (
                       <div className="ml-auto">
                         <div
-                          className={`w-2.5 h-2.5 rounded-full ${role.color}`}
+                          className={`w-3 h-3 rounded-full ${role.color}`}
                         ></div>
                       </div>
                     )}
@@ -366,28 +368,48 @@ export function LoginPage() {
             </div>
 
             {/* Remember Me Checkbox */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="remember-me"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <label
-                htmlFor="remember-me"
-                className="text-xs font-medium text-gray-700 cursor-pointer"
-              >
-                Remember my details for next time
-              </label>
+            <div className="flex items-center space-x-3 pt-2">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="sr-only"
+                />
+                <label
+                  htmlFor="remember-me"
+                  className="relative flex items-center cursor-pointer"
+                >
+                  <div
+                    className={`w-5 h-5 rounded-md border-2 transition-colors ${
+                      rememberMe
+                        ? "bg-blue-600 border-blue-600"
+                        : "bg-white border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                  </div>
+                </label>
+              </div>
+              <div className="flex-1">
+                <label
+                  htmlFor="remember-me"
+                  className="text-sm font-medium text-gray-700 cursor-pointer leading-5"
+                >
+                  Remember my details for next time
+                </label>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Saves your name, role, and passcode for convenience
+                </p>
+              </div>
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-end pt-3 pb-4 bg-white px-4">
+          <CardFooter className="flex justify-end pt-4 pb-6 bg-white px-6">
             <Button
               onClick={handleLogin}
               disabled={!selectedRole || !username.trim() || !passcode.trim() || isLoading}
-              className={`w-full h-9 flex items-center justify-center gap-1.5 ${
+              className={`w-full h-12 flex items-center justify-center gap-2 ${
                 selectedRole
                   ? selectedRole.id === "liturgy"
                     ? "bg-blue-600 hover:bg-blue-700"
@@ -403,12 +425,12 @@ export function LoginPage() {
                     ? "bg-indigo-600 hover:bg-indigo-700"
                     : "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-gray-600 hover:bg-gray-700"
-              } text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all text-sm`}
+              } text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isLoading ? (
                 <>
                   <svg
-                    className="animate-spin h-4 w-4 text-white"
+                    className="animate-spin h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -431,7 +453,7 @@ export function LoginPage() {
                 </>
               ) : (
                 <>
-                  <LogIn className="w-4 h-4" />
+                  <LogIn className="w-5 h-5" />
                   <span>Sign In</span>
                 </>
               )}
@@ -440,7 +462,7 @@ export function LoginPage() {
         </Card>
 
         {/* Footer */}
-        <div className="mt-4 text-center text-[10px] text-gray-500">
+        <div className="mt-6 text-center text-xs text-gray-500">
           <p>
             &copy; {new Date().getFullYear()} GKIN RWDH. All rights reserved.
           </p>
