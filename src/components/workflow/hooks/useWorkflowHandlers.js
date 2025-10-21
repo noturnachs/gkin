@@ -91,7 +91,7 @@ export const useWorkflowHandlers = () => {
   // This function will handle sermon submission from the modal
   const handleSermonSubmit = (sermonData) => {
     // Here you would handle the saved sermon
-    console.log("Sermon submitted:", sermonData);
+    // console.log("Sermon submitted:", sermonData);
 
     // Update the task status in the backend
     updateTaskStatus(
@@ -128,7 +128,7 @@ export const useWorkflowHandlers = () => {
   // This function will handle document submission from the modal
   const handleDocumentSubmit = async (documentData) => {
     // Here you would handle the saved document
-    console.log("Document submitted:", documentData);
+    // console.log("Document submitted:", documentData);
 
     // Set loading state for concept document specifically
     if (documentData.documentType === "concept") {
@@ -186,14 +186,14 @@ export const useWorkflowHandlers = () => {
 
   // Handle sending document to pastor
   const handleSendToPastor = (taskId) => {
-    console.log(`Preparing to send document: ${taskId} to pastor`);
+    // console.log(`Preparing to send document: ${taskId} to pastor`);
     setCurrentDocumentToSend(taskId);
     setIsSendToPastorModalOpen(true);
   };
 
   // Handle submission from send to pastor modal
   const handleSendToPastorSubmit = async (emailData) => {
-    console.log("Sending document to pastor:", emailData);
+    // console.log("Sending document to pastor:", emailData);
 
     try {
       // Get the actual document link from completedTasks
@@ -241,14 +241,14 @@ export const useWorkflowHandlers = () => {
 
   // Handle sending document to music team
   const handleSendToMusic = (taskId) => {
-    console.log(`Preparing to send document: ${taskId} to music team`);
+    // console.log(`Preparing to send document: ${taskId} to music team`);
     setCurrentDocumentToSendMusic(taskId);
     setIsSendToMusicModalOpen(true);
   };
 
   // Handle submission from send to music modal
   const handleSendToMusicSubmit = async (emailData) => {
-    console.log("Sending document to music team:", emailData);
+    // console.log("Sending document to music team:", emailData);
 
     try {
       // Get the actual document link from completedTasks
@@ -296,7 +296,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle opening the sermon upload modal
   const handleUploadSermon = (taskId) => {
-    console.log(`Upload sermon for task: ${taskId}`);
+    // console.log(`Upload sermon for task: ${taskId}`);
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, sermonEdit: true }));
@@ -311,7 +311,7 @@ export const useWorkflowHandlers = () => {
 
   // Handler for sermon upload submission
   const handleSermonUploadSubmit = async (sermonData) => {
-    console.log("Sermon upload submitted:", sermonData);
+    // console.log("Sermon upload submitted:", sermonData);
 
     // Add a default title if not provided
     const enhancedSermonData = {
@@ -371,7 +371,7 @@ export const useWorkflowHandlers = () => {
 
   // Update your handleActionStart function to remove role restrictions
   const handleActionStart = (taskId) => {
-    console.log(`Action started for task: ${taskId}`);
+    // console.log(`Action started for task: ${taskId}`);
 
     // For sermon task, open the sermon upload modal instead
     if (taskId === "sermon") {
@@ -389,7 +389,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle document viewing
   const handleViewDocument = (taskId) => {
-    console.log(`Viewing document: ${taskId}`);
+    // console.log(`Viewing document: ${taskId}`);
 
     // Special handling for music task which might have multiple links
     if (taskId === "music" && completedTasks?.music?.musicLinks?.length > 0) {
@@ -412,16 +412,16 @@ export const useWorkflowHandlers = () => {
     if (completedTasks[taskId] && completedTasks[taskId].documentLink) {
       // Get from task status data (from backend)
       documentUrl = completedTasks[taskId].documentLink;
-      console.log(`Using document link from task status: ${documentUrl}`);
+      // console.log(`Using document link from task status: ${documentUrl}`);
     } else if (
       completedTasks?.documentLinks &&
       completedTasks.documentLinks[taskId]
     ) {
       // Use links from the input
       documentUrl = completedTasks.documentLinks[taskId];
-      console.log(`Using document link from input: ${documentUrl}`);
+      // console.log(`Using document link from input: ${documentUrl}`);
     } else {
-      console.log(`No document link available for ${taskId}`);
+      // console.log(`No document link available for ${taskId}`);
       documentUrl = null;
     }
 
@@ -446,7 +446,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle viewing multiple music links in a modal
   const handleViewMusicLinks = async () => {
-    console.log("Viewing music links in modal");
+    // console.log("Viewing music links in modal");
 
     // Set loading states
     setIsFetchingMusicLinks(true);
@@ -506,7 +506,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle pastor editing document
   const handlePastorEdit = (taskId) => {
-    console.log(`Pastor editing document: ${taskId}`);
+    // console.log(`Pastor editing document: ${taskId}`);
 
     // Get document types
     const documentTypes = {
@@ -523,16 +523,16 @@ export const useWorkflowHandlers = () => {
     if (completedTasks[taskId] && completedTasks[taskId].documentLink) {
       // Get from task status data (from backend)
       documentUrl = completedTasks[taskId].documentLink;
-      console.log(`Using document link from task status: ${documentUrl}`);
+      // console.log(`Using document link from task status: ${documentUrl}`);
     } else if (
       completedTasks?.documentLinks &&
       completedTasks.documentLinks[taskId]
     ) {
       // Use links from the input
       documentUrl = completedTasks.documentLinks[taskId];
-      console.log(`Using document link from input: ${documentUrl}`);
+      // console.log(`Using document link from input: ${documentUrl}`);
     } else {
-      console.log(`No document link available for ${taskId}`);
+      // console.log(`No document link available for ${taskId}`);
       documentUrl = null;
     }
 
@@ -576,14 +576,14 @@ export const useWorkflowHandlers = () => {
 
   // Handle pastor notifying teams after editing
   const handlePastorNotifyTeams = (taskId) => {
-    console.log(`Pastor notifying teams about document: ${taskId}`);
+    // console.log(`Pastor notifying teams about document: ${taskId}`);
     setCurrentDocumentToNotify(taskId);
     setIsPastorNotifyModalOpen(true);
   };
 
   // Handle submission from pastor notify modal
   const handlePastorNotifySubmit = (notificationData) => {
-    console.log("Pastor sending notifications:", notificationData);
+    // console.log("Pastor sending notifications:", notificationData);
 
     // Here you would typically make an API call to send the emails
 
@@ -603,12 +603,12 @@ export const useWorkflowHandlers = () => {
 
   // Add these handler functions for lyrics and translations
   const handleAddLyrics = () => {
-    console.log("Opening lyrics input modal");
+    // console.log("Opening lyrics input modal");
     setIsLyricsModalOpen(true);
   };
 
   const handleLyricsSubmit = async (lyricsData) => {
-    console.log("Lyrics submitted:", lyricsData);
+    // console.log("Lyrics submitted:", lyricsData);
 
     try {
       // Set loading state
@@ -650,7 +650,7 @@ export const useWorkflowHandlers = () => {
   };
 
   const handleTranslateLyrics = () => {
-    console.log("Opening translation modal");
+    // console.log("Opening translation modal");
     // Get the current lyrics data from the completedTasks
     const lyricsData = completedTasks?.lyricsData || { songs: [] };
     setCurrentLyrics(lyricsData);
@@ -658,7 +658,7 @@ export const useWorkflowHandlers = () => {
   };
 
   const handleViewTranslatedLyrics = () => {
-    console.log("Opening view translated lyrics modal");
+    // console.log("Opening view translated lyrics modal");
     // Get the current lyrics data and translation data from the completedTasks
     const lyricsData = completedTasks?.lyricsData || { songs: [] };
     const translationData = completedTasks?.translationData;
@@ -674,7 +674,7 @@ export const useWorkflowHandlers = () => {
   };
 
   const handleTranslationSubmit = (translationData) => {
-    console.log("Translation submitted:", translationData);
+    // console.log("Translation submitted:", translationData);
 
     // Update the local state to store the translations
     setCompletedTasks((prev) => ({
@@ -697,7 +697,7 @@ export const useWorkflowHandlers = () => {
 
   // Add this handler function for sermon translation
   const handleTranslateSermon = () => {
-    console.log("Opening sermon translation modal");
+    // console.log("Opening sermon translation modal");
 
     // Get the sermon document link
     let documentUrl;
@@ -728,7 +728,7 @@ export const useWorkflowHandlers = () => {
 
   // Add this handler for sermon translation submission
   const handleSermonTranslationSubmit = async (translationData) => {
-    console.log("Sermon translation submitted:", translationData);
+    // console.log("Sermon translation submitted:", translationData);
 
     try {
       // Set loading state
@@ -758,12 +758,12 @@ export const useWorkflowHandlers = () => {
         translationData.translator
       );
 
-      console.log("Sermon translation response:", response);
+      // console.log("Sermon translation response:", response);
 
       // Only update the hyphen version explicitly to avoid duplicate activity logs
       try {
         await updateTaskStatus("translate-sermon", "completed", documentLink);
-        console.log("Workflow task status explicitly updated to completed");
+        // console.log("Workflow task status explicitly updated to completed");
       } catch (taskUpdateError) {
         console.error("Error updating workflow task status:", taskUpdateError);
         // Continue with the function even if this fails
@@ -844,12 +844,12 @@ export const useWorkflowHandlers = () => {
   };
 
   const handleUploadSlides = () => {
-    console.log("Opening slides upload modal");
+    // console.log("Opening slides upload modal");
     setIsSlidesUploadModalOpen(true);
   };
 
   const handleSlidesUploadSubmit = async (slidesData) => {
-    console.log("Slides link submitted:", slidesData);
+    // console.log("Slides link submitted:", slidesData);
 
     try {
       // Set loading state for slides submission
@@ -913,7 +913,7 @@ export const useWorkflowHandlers = () => {
 
   // Handler for QR code upload submission
   const handleQrCodeUploadSubmit = async (qrCodeData) => {
-    console.log("QR code upload submitted:", qrCodeData);
+    // console.log("QR code upload submitted:", qrCodeData);
 
     // Set loading state for QR code document
     setLoadingStates((prev) => ({ ...prev, qrcodeDocument: true }));
@@ -969,12 +969,12 @@ export const useWorkflowHandlers = () => {
   };
 
   const handleUploadMusic = () => {
-    console.log("Opening music upload modal");
+    // console.log("Opening music upload modal");
     setIsMusicUploadModalOpen(true);
   };
 
   const handleMusicUploadSubmit = async (musicData) => {
-    console.log("Music links submitted:", musicData);
+    // console.log("Music links submitted:", musicData);
 
     try {
       // Set loading state for music submission
@@ -1049,7 +1049,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle opening the edit document link modal
   const handleEditDocumentLink = async (taskId) => {
-    console.log(`Opening edit document link modal for: ${taskId}`);
+    // console.log(`Opening edit document link modal for: ${taskId}`);
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, documentEdit: true }));
@@ -1146,7 +1146,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle saving an edited document link
   const handleSaveDocumentLink = async (taskId, newLink) => {
-    console.log(`Saving document link for: ${taskId}`, newLink);
+    // console.log(`Saving document link for: ${taskId}`, newLink);
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, documentSave: true }));
@@ -1180,7 +1180,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle completely deleting a workflow task
   const handleDeleteDocumentLink = async (taskId) => {
-    console.log(`Completely deleting workflow task: ${taskId}`);
+    // console.log(`Completely deleting workflow task: ${taskId}`);
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, documentDelete: true }));
@@ -1203,7 +1203,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle saving music links
   const handleSaveMusicLinks = async (musicData) => {
-    console.log("Saving music links:", musicData);
+    // console.log("Saving music links:", musicData);
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, documentSave: true }));
@@ -1270,7 +1270,7 @@ export const useWorkflowHandlers = () => {
 
   // Handle deleting music links
   const handleDeleteMusicLinks = async () => {
-    console.log("Deleting music links");
+    // console.log("Deleting music links");
 
     // Set loading state
     setLoadingStates((prev) => ({ ...prev, documentDelete: true }));
