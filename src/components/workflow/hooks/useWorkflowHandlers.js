@@ -224,6 +224,8 @@ export const useWorkflowHandlers = () => {
         message: emailData.message,
         documentType: emailData.documentType,
         documentLink: documentLink,
+        serviceDate: dateString,
+        recipientType: 'pastor',
       });
 
       // Update the status if needed
@@ -280,6 +282,8 @@ export const useWorkflowHandlers = () => {
         message: emailData.message,
         documentType: emailData.documentType,
         documentLink: documentLink,
+        serviceDate: dateString,
+        recipientType: 'music',
       });
 
       // Update the status if needed

@@ -16,6 +16,8 @@ const logEmail = async (emailData) => {
       message,
       documentType,
       documentLink,
+      serviceDate,
+      recipientType,
       messageId,
       status = 'sent',
       errorMessage = null
@@ -24,9 +26,9 @@ const logEmail = async (emailData) => {
     const query = `
       INSERT INTO email_history (
         sender_id, sender_role, sender_username, to_email, cc_emails,
-        subject, message, document_type, document_link, message_id,
-        status, error_message
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        subject, message, document_type, document_link, service_date,
+        recipient_type, message_id, status, error_message
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING id, sent_at
     `;
 
@@ -40,6 +42,8 @@ const logEmail = async (emailData) => {
       message,
       documentType || null,
       documentLink || null,
+      serviceDate || null,
+      recipientType || null,
       messageId || null,
       status,
       errorMessage
@@ -134,6 +138,7 @@ const getEmailHistory = async (req, res) => {
 const getEmailHistoryByDocument = async (req, res) => {
   try {
     const { documentType } = req.params;
+    const { serviceDate } = req.query;
 
     // Validate documentType parameter
     if (!documentType) {
@@ -143,7 +148,7 @@ const getEmailHistoryByDocument = async (req, res) => {
       });
     }
 
-    const query = `
+    let query = `
       SELECT 
         id,
         sender_role,
@@ -152,17 +157,29 @@ const getEmailHistoryByDocument = async (req, res) => {
         cc_emails,
         subject,
         sent_at,
-        status
+        status,
+        service_date,
+        recipient_type
       FROM email_history
       WHERE document_type = $1
-      ORDER BY sent_at DESC
     `;
 
-    const result = await db.query(query, [documentType]);
+    const queryParams = [documentType];
+
+    // Add service date filter if provided
+    if (serviceDate) {
+      query += ` AND service_date = $2`;
+      queryParams.push(serviceDate);
+    }
+
+    query += ` ORDER BY sent_at DESC`;
+
+    const result = await db.query(query, queryParams);
 
     // Always return a valid structure
     res.json({
       documentType,
+      serviceDate: serviceDate || null,
       emails: result.rows || []
     });
   } catch (error) {
@@ -173,6 +190,7 @@ const getEmailHistoryByDocument = async (req, res) => {
       console.log('Email history table does not exist yet, returning empty array');
       return res.json({
         documentType: req.params.documentType,
+        serviceDate: req.query.serviceDate || null,
         emails: []
       });
     }

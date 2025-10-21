@@ -27,7 +27,15 @@ const emailHistoryService = {
       }
 
       const url = `/email-history${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      return await api.get(url);
+      const response = await api.get(url);
+      
+      // Format response to match expected structure
+      return {
+        data: {
+          emails: response.emails || [],
+          pagination: response.pagination || { total: 0, hasMore: false }
+        }
+      };
     } catch (error) {
       console.error("Error fetching email history:", error);
       throw error;
@@ -37,33 +45,89 @@ const emailHistoryService = {
   /**
    * Get email history for a specific document type
    * @param {string} documentType - The document type to filter by
+   * @param {Object} [params] - Optional pagination parameters
+   * @param {number} [params.limit] - Number of records to fetch (default: 20)
+   * @param {number} [params.offset] - Number of records to skip (default: 0)
    * @returns {Promise} Promise with email history data for the document
    */
-  getEmailHistoryByDocument: async (documentType) => {
+  getEmailHistoryByDocument: async (documentType, params = {}) => {
     try {
-    //   console.log('EmailHistoryService: Fetching for documentType:', documentType);
-      const response = await api.get(`/email-history/document/${documentType}`);
-    //   console.log('EmailHistoryService: Raw API response:', response);
+      const { limit = 20, offset = 0 } = params;
       
-      // The api.get() returns the parsed JSON directly, not wrapped in { data: ... }
-      // So response should be: { documentType: "concept", emails: [...] }
+      // Use the general endpoint with documentType filter for pagination support
+      const queryParams = new URLSearchParams();
+      queryParams.append('documentType', documentType);
+      queryParams.append('limit', limit.toString());
+      queryParams.append('offset', offset.toString());
+
+      const url = `/email-history?${queryParams.toString()}`;
+      const response = await api.get(url);
+      
+      // The paginated endpoint returns { emails: [...], pagination: {...} }
       const result = {
         data: {
-          documentType: response.documentType || documentType,
-          emails: response.emails || []
+          documentType,
+          emails: response.emails || [],
+          pagination: response.pagination || { total: 0, hasMore: false, limit, offset }
         }
       };
-    //   console.log('EmailHistoryService: Processed result:', result);
       return result;
     } catch (error) {
       console.error(`Error fetching email history for ${documentType}:`, error);
       
       // If it's a 404 or server error, return empty structure instead of throwing
       if (error.message?.includes('404') || error.message?.includes('500')) {
-        // console.log('EmailHistoryService: Returning empty due to error status');
         return {
           data: {
             documentType,
+            emails: [],
+            pagination: { total: 0, hasMore: false, limit: 20, offset: 0 }
+          }
+        };
+      }
+      
+      throw error;
+    }
+  },
+
+  /**
+   * Get email history for a specific document type (simple version, no pagination)
+   * @param {string} documentType - The document type to filter by
+   * @param {string} [serviceDate] - Optional service date to filter by
+   * @returns {Promise} Promise with email history data for the document
+   */
+  getEmailHistoryByDocumentSimple: async (documentType, serviceDate = null) => {
+    try {
+      let url = `/email-history/document/${documentType}`;
+      
+      // Add service date as query parameter if provided
+      if (serviceDate) {
+        const queryParams = new URLSearchParams();
+        queryParams.append('serviceDate', serviceDate);
+        url += `?${queryParams.toString()}`;
+      }
+      
+      const response = await api.get(url);
+      
+      // The api.get() returns the parsed JSON directly, not wrapped in { data: ... }
+      // So response should be: { documentType: "concept", emails: [...], serviceDate?: "..." }
+      const result = {
+        data: {
+          documentType: response.documentType || documentType,
+          serviceDate: response.serviceDate || serviceDate,
+          emails: response.emails || []
+        }
+      };
+      return result;
+    } catch (error) {
+      console.error(`Error fetching email history for ${documentType}:`, error);
+      
+      // If it's a 404 or server error, return empty structure instead of throwing
+      if (error.message?.includes('404') || error.message?.includes('500')) {
+        return {
+          data: {
+            documentType,
+            serviceDate,
             emails: []
           }
         };

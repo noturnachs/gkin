@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS email_history (
   subject VARCHAR(500) NOT NULL,
   message TEXT NOT NULL,
   document_type VARCHAR(50), -- e.g., 'concept', 'final', 'sermon'
+  recipient_type VARCHAR(50), -- e.g., 'pastor', 'music'
+  service_date VARCHAR(20), -- Service date in YYYY-MM-DD format
   document_link TEXT,
   sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   status VARCHAR(20) DEFAULT 'sent', -- 'sent', 'failed', 'pending'
@@ -20,8 +22,12 @@ CREATE TABLE IF NOT EXISTS email_history (
 CREATE INDEX IF NOT EXISTS idx_email_history_sender_id ON email_history(sender_id);
 CREATE INDEX IF NOT EXISTS idx_email_history_sender_role ON email_history(sender_role);
 CREATE INDEX IF NOT EXISTS idx_email_history_document_type ON email_history(document_type);
+CREATE INDEX IF NOT EXISTS idx_email_history_recipient_type ON email_history(recipient_type);
+CREATE INDEX IF NOT EXISTS idx_email_history_service_date ON email_history(service_date);
 CREATE INDEX IF NOT EXISTS idx_email_history_sent_at ON email_history(sent_at);
 CREATE INDEX IF NOT EXISTS idx_email_history_status ON email_history(status);
+-- Composite index for the most common query pattern
+CREATE INDEX IF NOT EXISTS idx_email_history_service_doc_recipient ON email_history(service_date, document_type, recipient_type);
 
 -- Add a comment to describe the table
 COMMENT ON TABLE email_history IS 'Tracks all emails sent through the GKIN system for audit and history purposes';
