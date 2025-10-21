@@ -77,6 +77,10 @@ export function ServiceAssignments({ selectedDate }) {
                 ? "Today"
                 : currentService.daysRemaining === 1
                 ? "Tomorrow"
+                : currentService.daysRemaining === -1
+                ? "Yesterday"
+                : currentService.daysRemaining < 0
+                ? `${Math.abs(currentService.daysRemaining)} days ago`
                 : `${currentService.daysRemaining} days`}
             </Badge>
             <Link to="/assignments">
