@@ -8,7 +8,7 @@ import { Card } from "../ui/card";
 import { Globe, Save, Check, X, AlertCircle, Clock } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-export function TranslationForm({ lyric, onClose, canTranslate }) {
+export function TranslationForm({ lyric, onClose, canTranslate, onTranslationSuccess }) {
   const { submitTranslation } = useTranslation();
 
   const [translatedTitle, setTranslatedTitle] = useState("");
@@ -44,7 +44,10 @@ export function TranslationForm({ lyric, onClose, canTranslate }) {
         translatedLyrics.trim()
       );
 
-      // Success is handled in the context
+      // Call the success callback to show banner
+      if (onTranslationSuccess) {
+        onTranslationSuccess(lyric.title || lyric.original_title);
+      }
     } catch (error) {
       // Error is handled in the context
       console.error("Error in translation submission:", error);

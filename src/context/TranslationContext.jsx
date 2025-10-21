@@ -155,7 +155,7 @@ export const TranslationProvider = ({ children }) => {
           translatedLyrics
         );
 
-        toast.success("Translation submitted successfully");
+        // toast.success("Translation submitted successfully"); // Disabled in favor of banner feedback
 
         // Update the lyrics state with the new translation
         console.log("Translation response:", response);
