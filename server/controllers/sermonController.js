@@ -177,7 +177,7 @@ const submitSermonTranslation = async (req, res) => {
     );
 
     // Update the workflow task - ensure we update both possible task ID formats
-    // First try with hyphen format
+    // First update the hyphen format (this will trigger activity logging)
     await client.query(
       `UPDATE workflow_tasks 
        SET status = 'completed', completed_by = $1, document_link = $2, updated_at = CURRENT_TIMESTAMP
@@ -185,12 +185,24 @@ const submitSermonTranslation = async (req, res) => {
       [req.user.id, originalSermonLink, serviceId]
     );
 
-    // Then try with underscore format to ensure compatibility
+    // Then silently update the underscore format without triggering activity logging
+    // by using a direct database update instead of going through the workflow controller
     await client.query(
-      `UPDATE workflow_tasks 
-       SET status = 'completed', completed_by = $1, document_link = $2, updated_at = CURRENT_TIMESTAMP
-       WHERE service_assignment_id = $3 AND task_id = 'translate_sermon'`,
-      [req.user.id, originalSermonLink, serviceId]
+      `INSERT INTO workflow_tasks (service_assignment_id, task_id, status, document_link, completed_by, updated_at) 
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+       ON CONFLICT (service_assignment_id, task_id) 
+       DO UPDATE SET 
+         status = EXCLUDED.status, 
+         document_link = EXCLUDED.document_link,
+         completed_by = EXCLUDED.completed_by,
+         updated_at = CURRENT_TIMESTAMP`,
+      [
+        serviceId,
+        "translate_sermon",
+        "completed",
+        originalSermonLink,
+        req.user.id,
+      ]
     );
 
     await client.query("COMMIT");

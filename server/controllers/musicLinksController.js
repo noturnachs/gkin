@@ -1,4 +1,50 @@
 const db = require("../config/db");
+const { emitActivityUpdate } = require("../index");
+
+/**
+ * Log an activity to the activity_log table
+ * @param {Object} client - Database client for transaction
+ * @param {Object} activity - Activity details
+ * @returns {Promise<Object>} The created activity log
+ */
+const logActivity = async (client, activity) => {
+  try {
+    const result = await client.query(
+      `INSERT INTO activity_log 
+        (user_id, user_name, user_role, activity_type, title, description, details, entity_id, date_string, icon, color) 
+       VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING *`,
+      [
+        activity.userId,
+        activity.userName,
+        activity.userRole,
+        activity.type,
+        activity.title,
+        activity.description,
+        activity.details || null,
+        activity.entityId || null,
+        activity.dateString || null,
+        activity.icon || "ArrowRight",
+        activity.color || "blue",
+      ]
+    );
+
+    // Get the created activity with all fields
+    const createdActivity = result.rows[0];
+
+    // Emit the activity via WebSocket for real-time updates
+    if (createdActivity) {
+      emitActivityUpdate(createdActivity);
+    }
+
+    return createdActivity;
+  } catch (error) {
+    console.error("Error logging activity:", error);
+    // Don't throw, just log the error - we don't want activity logging to break the main functionality
+    return null;
+  }
+};
 
 /**
  * Get music links for a specific task
@@ -143,6 +189,23 @@ const saveMusicLinks = async (req, res) => {
       // Continue even if metadata storage fails
     }
 
+    // Log the activity
+    if (req.user) {
+      await logActivity(client, {
+        userId: req.user.id,
+        userName: req.user.username,
+        userRole: req.user.role,
+        type: "workflow",
+        title: "Music Uploaded",
+        description: `Music for ${dateString} service`,
+        details: `${musicLinks.length} music links uploaded`,
+        entityId: "music",
+        dateString,
+        icon: "Music",
+        color: "indigo",
+      });
+    }
+
     await client.query("COMMIT");
 
     res.json({
@@ -205,6 +268,22 @@ const deleteMusicLinks = async (req, res) => {
        WHERE id = $1`,
       [taskId]
     );
+
+    // Log the activity for music deletion
+    if (req.user) {
+      await logActivity(client, {
+        userId: req.user.id,
+        userName: req.user.username,
+        userRole: req.user.role,
+        type: "workflow",
+        title: "Music Deleted",
+        description: `Music for ${dateString} service deleted`,
+        entityId: "music",
+        dateString,
+        icon: "Trash",
+        color: "red",
+      });
+    }
 
     await client.query("COMMIT");
 

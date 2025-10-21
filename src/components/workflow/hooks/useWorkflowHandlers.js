@@ -760,10 +760,9 @@ export const useWorkflowHandlers = () => {
 
       console.log("Sermon translation response:", response);
 
-      // Explicitly update the workflow task status to ensure it's marked as completed
+      // Only update the hyphen version explicitly to avoid duplicate activity logs
       try {
         await updateTaskStatus("translate-sermon", "completed", documentLink);
-        await updateTaskStatus("translate_sermon", "completed", documentLink);
         console.log("Workflow task status explicitly updated to completed");
       } catch (taskUpdateError) {
         console.error("Error updating workflow task status:", taskUpdateError);
