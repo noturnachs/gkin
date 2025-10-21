@@ -117,49 +117,53 @@ export const SingleUpdate = ({ update }) => {
   return (
     <div
       key={update.id}
-      className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
+      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
     >
       <div
-        className={`p-2 rounded-full ${getBgColor(
+        className={`p-1.5 sm:p-2 rounded-full ${getBgColor(
           update.color
-        )} ${getBorderColor(update.color)} border`}
+        )} ${getBorderColor(update.color)} border flex-shrink-0`}
       >
         <UpdateIcon
           iconName={update.icon}
-          className={`w-4 h-4 ${getIconColor(update.color)}`}
+          className={`w-3 h-3 sm:w-4 sm:h-4 ${getIconColor(update.color)}`}
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="font-medium text-sm text-gray-900">{update.title}</h4>
-          <span className="text-[10px] text-gray-500 whitespace-nowrap">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          <h4 className="font-medium text-xs sm:text-sm text-gray-900 truncate">
+            {update.title}
+          </h4>
+          <span className="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0">
             <TimeAgo timestamp={update.timestamp} />
           </span>
         </div>
 
-        <p className="text-xs text-gray-600 mt-0.5 mb-1">
+        <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 mb-1 break-words line-clamp-2">
           {update.description}
         </p>
 
         {update.details && (
-          <p className="text-xs text-gray-500 mt-0.5 mb-1 italic">
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 mb-1 italic break-words line-clamp-2">
             {update.details}
           </p>
         )}
 
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center flex-wrap gap-2 mt-1">
           {update.user !== "System" && (
-            <div className="flex items-center gap-1">
-              <User className="w-3 h-3 text-gray-400" />
-              <span className="text-[10px] text-gray-500">{update.user}</span>
+            <div className="flex items-center gap-1 min-w-0">
+              <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
+              <span className="text-[10px] text-gray-500 truncate">
+                {update.user}
+              </span>
             </div>
           )}
 
           {update.role && (
             <Badge
               variant="outline"
-              className="h-4 px-1 text-[9px] bg-gray-50 border-gray-200 text-gray-600"
+              className="h-4 px-1 text-[9px] bg-gray-50 border-gray-200 text-gray-600 truncate max-w-[120px]"
             >
               {update.role}
             </Badge>

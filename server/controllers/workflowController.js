@@ -1,6 +1,54 @@
 const db = require("../config/db");
 
 /**
+ * Log an activity to the activity_log table
+ * @param {Object} client - Database client for transaction
+ * @param {Object} activity - Activity details
+ * @param {number} activity.userId - User ID
+ * @param {string} activity.userName - User name
+ * @param {string} activity.userRole - User role
+ * @param {string} activity.type - Activity type
+ * @param {string} activity.title - Activity title
+ * @param {string} activity.description - Activity description
+ * @param {string} activity.details - Additional details (optional)
+ * @param {string} activity.entityId - Related entity ID (optional)
+ * @param {string} activity.dateString - Service date (optional)
+ * @param {string} activity.icon - Icon name (optional)
+ * @param {string} activity.color - Color name (optional)
+ * @returns {Promise<Object>} The created activity log
+ */
+const logActivity = async (client, activity) => {
+  try {
+    const result = await client.query(
+      `INSERT INTO activity_log 
+        (user_id, user_name, user_role, activity_type, title, description, details, entity_id, date_string, icon, color) 
+       VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, created_at`,
+      [
+        activity.userId,
+        activity.userName,
+        activity.userRole,
+        activity.type,
+        activity.title,
+        activity.description,
+        activity.details || null,
+        activity.entityId || null,
+        activity.dateString || null,
+        activity.icon || "ArrowRight",
+        activity.color || "blue",
+      ]
+    );
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error logging activity:", error);
+    // Don't throw, just log the error - we don't want activity logging to break the main functionality
+    return null;
+  }
+};
+
+/**
  * Get workflow tasks for a specific service
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
@@ -133,6 +181,44 @@ const updateTaskStatus = async (req, res) => {
       ]
     );
 
+    // Get task type from taskId for better activity description
+    const taskType = taskId.split("-")[0]; // Extract task type from ID (e.g., "concept", "sermon")
+
+    // Format task type for display
+    const formattedTaskType = formatTaskType(taskType);
+
+    // Log the activity
+    if (req.user) {
+      // Determine title and icon based on status
+      let title = `${formattedTaskType} Updated`;
+      let icon = "ArrowRight";
+      let color = "blue";
+
+      if (status === "completed") {
+        title = `${formattedTaskType} Completed`;
+        icon = "CheckCircle";
+        color = "green";
+      } else if (status === "in-progress") {
+        title = `${formattedTaskType} In Progress`;
+        icon = "Clock";
+        color = "blue";
+      }
+
+      await logActivity(client, {
+        userId: req.user.id,
+        userName: req.user.username,
+        userRole: req.user.role,
+        type: "workflow",
+        title,
+        description: `${formattedTaskType} for ${dateString} service`,
+        details: documentLink ? `Document link: ${documentLink}` : null,
+        entityId: taskId,
+        dateString,
+        icon,
+        color,
+      });
+    }
+
     await client.query("COMMIT");
 
     res.json({
@@ -255,6 +341,32 @@ const deleteWorkflowTask = async (req, res) => {
     client.release();
   }
 };
+
+/**
+ * Helper function to format task type for display
+ * @param {string} taskType - Raw task type
+ * @returns {string} Formatted task type
+ */
+function formatTaskType(taskType) {
+  // Map task types to readable names
+  const taskTypeMap = {
+    concept: "Concept Document",
+    sermon: "Sermon",
+    translation: "Translation",
+    music: "Music",
+    slides: "Slides",
+    qrcode: "QR Code",
+    document: "Document",
+    review: "Review",
+    message: "Message",
+    deadline: "Deadline",
+  };
+
+  return (
+    taskTypeMap[taskType] ||
+    taskType.charAt(0).toUpperCase() + taskType.slice(1)
+  );
+}
 
 module.exports = {
   getWorkflowTasks,
