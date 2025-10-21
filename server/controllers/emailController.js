@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const { logEmail } = require("./emailHistoryController");
+const emailSettingsController = require("./emailSettingsController");
 
 /**
  * Send an email
@@ -17,14 +18,17 @@ const sendEmail = async (req, res) => {
     // Get user info from the auth middleware
     const { id: senderId, role: senderRole, username: senderUsername } = req.user;
 
-    // Create a transporter using the provided email credentials
+    // Get email settings from database
+    const emailSettings = await emailSettingsController.getEmailSettingsInternal();
+
+    // Create a transporter using the configured email settings
     const transporter = nodemailer.createTransport({
-      host: "smtp.privateemail.com", // Correct SMTP server for privateemail.com
-      port: 465,
-      secure: true, // use SSL
+      host: emailSettings.smtp_host,
+      port: parseInt(emailSettings.smtp_port),
+      secure: emailSettings.smtp_secure === 'true',
       auth: {
-        user: "user2003@andrewscreem.com",
-        pass: "$DANdan2003$",
+        user: emailSettings.smtp_user,
+        pass: emailSettings.smtp_password,
       },
     });
 
@@ -55,7 +59,7 @@ const sendEmail = async (req, res) => {
     try {
       // Prepare the email options
       const mailOptions = {
-        from: '"GKIN System" <user2003@andrewscreem.com>',
+        from: `"${emailSettings.from_name}" <${emailSettings.from_email}>`,
         to,
         subject,
         text: emailContent,
