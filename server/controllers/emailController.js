@@ -8,7 +8,7 @@ const { logEmail } = require("./emailHistoryController");
  */
 const sendEmail = async (req, res) => {
   try {
-    const { to, cc, subject, message, documentType, documentLink } = req.body;
+    const { to, cc, subject, message, documentType, documentLink, serviceDate, recipientType } = req.body;
 
     if (!to || !subject || !message) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -47,6 +47,8 @@ const sendEmail = async (req, res) => {
       message: emailContent,
       documentType,
       documentLink,
+      serviceDate: serviceDate || null,
+      recipientType: recipientType || null,
       status: 'pending'
     };
 

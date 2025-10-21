@@ -3,6 +3,7 @@ const path = require("path");
 const db = require("../config/db");
 const config = require("../config/config");
 const { migrateEmailHistory } = require("./migrate_email_history");
+const { addServiceDateAndRecipientTypeToEmailHistory } = require("./migrate_email_history_fields");
 
 async function initializeDatabase() {
   try {
@@ -58,6 +59,9 @@ async function initializeDatabase() {
     
     // Use migration for email history to handle existing databases
     await migrateEmailHistory();
+    
+    // Add new fields to email_history table
+    await addServiceDateAndRecipientTypeToEmailHistory();
     
     console.log("Database schema created successfully");
 

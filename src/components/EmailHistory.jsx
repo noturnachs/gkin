@@ -1,39 +1,62 @@
 import { useState, useEffect } from "react";
-import { Clock, User, Mail, Eye, EyeOff } from "lucide-react";
+import { Clock, User, Mail, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
 import emailHistoryService from "../services/emailHistoryService";
 
-export function EmailHistory({ documentType, isOpen }) {
+export function EmailHistory({ documentType, serviceDate, isOpen }) {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalEmails, setTotalEmails] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const EMAILS_PER_PAGE = 10;
 
   // Fetch email history when component becomes visible and documentType is provided
   useEffect(() => {
     if (isOpen && documentType && showHistory) {
-      fetchEmailHistory();
+      fetchEmailHistory(1); // Always start from page 1 when opening
     }
-  }, [isOpen, documentType, showHistory]);
+  }, [isOpen, documentType, serviceDate, showHistory]);
 
-  const fetchEmailHistory = async () => {
+  // Reset pagination when documentType or serviceDate changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setEmails([]);
+    setTotalEmails(0);
+    setHasMore(false);
+  }, [documentType, serviceDate]);
+
+  const fetchEmailHistory = async (page = 1) => {
     setLoading(true);
     setError(null);
     
     try {
-    //   console.log('Fetching email history for documentType:', documentType);
-      const response = await emailHistoryService.getEmailHistoryByDocument(documentType);
-    //   console.log('Email history response:', response);
+      // Use the simple service with service date filtering instead of pagination
+      const response = await emailHistoryService.getEmailHistoryByDocumentSimple(documentType, serviceDate);
       
-      // Now that the service returns { data: { emails: [...] } }, this should work
+      // The simple service returns { data: { emails: [...] } }
       const emailData = response?.data?.emails || [];
-    //   console.log('Final emails to set:', emailData);
-      setEmails(Array.isArray(emailData) ? emailData : []);
+      
+      // Since we're using the simple service without pagination, we need to implement client-side pagination
+      const startIndex = (page - 1) * EMAILS_PER_PAGE;
+      const endIndex = startIndex + EMAILS_PER_PAGE;
+      const paginatedEmails = emailData.slice(startIndex, endIndex);
+      
+      setEmails(Array.isArray(paginatedEmails) ? paginatedEmails : []);
+      setTotalEmails(emailData.length);
+      setHasMore(endIndex < emailData.length);
+      setCurrentPage(page);
       
     } catch (err) {
       console.error("Error fetching email history:", err);
       
       // For any error, just show empty state (most likely table doesn't exist yet)
       setEmails([]);
+      setTotalEmails(0);
+      setHasMore(false);
       setError(null); // Don't show error - empty state is fine for new features
     } finally {
       setLoading(false);
@@ -65,9 +88,19 @@ export function EmailHistory({ documentType, isOpen }) {
   const toggleHistory = () => {
     setShowHistory(!showHistory);
     if (!showHistory && documentType) {
-      // Will trigger useEffect to fetch data
+      // Reset to page 1 when opening
+      setCurrentPage(1);
+      // fetchEmailHistory will be called by useEffect
     }
   };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= Math.ceil(totalEmails / EMAILS_PER_PAGE)) {
+      fetchEmailHistory(newPage);
+    }
+  };
+
+  const totalPages = Math.ceil(totalEmails / EMAILS_PER_PAGE);
 
   if (!documentType) {
     return null;
@@ -167,6 +200,67 @@ export function EmailHistory({ documentType, isOpen }) {
                 </div>
               )}
             </div>
+            
+            {/* Pagination Controls */}
+            {emails.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span>
+                    Showing {((currentPage - 1) * EMAILS_PER_PAGE) + 1} to {Math.min(currentPage * EMAILS_PER_PAGE, totalEmails)} of {totalEmails} emails
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Previous page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex items-center gap-1 mx-2">
+                    {/* Show page numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-2 py-1 text-xs rounded ${
+                            pageNum === currentPage
+                              ? 'bg-indigo-600 text-white'
+                              : 'text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Next page"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

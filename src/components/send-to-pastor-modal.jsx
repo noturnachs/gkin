@@ -9,7 +9,7 @@ import { EmailHistory } from "./EmailHistory";
 
 export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
   // Import the WorkflowContext to get the actual document link
-  const { completedTasks } = useWorkflow();
+  const { completedTasks, dateString } = useWorkflow();
   // Default values
   const documentTypes = {
     concept: "Concept Document",
@@ -282,7 +282,7 @@ export function SendToPastorModal({ isOpen, onClose, onSubmit, documentType }) {
               </div>
 
               {/* Email History */}
-              <EmailHistory documentType={documentType} isOpen={isOpen} />
+              <EmailHistory documentType={documentType} serviceDate={dateString} isOpen={isOpen} />
             </div>
           </form>
         </div>
