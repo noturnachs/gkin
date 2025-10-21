@@ -112,6 +112,52 @@ const adminController = {
         error: error.message
       });
     }
+  },
+  
+  /**
+   * Get system status and health information
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<Object>} Response with system status
+   */
+  async getSystemStatus(req, res) {
+    try {
+      const status = {
+        server: {
+          status: 'online',
+          uptime: process.uptime(),
+          timestamp: new Date().toISOString()
+        },
+        database: {
+          status: 'disconnected',
+          connected: false
+        }
+      };
+
+      // Test database connection
+      try {
+        await db.query('SELECT 1');
+        status.database.status = 'connected';
+        status.database.connected = true;
+      } catch (error) {
+        console.error('Database connection test failed:', error);
+        status.database.status = 'disconnected';
+        status.database.connected = false;
+        status.database.error = error.message;
+      }
+
+      return res.status(200).json({
+        success: true,
+        status
+      });
+    } catch (error) {
+      console.error('Error getting system status:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to get system status',
+        error: error.message
+      });
+    }
   }
 };
 
