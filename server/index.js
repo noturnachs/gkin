@@ -57,6 +57,7 @@ const emailRoutes = require("./routes/email");
 const lyricsRoutes = require("./routes/lyrics");
 const sermonRoutes = require("./routes/sermon");
 const musicLinksRoutes = require("./routes/musicLinks");
+const activityRoutes = require("./routes/activity");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -69,6 +70,7 @@ app.use("/api/email", emailRoutes);
 app.use("/api/lyrics", lyricsRoutes);
 app.use("/api/sermon", sermonRoutes);
 app.use("/api/music-links", musicLinksRoutes);
+app.use("/api/activity", activityRoutes);
 
 // Default route
 app.get("/", (req, res) => {
