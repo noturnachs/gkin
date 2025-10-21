@@ -70,6 +70,15 @@ export const EditMusicLinksModal = ({
     if (musicLinks.length === 1) {
       // Don't remove the last item, just clear it
       setMusicLinks([{ name: "", url: "" }]);
+      // Show feedback that the link was cleared
+      setFeedback({
+        type: "success",
+        message: "Link cleared. At least one link slot is required.",
+      });
+      // Clear feedback after 3 seconds
+      setTimeout(() => {
+        setFeedback({ type: null, message: "" });
+      }, 3000);
       return;
     }
 
@@ -82,6 +91,16 @@ export const EditMusicLinksModal = ({
     if (page > maxPage) {
       setPage(maxPage);
     }
+
+    // Show feedback that the link was deleted
+    setFeedback({
+      type: "success", 
+      message: "Link deleted successfully.",
+    });
+    // Clear feedback after 3 seconds
+    setTimeout(() => {
+      setFeedback({ type: null, message: "" });
+    }, 3000);
   };
 
   // Update a music link
@@ -324,9 +343,16 @@ export const EditMusicLinksModal = ({
                       <button
                         type="button"
                         onClick={() => removeMusicLink(actualIndex)}
-                        className="text-red-500 hover:text-red-700"
-                        disabled={
-                          isSaving || isDeleting || musicLinks.length === 1
+                        className={`${
+                          musicLinks.length === 1
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-red-500 hover:text-red-700 cursor-pointer"
+                        }`}
+                        disabled={isSaving || isDeleting}
+                        title={
+                          musicLinks.length === 1
+                            ? "Cannot delete the last link. Clear it instead."
+                            : "Delete this link"
                         }
                       >
                         <Trash2 className="w-4 h-4" />
