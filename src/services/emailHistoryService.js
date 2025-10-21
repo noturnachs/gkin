@@ -41,9 +41,9 @@ const emailHistoryService = {
    */
   getEmailHistoryByDocument: async (documentType) => {
     try {
-      console.log('EmailHistoryService: Fetching for documentType:', documentType);
+    //   console.log('EmailHistoryService: Fetching for documentType:', documentType);
       const response = await api.get(`/email-history/document/${documentType}`);
-      console.log('EmailHistoryService: Raw API response:', response);
+    //   console.log('EmailHistoryService: Raw API response:', response);
       
       // The api.get() returns the parsed JSON directly, not wrapped in { data: ... }
       // So response should be: { documentType: "concept", emails: [...] }
@@ -53,14 +53,14 @@ const emailHistoryService = {
           emails: response.emails || []
         }
       };
-      console.log('EmailHistoryService: Processed result:', result);
+    //   console.log('EmailHistoryService: Processed result:', result);
       return result;
     } catch (error) {
       console.error(`Error fetching email history for ${documentType}:`, error);
       
       // If it's a 404 or server error, return empty structure instead of throwing
       if (error.message?.includes('404') || error.message?.includes('500')) {
-        console.log('EmailHistoryService: Returning empty due to error status');
+        // console.log('EmailHistoryService: Returning empty due to error status');
         return {
           data: {
             documentType,
