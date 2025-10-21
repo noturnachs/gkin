@@ -126,7 +126,7 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
   const getBubbleClasses = (isSender, isFirst, isLast) => {
     // Base classes that apply to all bubbles
     const baseClasses = isSender
-      ? "bg-blue-600 text-white"
+      ? "bg-green-500 text-white"
       : "bg-white text-gray-800 border border-gray-200";
     
     // Single bubble (both first and last in sequence)
@@ -231,14 +231,14 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-xs font-medium ${
-                            isSender ? "text-blue-100" : "text-gray-700"
+                            isSender ? "text-green-100" : "text-gray-700"
                           }`}
                         >
                           {isSender ? "You" : message.sender.username}
                         </span>
                         <span
                           className={`text-xs ${
-                            isSender ? "text-blue-200" : "text-gray-500"
+                            isSender ? "text-green-200" : "text-gray-500"
                           }`}
                         >
                           ({message.sender.role})
@@ -246,7 +246,7 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
                       </div>
                       <span
                         className={`text-xs ${
-                          isSender ? "text-blue-200" : "text-gray-500"
+                          isSender ? "text-green-200" : "text-gray-500"
                         } flex items-center gap-1`}
                       >
                         <Clock className="w-3 h-3" />
@@ -261,21 +261,6 @@ export function ChatMessageList({ messages, isLoading, error, formatDate, format
                   >
                     {highlightMentions(message.content)}
                   </p>
-                  {message.mentions && message.mentions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {message.mentions.map((mention, index) => {
-                        const mentionValue = mention.value || mention;
-                        return (
-                          <span
-                            key={index}
-                            className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 border border-gray-200"
-                          >
-                            @{mentionValue}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
                 {isSender && !isLastInSequence && (

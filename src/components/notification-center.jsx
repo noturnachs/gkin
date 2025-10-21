@@ -15,37 +15,37 @@ import { useNotifications } from "../context/NotificationContext";
 const roleColors = {
   liturgy: {
     bg: "bg-blue-600",
-    text: "text-blue-800",
+    text: "text-blue-600",
     light: "bg-blue-50",
     border: "border-blue-200",
   },
   pastor: {
     bg: "bg-purple-600",
-    text: "text-purple-800",
+    text: "text-purple-600",
     light: "bg-purple-50",
     border: "border-purple-200",
   },
   translation: {
-    bg: "bg-green-600",
+    bg: "bg-green-800",
     text: "text-green-800",
     light: "bg-green-50",
     border: "border-green-200",
   },
   beamer: {
     bg: "bg-orange-600",
-    text: "text-orange-800",
+    text: "text-orange-600",
     light: "bg-orange-50",
     border: "border-orange-200",
   },
   music: {
     bg: "bg-pink-600",
-    text: "text-pink-800",
+    text: "text-pink-600",
     light: "bg-pink-50",
     border: "border-pink-200",
   },
   treasurer: {
     bg: "bg-emerald-600",
-    text: "text-emerald-800",
+    text: "text-emerald-600",
     light: "bg-emerald-50",
     border: "border-emerald-200",
   },
