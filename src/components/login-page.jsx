@@ -18,6 +18,8 @@ import {
   DollarSign,
   AlertCircle,
   Shield,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
@@ -102,11 +104,33 @@ export function LoginPage() {
   const [passcode, setPasscode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check if user is already logged in
   useEffect(() => {
     if (authService.isAuthenticated()) {
       navigate("/");
+    }
+    
+    // Load saved credentials if remember me was checked
+    const savedCredentials = localStorage.getItem('gkin-remember-me');
+    if (savedCredentials) {
+      try {
+        const { username: savedUsername, roleId, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
+        if (wasRemembered) {
+          setUsername(savedUsername);
+          setRememberMe(true);
+          // Find and set the saved role
+          const savedRole = roles.find(role => role.id === roleId);
+          if (savedRole) {
+            setSelectedRole(savedRole);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved credentials:', error);
+        localStorage.removeItem('gkin-remember-me');
+      }
     }
   }, [navigate]);
 
@@ -122,6 +146,20 @@ export function LoginPage() {
     try {
       // Call authentication service to login
       await authService.login(username, selectedRole.id, passcode);
+      
+      // Save credentials if remember me is checked
+      if (rememberMe) {
+        const credentialsToSave = {
+          username: username.trim(),
+          roleId: selectedRole.id,
+          rememberMe: true
+        };
+        localStorage.setItem('gkin-remember-me', JSON.stringify(credentialsToSave));
+      } else {
+        // Remove saved credentials if remember me is unchecked
+        localStorage.removeItem('gkin-remember-me');
+      }
+      
       navigate("/");
     } catch (error) {
       setError(error.message || "Invalid credentials. Please try again.");
@@ -198,30 +236,11 @@ export function LoginPage() {
                 <input
                   type="text"
                   id="username"
-                  className="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
+                  className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
                   placeholder="Enter your name"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
-                {username && (
-                  <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
             
@@ -258,32 +277,27 @@ export function LoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="passcode"
-                  className="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 text-sm"
                   placeholder="Enter your role passcode"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                 />
-                {passcode && (
-                  <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                  </div>
-                )}
+                <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-0.5 hover:bg-gray-100 rounded transition-colors"
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-gray-500" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -349,6 +363,23 @@ export function LoginPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember-me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label
+                htmlFor="remember-me"
+                className="text-xs font-medium text-gray-700 cursor-pointer"
+              >
+                Remember my details for next time
+              </label>
             </div>
           </CardContent>
 
