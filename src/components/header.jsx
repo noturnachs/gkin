@@ -126,6 +126,32 @@ export function Header({
               </div>
             </div>
             
+            {/* Profile Settings option for mobile view */}
+            <Button
+              variant="outline"
+              className="w-full text-xs text-gray-600 border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2"
+              onClick={() => {
+                setShowMobileMenu(false);
+                window.location.href = '/profile';
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Profile Settings
+            </Button>
+            
             {/* Admin Tools option for mobile view */}
             {user && user.role === 'admin' && (
               <Button
@@ -237,6 +263,32 @@ export function Header({
                       {typeof user.role === "string" ? user.role : user.role?.name || "Role"}
                     </div>
                   </div>
+                  {/* Profile Settings */}
+                  <div
+                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer flex items-center"
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      window.location.href = '/profile';
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Profile Settings
+                  </div>
+                  
                   {/* Admin Tools - Only visible to admins */}
                   {user && user.role === 'admin' && (
                     <div

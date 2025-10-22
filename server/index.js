@@ -60,6 +60,7 @@ const musicLinksRoutes = require("./routes/musicLinks");
 const activityRoutes = require("./routes/activity");
 const emailHistoryRoutes = require("./routes/emailHistory");
 const emailSettingsRoutes = require("./routes/emailSettings");
+const profileRoutes = require("./routes/profile");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -75,6 +76,7 @@ app.use("/api/lyrics", lyricsRoutes);
 app.use("/api/sermon", sermonRoutes);
 app.use("/api/music-links", musicLinksRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Default route
 app.get("/", (req, res) => {
