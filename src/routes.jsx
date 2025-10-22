@@ -11,6 +11,7 @@ import { AdminTools } from "./components/admin/admin-tools";
 import { LyricsTranslationPage } from "./components/translation/lyrics-translation-page";
 import { TranslationProvider } from "./context/TranslationContext";
 import { AllUpdatesPage } from "./components/all-updates-page";
+import { ProfileSettings } from "./components/profile-settings";
 
 // Routes configuration
 export const router = createBrowserRouter([
@@ -82,6 +83,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <AllUpdatesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <ProfileSettings />
           </ProtectedRoute>
         ),
       },
