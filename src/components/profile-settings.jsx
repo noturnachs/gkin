@@ -180,55 +180,51 @@ export function ProfileSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-3 sm:p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* Header with Back Button */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Header with Back Button - Mobile Responsive */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 hover:bg-gray-50 border-gray-300"
+            className="flex items-center gap-2 hover:bg-gray-50 border-gray-300 w-full sm:w-auto justify-center sm:justify-start"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Button>
           
-          <div className="text-center flex-1 mx-8">
-            <div className="flex items-center justify-center mb-2">
-              <div className={`w-16 h-16 rounded-2xl ${roleConfig.color} flex items-center justify-center shadow-lg`}>
-                <Settings className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-            <p className="text-gray-600 text-lg">Manage your account information and preferences</p>
+          <div className="text-center w-full sm:flex-1 sm:mx-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Profile Settings</h1>
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg px-2">Manage your account information and preferences</p>
           </div>
           
-          <div className="w-32"></div> {/* Spacer for centering */}
+          <div className="hidden sm:block w-32"></div> {/* Spacer for centering on desktop */}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content Grid - Responsive Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
           
-          {/* Left Column - Profile Info */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Profile Info Section - Stacks on mobile, sidebar on desktop */}
+          <div className="xl:col-span-1 space-y-4 sm:space-y-6">
             
             {/* Profile Overview Card */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <User className="w-5 h-5 text-gray-600" />
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                   Profile Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 {/* Role Badge */}
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                  <div className={`w-10 h-10 rounded-xl ${roleConfig.color} flex items-center justify-center shadow-sm`}>
-                    <Shield className="w-5 h-5 text-white" />
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${roleConfig.color} flex items-center justify-center shadow-sm`}>
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Role</p>
-                    <p className={`font-semibold ${roleConfig.textColor}`}>
+                    <p className="text-xs sm:text-sm font-medium text-gray-500">Role</p>
+                    <p className={`text-sm sm:text-base font-semibold ${roleConfig.textColor}`}>
                       {roleConfig.name}
                     </p>
                   </div>
@@ -237,15 +233,15 @@ export function ProfileSettings() {
                 {/* Member Since */}
                 {userProfile.created_at && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                    <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center shadow-sm">
-                      <Calendar className="w-5 h-5 text-white" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-500 flex items-center justify-center shadow-sm">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Member Since</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-xs sm:text-sm font-medium text-gray-500">Member Since</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900">
                         {new Date(userProfile.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',
-                          month: 'long',
+                          month: window.innerWidth < 640 ? 'short' : 'long',
                           day: 'numeric'
                         })}
                       </p>
@@ -256,12 +252,12 @@ export function ProfileSettings() {
                 {/* Last Active */}
                 {userProfile.last_active && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm">
-                      <User className="w-5 h-5 text-white" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Last Active</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-xs sm:text-sm font-medium text-gray-500">Last Active</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900">
                         {new Date(userProfile.last_active).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -276,13 +272,13 @@ export function ProfileSettings() {
 
             {/* Information Card */}
             <Card className="shadow-lg border-0 bg-blue-50/50 backdrop-blur">
-              <CardContent className="pt-6">
+              <CardContent className="pt-4 sm:pt-6">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <AlertCircle className="w-5 h-5 text-blue-600" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div className="text-sm text-gray-600">
-                    <p className="font-semibold text-gray-900 mb-2">About Email Notifications</p>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    <p className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">About Email Notifications</p>
                     <p className="leading-relaxed">
                       Your email address will be used for important notifications about assignments, 
                       workflow updates, and system announcements. All notifications are optional and 
@@ -294,26 +290,26 @@ export function ProfileSettings() {
             </Card>
           </div>
 
-          {/* Right Column - Edit Form */}
-          <div className="lg:col-span-2">
+          {/* Edit Form Section - Full width on mobile, 2/3 on desktop */}
+          <div className="xl:col-span-2">
             <Card className="shadow-xl border-0 bg-white/90 backdrop-blur">
-              <CardHeader className="pb-6">
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Settings className="w-6 h-6 text-gray-600" />
+              <CardHeader className="pb-4 sm:pb-6">
+                <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+                  <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
                   Personal Information
                 </CardTitle>
-                <CardDescription className="text-base">
+                <CardDescription className="text-sm sm:text-base">
                   Update your username and email address for notifications
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSave} className="space-y-8">
+                <form onSubmit={handleSave} className="space-y-6 sm:space-y-8">
                   
                   {/* Username field */}
                   <div>
                     <label 
                       htmlFor="username" 
-                      className="text-sm font-semibold text-gray-700 mb-3 block"
+                      className="text-sm font-semibold text-gray-700 mb-2 sm:mb-3 block"
                     >
                       Username *
                     </label>
@@ -321,14 +317,14 @@ export function ProfileSettings() {
                       <input
                         type="text"
                         id="username"
-                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200"
+                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200 text-sm sm:text-base"
                         placeholder="Enter your username"
                         value={formData.username}
                         onChange={(e) => handleInputChange('username', e.target.value)}
                         required
                       />
-                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                        <User className="w-5 h-5 text-gray-400" />
+                      <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
+                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       </div>
                     </div>
                   </div>
@@ -337,7 +333,7 @@ export function ProfileSettings() {
                   <div>
                     <label 
                       htmlFor="email" 
-                      className="text-sm font-semibold text-gray-700 mb-3 block"
+                      className="text-sm font-semibold text-gray-700 mb-2 sm:mb-3 block"
                     >
                       Email Address
                     </label>
@@ -345,52 +341,53 @@ export function ProfileSettings() {
                       <input
                         type="email"
                         id="email"
-                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200"
+                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200 text-sm sm:text-base"
                         placeholder="Enter your email for notifications"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                       />
-                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                        <Mail className="w-5 h-5 text-gray-400" />
+                      <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
+                        <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       </div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      This email will be used for future notifications and system updates
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 flex items-start sm:items-center gap-2">
+                      <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
+                      <span>This email will be used for future notifications and system updates</span>
                     </p>
                   </div>
 
                   {/* Message display */}
                   {message.text && (
-                    <div className={`flex items-center gap-3 p-4 rounded-xl shadow-sm ${
+                    <div className={`flex items-start sm:items-center gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-sm ${
                       message.type === 'success' 
                         ? 'bg-green-50 text-green-700 border border-green-200' 
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
                       {message.type === 'success' ? (
-                        <CheckCircle className="w-6 h-6 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5 sm:mt-0" />
                       ) : (
-                        <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                        <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5 sm:mt-0" />
                       )}
-                      <span className="font-medium">{message.text}</span>
+                      <span className="font-medium text-sm sm:text-base">{message.text}</span>
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4">
+                  {/* Action Buttons - Stack on mobile, side by side on desktop */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                     <Button
                       type="submit"
                       disabled={isSaving}
-                      className="flex-1 h-14 flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="order-1 sm:order-none flex-1 h-12 sm:h-14 flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
                     >
                       {isSaving ? (
                         <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          Saving Changes...
+                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+                          <span className="hidden sm:inline">Saving Changes...</span>
+                          <span className="sm:hidden">Saving...</span>
                         </>
                       ) : (
                         <>
-                          <Save className="w-5 h-5" />
+                          <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                           Save Changes
                         </>
                       )}
@@ -406,7 +403,7 @@ export function ProfileSettings() {
                         });
                         setMessage({ type: "", text: "" });
                       }}
-                      className="px-8 h-14 rounded-xl border-gray-300 hover:bg-gray-50 font-medium"
+                      className="order-2 sm:order-none px-6 sm:px-8 h-12 sm:h-14 rounded-lg sm:rounded-xl border-gray-300 hover:bg-gray-50 font-medium text-sm sm:text-base"
                     >
                       Reset
                     </Button>
