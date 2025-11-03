@@ -3,7 +3,10 @@ const path = require("path");
 const db = require("../config/db");
 const config = require("../config/config");
 const { migrateEmailHistory } = require("./migrate_email_history");
-const { addServiceDateAndRecipientTypeToEmailHistory } = require("./migrate_email_history_fields");
+const {
+  addServiceDateAndRecipientTypeToEmailHistory,
+} = require("./migrate_email_history_fields");
+const { optimizeChatQueries } = require("./optimize_chat");
 
 async function initializeDatabase() {
   try {
@@ -60,7 +63,7 @@ async function initializeDatabase() {
     await db.query(sermonTranslationsSchemaSQL);
     await db.query(musicLinksSchemaSQL);
     await db.query(activitySchemaSQL);
-    
+
     // Add email column to users table if it doesn't exist
     try {
       await db.query(`
@@ -70,22 +73,34 @@ async function initializeDatabase() {
     } catch (error) {
       console.warn("Email column migration warning:", error.message);
     }
-    
+
     // Use migration for email history to handle existing databases
     await migrateEmailHistory();
-    
+
     // Add new fields to email_history table
     await addServiceDateAndRecipientTypeToEmailHistory();
-    
+
     // Initialize email settings table
     try {
       await db.query(emailSettingsSchemaSQL);
       console.log("Email settings table initialized successfully");
     } catch (error) {
-      console.warn("Email settings table initialization warning:", error.message);
+      console.warn(
+        "Email settings table initialization warning:",
+        error.message
+      );
       // Continue execution as this might be due to existing objects
     }
-    
+
+    // Optimize chat queries
+    try {
+      await optimizeChatQueries();
+      console.log("Chat queries optimized successfully");
+    } catch (error) {
+      console.warn("Chat query optimization warning:", error.message);
+      // Continue execution as this might be due to existing objects
+    }
+
     console.log("Database schema created successfully");
 
     // Check if role_passcodes table is empty

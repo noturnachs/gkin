@@ -52,13 +52,14 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
   // Get current user
   const currentUser = authService.getCurrentUser();
-  
+
   // Track if we've already loaded messages in this session
   const hasLoadedMessagesRef = useRef(false);
-  
+
   // Keep track of recently sent message IDs to prevent duplicates
   const recentlySentMessagesRef = useRef(new Set());
 
@@ -67,14 +68,29 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
     let isMounted = true;
     let retryCount = 0;
     const maxRetries = 3;
-    
+
     const initializeChat = async () => {
       try {
         if (!isMounted) return;
-        
+
         setIsLoading(true);
         setError(null);
-        
+
+        // Check if we already have messages and are just reopening the chat
+        if (hasInitiallyLoaded && messages.length > 0) {
+          setIsLoading(false);
+
+          // Force scroll to bottom after a short delay to ensure rendering is complete
+          setTimeout(() => {
+            const chatContent = document.querySelector(".chat-content");
+            if (chatContent) {
+              chatContent.scrollTop = chatContent.scrollHeight;
+            }
+          }, 100);
+
+          return;
+        }
+
         // Check if we're already connected via the NotificationContext
         if (!chatService.connected) {
           // Only connect if not already connected
@@ -84,101 +100,109 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
             // Continue anyway - we can still use the REST API
           }
         }
-        
+
         // Update connection status
         setIsConnected(chatService.connected);
-        
-        // Always add a delay on dashboard direct load to ensure auth is ready
+
+        // Reduced delay on dashboard direct load to ensure auth is ready
         // This helps with the race condition where messages don't load on first page load
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         // Try multiple times to load messages if needed
         let messageLoadAttempt = 0;
         let initialMessages = [];
-        
-        while (messageLoadAttempt < 3) {
+
+        while (messageLoadAttempt < 2) {
+          // Reduced from 3 to 2 attempts
           try {
             initialMessages = await chatService.getMessages();
-            
+
             if (Array.isArray(initialMessages) && initialMessages.length > 0) {
               break;
             } else {
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise((resolve) => setTimeout(resolve, 500)); // Reduced from 1000ms to 500ms
               messageLoadAttempt++;
             }
           } catch (msgError) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 500)); // Reduced from 1000ms to 500ms
             messageLoadAttempt++;
           }
         }
-        
+
         // Only update state if component is still mounted
         if (isMounted) {
           // Force re-render with messages
           if (Array.isArray(initialMessages)) {
             setMessages([...initialMessages]);
-            
+
             // Force scroll to bottom after a short delay to ensure rendering is complete
             setTimeout(() => {
-              const chatContent = document.querySelector('.chat-content');
+              const chatContent = document.querySelector(".chat-content");
               if (chatContent) {
                 chatContent.scrollTop = chatContent.scrollHeight;
               }
-            }, 200);
+            }, 100); // Reduced from 200ms to 100ms
           } else {
             setMessages([]);
           }
-          
+
           setIsLoading(false);
           hasLoadedMessagesRef.current = true;
+          setHasInitiallyLoaded(true);
         }
       } catch (error) {
         if (!isMounted) return;
-        
+
         console.error("Error initializing chat:", error);
-        
+
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying (${retryCount}/${maxRetries})...`);
-          setError(`Loading messages... Retrying (${retryCount}/${maxRetries})`);
-          
+          setError(
+            `Loading messages... Retrying (${retryCount}/${maxRetries})`
+          );
+
           // Wait a bit and retry
           setTimeout(() => {
             if (isMounted) {
               initializeChat();
             }
-          }, 2000);
+          }, 1000); // Reduced from 2000ms to 1000ms
         } else {
-          setError(error.message || "Failed to connect to chat. Please try again later.");
+          setError(
+            error.message ||
+              "Failed to connect to chat. Please try again later."
+          );
           setIsLoading(false);
         }
       }
     };
-    
+
     // Call initialization function
     initializeChat();
-    
+
     // Set up message listener
     chatService.onMessage(handleNewMessage);
     chatService.onConnectionChange(handleConnectionChange);
-    
+
     // Set up a periodic refresh of messages (less frequent)
     const refreshInterval = setInterval(() => {
       if (!isLoading && isMounted) {
-        chatService.getMessages()
-          .then(newMessages => {
+        chatService
+          .getMessages()
+          .then((newMessages) => {
             if (Array.isArray(newMessages) && isMounted) {
               setMessages([...newMessages]);
             }
           })
-          .catch(err => {
+          .catch((err) => {
             if (isMounted) {
-              console.error('Error refreshing messages:', err);
+              console.error("Error refreshing messages:", err);
             }
           });
       }
     }, 60000); // Refresh every 60 seconds
-    
+
     // Clean up on unmount - but don't disconnect since NotificationContext might still need the connection
     return () => {
       isMounted = false;
@@ -196,7 +220,7 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
   // Function to scroll to bottom of chat
   const scrollToLatestMessage = () => {
     setTimeout(() => {
-      const chatContent = document.querySelector('.chat-content');
+      const chatContent = document.querySelector(".chat-content");
       if (chatContent) {
         chatContent.scrollTop = chatContent.scrollHeight;
       }
@@ -208,16 +232,18 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
     if (!message || !message.id) {
       return;
     }
-    
+
     // Check if this message is from the current user and already in the messages array
     // or if it's in our recently sent messages set
-    const isDuplicate = 
-      messages.some(existingMsg => existingMsg.id === message.id) || 
+    const isDuplicate =
+      messages.some((existingMsg) => existingMsg.id === message.id) ||
       recentlySentMessagesRef.current.has(message.id);
-    
+
     if (!isDuplicate) {
-      setMessages(prevMessages => {
-        const newMessages = Array.isArray(prevMessages) ? [...prevMessages, message] : [message];
+      setMessages((prevMessages) => {
+        const newMessages = Array.isArray(prevMessages)
+          ? [...prevMessages, message]
+          : [message];
         // Trigger scroll to bottom after state update
         scrollToLatestMessage();
         return newMessages;
@@ -270,32 +296,32 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
 
     try {
       setIsSending(true);
-      
+
       // Extract mentions
       const mentions = chatService.extractMentions(content);
-      
+
       // Send the message and get the saved message from the server
       const savedMessage = await chatService.sendMessage(content, mentions);
-      
+
       // Track this message ID to prevent duplicates when socket sends it back
       if (savedMessage && savedMessage.id) {
         recentlySentMessagesRef.current.add(savedMessage.id);
-        
+
         // Set a timeout to clean up the tracking set after a while
         // This prevents memory leaks if the socket never returns the message
         setTimeout(() => {
           recentlySentMessagesRef.current.delete(savedMessage.id);
         }, 10000); // 10 seconds should be plenty of time
       }
-      
+
       // Add the message to our local state immediately
-      setMessages(prevMessages => {
+      setMessages((prevMessages) => {
         const newMessages = [...prevMessages, savedMessage];
         // Ensure we scroll to bottom after sending a message
         scrollToLatestMessage();
         return newMessages;
       });
-      
+
       setIsSending(false);
       return savedMessage;
     } catch (error) {
@@ -308,14 +334,14 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
 
   return (
     <Card className="h-full flex flex-col shadow-xl border border-gray-300 rounded-t-lg md:rounded-lg overflow-hidden">
-      <ChatHeader 
-        isConnected={isConnected} 
-        toggleChat={toggleChat} 
-        isMobileView={isMobileView} 
+      <ChatHeader
+        isConnected={isConnected}
+        toggleChat={toggleChat}
+        isMobileView={isMobileView}
       />
 
       <CardContent className="flex-1 overflow-y-auto p-0 bg-gray-50 chat-content">
-        <ChatMessageList 
+        <ChatMessageList
           messages={messages}
           isLoading={isLoading}
           error={error}
@@ -332,10 +358,7 @@ export function ChatContainer({ toggleChat, isMobileView, markAllAsRead }) {
         </div>
       )}
 
-      <ChatInput 
-        onSendMessage={handleSendMessage}
-        isSending={isSending}
-      />
+      <ChatInput onSendMessage={handleSendMessage} isSending={isSending} />
     </Card>
   );
 }
