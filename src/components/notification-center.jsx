@@ -57,23 +57,23 @@ export function NotificationCenter() {
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
+
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-  
+
   // Close panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         isOpen &&
-        buttonRef.current && 
+        buttonRef.current &&
         !buttonRef.current.contains(event.target) &&
         panelRef.current &&
         !panelRef.current.contains(event.target)
@@ -81,7 +81,7 @@ export function NotificationCenter() {
         setIsOpen(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -104,11 +104,15 @@ export function NotificationCenter() {
           </Badge>
         )}
       </Button>
-      
+
       {isOpen && (
-        <div 
+        <div
           ref={panelRef}
-          className={`${isMobile ? 'fixed left-1/2 transform -translate-x-1/2 bottom-16' : 'absolute right-0'} mt-2 z-50 w-[320px] max-w-[95vw]`}
+          className={`${
+            isMobile
+              ? "fixed left-1/2 transform -translate-x-1/2 bottom-16"
+              : "absolute right-0"
+          } mt-2 z-50 w-[320px] max-w-[95vw]`}
         >
           <NotificationPanel isMobile={isMobile} />
         </div>
@@ -120,97 +124,97 @@ export function NotificationCenter() {
 // Create a separate component for the notification panel content
 export function NotificationPanel({ isMobile }) {
   const { mentions, markAsRead, refreshMentions } = useNotifications();
-  
+
   // Format timestamp
   const formatTime = (timestamp) => {
     const now = new Date();
     const date = new Date(timestamp);
     const diffInSeconds = Math.floor((now - date) / 1000);
-    
+
     if (diffInSeconds < 60) {
-      return 'Just now';
+      return "Just now";
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
     } else {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return `${days} day${days > 1 ? "s" : ""} ago`;
     }
   };
-  
+
   // Handle clicking on a notification
   const handleNotificationClick = async (mention) => {
-    
     if (!mention) {
       console.error("Mention is undefined");
       return;
     }
-    
+
     // Immediately mark this specific mention as read locally
     // This ensures the UI updates instantly
-    const mentionElement = document.querySelector(`[data-mention-id="${mention.id || mention.messageId}"]`);
+    const mentionElement = document.querySelector(
+      `[data-mention-id="${mention.id || mention.messageId}"]`
+    );
     if (mentionElement) {
       mentionElement.classList.remove("bg-blue-50");
       mentionElement.classList.add("bg-white");
-      
+
       // Remove the "New" badge if it exists
       const newBadge = mentionElement.querySelector(".new-badge");
       if (newBadge) {
         newBadge.style.display = "none";
       }
     }
-    
+
     // Create a normalized version of the mention with consistent IDs
     const normalizedMention = {
       ...mention,
       is_read: false, // Force to unread for marking
       id: mention.id || mention.messageId || mention.message_id,
       messageId: mention.messageId || mention.id || mention.message_id,
-      message_id: mention.message_id || mention.messageId || mention.id
+      message_id: mention.message_id || mention.messageId || mention.id,
     };
-    
-    
+
     // Collect all possible IDs from the mention object
     const possibleIds = new Set(); // Use a Set to avoid duplicates
-    
+
     // Add any ID fields we find
     if (normalizedMention.id) possibleIds.add(normalizedMention.id);
-    if (normalizedMention.messageId) possibleIds.add(normalizedMention.messageId);
-    if (normalizedMention.message_id) possibleIds.add(normalizedMention.message_id);
-    
+    if (normalizedMention.messageId)
+      possibleIds.add(normalizedMention.messageId);
+    if (normalizedMention.message_id)
+      possibleIds.add(normalizedMention.message_id);
+
     // Convert back to array
     const uniqueIds = Array.from(possibleIds);
-    
+
     if (uniqueIds.length === 0) {
       console.error("Mention has no usable ID field:", mention);
       return;
     }
-    
-    
+
     try {
       // First, directly update the UI to show the notification as read
       // This provides immediate feedback to the user
       if (mention.is_read === false) {
         // Force unread count to decrement
-        const notificationBadge = document.querySelector('.notification-badge');
+        const notificationBadge = document.querySelector(".notification-badge");
         if (notificationBadge) {
-          const currentCount = parseInt(notificationBadge.textContent || '0');
+          const currentCount = parseInt(notificationBadge.textContent || "0");
           if (currentCount > 0) {
             notificationBadge.textContent = (currentCount - 1).toString();
             if (currentCount - 1 === 0) {
-              notificationBadge.style.display = 'none';
+              notificationBadge.style.display = "none";
             }
           }
         }
       }
-      
+
       // Mark as read using all possible IDs for robustness
       await markAsRead(uniqueIds);
-     
-      
+
       // Force a refresh of all mentions to ensure we're in sync with the server
       // Use a shorter timeout for better responsiveness
       setTimeout(() => {
@@ -230,7 +234,7 @@ export function NotificationPanel({ isMobile }) {
           Notifications
         </CardTitle>
         <CardDescription className="text-gray-700">
-          Recent notifications 
+          Recent notifications
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1 bg-white p-0 max-h-[80vh] md:max-h-80 overflow-y-auto">
@@ -241,32 +245,39 @@ export function NotificationPanel({ isMobile }) {
         ) : (
           mentions.map((mention) => {
             // Get unique key for the mention
-            const mentionKey = mention.id || mention.messageId || Math.random().toString(36).substring(7);
-            
+            const mentionKey =
+              mention.id ||
+              mention.messageId ||
+              Math.random().toString(36).substring(7);
+
             // Log the mention for debugging
-            
-                          // Extract role from content if value is missing
-              let roleValue = mention.value;
-              
-              if (!roleValue && mention.content) {
-                const roleMatch = mention.content.match(/@(\w+)/);
-                if (roleMatch && roleMatch[1]) {
-                  roleValue = roleMatch[1].toLowerCase();
-                }
+
+            // Extract role from content if value is missing
+            let roleValue = mention.value;
+
+            if (!roleValue && mention.content) {
+              const roleMatch = mention.content.match(/@(\w+)/);
+              if (roleMatch && roleMatch[1]) {
+                roleValue = roleMatch[1].toLowerCase();
               }
-              
-              // Get role color or default to blue
-              const role = mention.type === 'role' ? (roleValue || 'default') : 'default';
-              const roleColor = roleColors[role]?.light || "bg-blue-50";
-              const textColor = roleColors[role]?.text || "text-blue-800";
-              
-              // Get message content from either format
-              const messageContent = mention.content || mention.message?.content || "You were mentioned in a message";
-            
+            }
+
+            // Get role color or default to blue
+            const role =
+              mention.type === "role" ? roleValue || "default" : "default";
+            const roleColor = roleColors[role]?.light || "bg-blue-50";
+            const textColor = roleColors[role]?.text || "text-blue-800";
+
+            // Get message content from either format
+            const messageContent =
+              mention.content ||
+              mention.message?.content ||
+              "You were mentioned in a message";
+
             // Check if the mention is read - be very explicit
             // For real-time mentions, we need to ensure they're properly marked as unread
             const isRead = mention.is_read === true; // Only true if explicitly set to true
-            
+
             return (
               <div
                 key={mentionKey}
@@ -282,9 +293,9 @@ export function NotificationPanel({ isMobile }) {
               >
                 {mention.sender && mention.sender.avatar_url ? (
                   <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
-                    <img 
-                      src={mention.sender.avatar_url} 
-                      alt={mention.sender.username} 
+                    <img
+                      src={mention.sender.avatar_url}
+                      alt={mention.sender.username}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -297,14 +308,17 @@ export function NotificationPanel({ isMobile }) {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">
-                    @{roleValue || 'mention'} mentioned {mention.sender ? `by ${mention.sender.username}` : ''}
+                    @{roleValue || "mention"} mentioned{" "}
+                    {mention.sender ? `by ${mention.sender.username}` : ""}
                   </p>
                   <p className="text-xs text-gray-700 truncate">
                     {messageContent}
                   </p>
                   <p className="text-xs text-gray-500 mt-1 flex items-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1"></span>
-                    {mention.created_at ? formatTime(mention.created_at) : "Recently"}
+                    {mention.created_at
+                      ? formatTime(mention.created_at)
+                      : "Recently"}
                   </p>
                 </div>
                 {!isRead && (
@@ -324,16 +338,17 @@ export function NotificationPanel({ isMobile }) {
             onClick={async (e) => {
               e.stopPropagation();
               e.preventDefault();
-              
+
               // Collect all possible IDs from unread mentions
               const unreadIds = [];
-              mentions.filter(m => !m.is_read).forEach(mention => {
-                if (mention.id) unreadIds.push(mention.id);
-                if (mention.messageId) unreadIds.push(mention.messageId);
-                if (mention.message_id) unreadIds.push(mention.message_id);
-              });
-              
-              
+              mentions
+                .filter((m) => !m.is_read)
+                .forEach((mention) => {
+                  if (mention.id) unreadIds.push(mention.id);
+                  if (mention.messageId) unreadIds.push(mention.messageId);
+                  if (mention.message_id) unreadIds.push(mention.message_id);
+                });
+
               if (unreadIds.length > 0) {
                 await markAsRead(unreadIds);
                 // Force a refresh to ensure everything is in sync
