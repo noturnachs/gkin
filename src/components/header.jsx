@@ -111,7 +111,7 @@ export function Header({
           </div>
         )}
 
-                  {/* Mobile user menu dropdown */}
+        {/* Mobile user menu dropdown */}
         {showMobileMenu && (
           <div className="mt-2 rounded-lg border border-gray-200 bg-white shadow-lg p-3 flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -121,18 +121,20 @@ export function Header({
               <div>
                 <div className="font-medium text-sm">{user?.username}</div>
                 <div className="text-xs text-gray-500">
-                  {typeof user?.role === "string" ? user.role : user?.role?.name || "Role"}
+                  {typeof user?.role === "string"
+                    ? user.role
+                    : user?.role?.name || "Role"}
                 </div>
               </div>
             </div>
-            
+
             {/* Profile Settings option for mobile view */}
             <Button
               variant="outline"
               className="w-full text-xs text-gray-600 border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-2"
               onClick={() => {
                 setShowMobileMenu(false);
-                window.location.href = '/profile';
+                window.location.href = "/profile";
               }}
             >
               <svg
@@ -151,15 +153,15 @@ export function Header({
               </svg>
               Profile Settings
             </Button>
-            
+
             {/* Admin Tools option for mobile view */}
-            {user && user.role === 'admin' && (
+            {user && user.role === "admin" && (
               <Button
                 variant="outline"
                 className="w-full text-xs text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center justify-center gap-2"
                 onClick={() => {
                   setShowMobileMenu(false);
-                  window.location.href = '/admin-tools';
+                  window.location.href = "/admin-tools";
                 }}
               >
                 <svg
@@ -178,7 +180,7 @@ export function Header({
                 Admin Tools
               </Button>
             )}
-            
+
             <Button
               variant="outline"
               className="w-full text-xs"
@@ -232,7 +234,9 @@ export function Header({
                   {user.username}
                 </span>
                 <span className="text-xs text-gray-500">
-                  {typeof user.role === "string" ? user.role : user.role?.name || "Role"}
+                  {typeof user.role === "string"
+                    ? user.role
+                    : user.role?.name || "Role"}
                 </span>
 
                 {/* Add a dropdown arrow */}
@@ -260,7 +264,9 @@ export function Header({
                   <div className="px-4 py-2 border-b border-gray-100">
                     <div className="font-medium text-sm">{user.username}</div>
                     <div className="text-xs text-gray-500">
-                      {typeof user.role === "string" ? user.role : user.role?.name || "Role"}
+                      {typeof user.role === "string"
+                        ? user.role
+                        : user.role?.name || "Role"}
                     </div>
                   </div>
                   {/* Profile Settings */}
@@ -268,7 +274,7 @@ export function Header({
                     className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer flex items-center"
                     onClick={() => {
                       setShowUserDropdown(false);
-                      window.location.href = '/profile';
+                      window.location.href = "/profile";
                     }}
                   >
                     <svg
@@ -288,14 +294,14 @@ export function Header({
                     </svg>
                     Profile Settings
                   </div>
-                  
+
                   {/* Admin Tools - Only visible to admins */}
-                  {user && user.role === 'admin' && (
+                  {user && user.role === "admin" && (
                     <div
                       className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer flex items-center"
                       onClick={() => {
                         setShowUserDropdown(false);
-                        window.location.href = '/admin-tools';
+                        window.location.href = "/admin-tools";
                       }}
                     >
                       <svg
@@ -315,7 +321,7 @@ export function Header({
                       Admin Tools
                     </div>
                   )}
-                  
+
                   {showLogout && (
                     <div
                       className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer flex items-center"
