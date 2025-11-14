@@ -106,31 +106,49 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState(false);
 
   // Check if user is already logged in
   useEffect(() => {
     if (authService.isAuthenticated()) {
       navigate("/");
     }
-    
+
+    // Check if session expired
+    const sessionExpired = localStorage.getItem("sessionExpired");
+    if (sessionExpired === "true") {
+      setSessionExpiredMessage(true);
+      // Clear the flag
+      localStorage.removeItem("sessionExpired");
+      // Auto-hide message after 8 seconds
+      setTimeout(() => {
+        setSessionExpiredMessage(false);
+      }, 8000);
+    }
+
     // Load saved credentials if remember me was checked
-    const savedCredentials = localStorage.getItem('gkin-remember-me');
+    const savedCredentials = localStorage.getItem("gkin-remember-me");
     if (savedCredentials) {
       try {
-        const { username: savedUsername, roleId, passcode: savedPasscode, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
+        const {
+          username: savedUsername,
+          roleId,
+          passcode: savedPasscode,
+          rememberMe: wasRemembered,
+        } = JSON.parse(savedCredentials);
         if (wasRemembered) {
           setUsername(savedUsername);
           setPasscode(savedPasscode || "");
           setRememberMe(true);
           // Find and set the saved role
-          const savedRole = roles.find(role => role.id === roleId);
+          const savedRole = roles.find((role) => role.id === roleId);
           if (savedRole) {
             setSelectedRole(savedRole);
           }
         }
       } catch (error) {
-        console.error('Error loading saved credentials:', error);
-        localStorage.removeItem('gkin-remember-me');
+        console.error("Error loading saved credentials:", error);
+        localStorage.removeItem("gkin-remember-me");
       }
     }
   }, [navigate]);
@@ -147,21 +165,24 @@ export function LoginPage() {
     try {
       // Call authentication service to login
       await authService.login(username, selectedRole.id, passcode);
-      
+
       // Save credentials if remember me is checked
       if (rememberMe) {
         const credentialsToSave = {
           username: username.trim(),
           roleId: selectedRole.id,
           passcode: passcode.trim(),
-          rememberMe: true
+          rememberMe: true,
         };
-        localStorage.setItem('gkin-remember-me', JSON.stringify(credentialsToSave));
+        localStorage.setItem(
+          "gkin-remember-me",
+          JSON.stringify(credentialsToSave)
+        );
       } else {
         // Remove saved credentials if remember me is unchecked
-        localStorage.removeItem('gkin-remember-me');
+        localStorage.removeItem("gkin-remember-me");
       }
-      
+
       navigate("/");
     } catch (error) {
       setError(error.message || "Invalid credentials. Please try again.");
@@ -210,6 +231,39 @@ export function LoginPage() {
             </CardHeader>
           </div>
 
+          {/* Session Expired Message */}
+          {sessionExpiredMessage && (
+            <div className="mx-6 mt-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 px-4 py-3 rounded-lg flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Session Expired</p>
+                <p className="text-sm mt-0.5">
+                  Your session has expired. Please log in again to continue.
+                </p>
+              </div>
+              <button
+                onClick={() => setSessionExpiredMessage(false)}
+                className="text-amber-600 hover:text-amber-800 transition-colors"
+                aria-label="Close message"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          )}
+
           <CardContent className="pt-6 pb-4 space-y-6 bg-white px-6">
             {/* Username Input with Modern Styling */}
             <div className="space-y-2">
@@ -245,7 +299,7 @@ export function LoginPage() {
                 />
               </div>
             </div>
-            
+
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
@@ -253,7 +307,7 @@ export function LoginPage() {
                 <span className="font-medium">{error}</span>
               </div>
             )}
-            
+
             {/* Passcode Input */}
             <div className="space-y-2">
               <label
@@ -272,7 +326,14 @@ export function LoginPage() {
                   strokeLinejoin="round"
                   className="text-gray-500"
                 >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <rect
+                    x="3"
+                    y="11"
+                    width="18"
+                    height="11"
+                    rx="2"
+                    ry="2"
+                  ></rect>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 Passcode
@@ -387,8 +448,7 @@ export function LoginPage() {
                         ? "bg-blue-600 border-blue-600"
                         : "bg-white border-gray-300 hover:border-gray-400"
                     }`}
-                  >
-                  </div>
+                  ></div>
                 </label>
               </div>
               <div className="flex-1">
@@ -408,7 +468,12 @@ export function LoginPage() {
           <CardFooter className="flex justify-end pt-4 pb-6 bg-white px-6">
             <Button
               onClick={handleLogin}
-              disabled={!selectedRole || !username.trim() || !passcode.trim() || isLoading}
+              disabled={
+                !selectedRole ||
+                !username.trim() ||
+                !passcode.trim() ||
+                isLoading
+              }
               className={`w-full h-12 flex items-center justify-center gap-2 ${
                 selectedRole
                   ? selectedRole.id === "liturgy"

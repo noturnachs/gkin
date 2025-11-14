@@ -95,6 +95,8 @@ const apiRequest = async (
           // console.log("Redirecting to login due to authentication error");
           // Clear user data
           localStorage.removeItem("currentUser");
+          // Set session expired flag for login page to display message
+          localStorage.setItem("sessionExpired", "true");
           // Use timeout to avoid state updates during render
           setTimeout(() => {
             window.location.href = "/login";
