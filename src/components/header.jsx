@@ -65,7 +65,7 @@ export function Header({
 
       {/* Mobile Layout */}
       <div className="flex flex-col gap-3 md:hidden relative">
-        {/* Top row: Title and menu button */}
+        {/* Top row: Title and actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Icon next to title */}
@@ -95,53 +95,42 @@ export function Header({
               )}
             </div>
           </div>
-          {/* User menu button */}
-          {showUserInfo && (
-            <div
-              className="flex items-center gap-2 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-full border border-gray-200/80 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-            >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
-                {user?.username?.charAt(0)?.toUpperCase() || "U"}
+
+          {/* Notification and User menu buttons side by side */}
+          <div className="flex items-center gap-2">
+            {showNotifications && (
+              <div className="relative z-[100] transition-transform hover:scale-105 duration-200">
+                <NotificationCenter />
               </div>
-              <span className="text-xs font-medium text-gray-700">
-                {user?.username}
-              </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`transition-transform duration-300 text-gray-500 ${
-                  showMobileMenu ? "rotate-180" : ""
-                }`}
+            )}
+
+            {showUserInfo && (
+              <div
+                className="relative flex items-center justify-center bg-white/95 backdrop-blur-sm p-2 rounded-full border border-gray-200/80 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
               >
-                <path d="M6 9l6 6 6-6"></path>
-              </svg>
-            </div>
-          )}
-        </div>
-        {/* Actions row */}
-        <div className="flex items-center gap-2">
-          {showNotifications && (
-            <div className="relative z-[100] transition-transform hover:scale-105 duration-200">
-              <NotificationCenter />
-            </div>
-          )}
-          {showLogout && (
-            <Button
-              variant="outline"
-              className="text-xs px-3 py-1.5 font-medium hover:bg-gray-50 transition-colors duration-200"
-              onClick={onLogout}
-            >
-              Logout
-            </Button>
-          )}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-semibold text-sm shadow-sm">
+                  {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`absolute -bottom-0.5 -right-0.5 bg-white rounded-full p-0.5 transition-transform duration-300 text-gray-600 ${
+                    showMobileMenu ? "rotate-180" : ""
+                  }`}
+                >
+                  <path d="M6 9l6 6 6-6"></path>
+                </svg>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile user menu dropdown */}
