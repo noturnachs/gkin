@@ -108,11 +108,7 @@ export function NotificationCenter() {
       {isOpen && (
         <div
           ref={panelRef}
-          className={`${
-            isMobile
-              ? "fixed left-1/2 transform -translate-x-1/2 bottom-16"
-              : "absolute right-0"
-          } mt-2 z-[9999] w-[320px] max-w-[95vw]`}
+          className="absolute right-0 top-full mt-2 z-[9999] w-[320px] max-w-[95vw]"
         >
           <NotificationPanel isMobile={isMobile} />
         </div>
