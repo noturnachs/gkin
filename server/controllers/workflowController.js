@@ -1,5 +1,15 @@
 const db = require("../config/db");
-const { emitActivityUpdate } = require("../index");
+
+// Store reference to emitActivityUpdate function (set externally to avoid circular dependency)
+let emitActivityUpdateFn = null;
+
+// Setter function to inject the emitActivityUpdate function
+const setEmitActivityUpdate = (fn) => {
+  emitActivityUpdateFn = fn;
+};
+
+// Export the setter
+module.exports.setEmitActivityUpdate = setEmitActivityUpdate;
 
 /**
  * Log an activity to the activity_log table
@@ -45,8 +55,16 @@ const logActivity = async (client, activity) => {
     const createdActivity = result.rows[0];
 
     // Emit the activity via WebSocket for real-time updates
-    if (createdActivity) {
-      emitActivityUpdate(createdActivity);
+    if (
+      createdActivity &&
+      emitActivityUpdateFn &&
+      typeof emitActivityUpdateFn === "function"
+    ) {
+      try {
+        emitActivityUpdateFn(createdActivity);
+      } catch (error) {
+        console.warn("Error emitting activity update:", error.message);
+      }
     }
 
     return createdActivity;

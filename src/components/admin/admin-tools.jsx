@@ -35,6 +35,7 @@ import emailSettingsService from "../../services/emailSettingsService";
 import { useNotifications } from "../../context/NotificationContext";
 import { PasscodeManager } from "./passcode-manager";
 import { RoleBasedPeopleManager } from "./role-based-people-manager";
+import { RoleEmailManager } from "./role-email-manager";
 import { Link } from "react-router-dom";
 
 /**
@@ -186,9 +187,15 @@ export function AdminTools() {
     },
     {
       id: "people",
-      label: "People",
+      label: "Service Assignments",
       icon: Users,
       description: "Manage assignable people",
+    },
+    {
+      id: "role-emails",
+      label: "Role Emails",
+      icon: Mail,
+      description: "Configure role email addresses",
     },
     {
       id: "settings",
@@ -635,6 +642,11 @@ export function AdminTools() {
     return <RoleBasedPeopleManager />;
   };
 
+  // Render the Role Emails tab content
+  const renderRoleEmailsTab = () => {
+    return <RoleEmailManager />;
+  };
+
   // Render the Settings tab content
   const renderSettingsTab = () => {
     // Helper function to format uptime
@@ -1040,6 +1052,8 @@ export function AdminTools() {
         return renderPasscodesTab();
       case "people":
         return renderPeopleTab();
+      case "role-emails":
+        return renderRoleEmailsTab();
       case "settings":
         return renderSettingsTab();
       default:

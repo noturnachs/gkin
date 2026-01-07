@@ -17,10 +17,12 @@ import {
   ArrowLeft,
   Calendar,
   Shield,
+  Lock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 import api from "../services/api";
+import { getMyRoleEmail } from "../services/roleEmailsService";
 
 export function ProfileSettings() {
   const navigate = useNavigate();
@@ -32,12 +34,12 @@ export function ProfileSettings() {
     created_at: null,
     last_active: null,
   });
+  const [roleEmail, setRoleEmail] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [formData, setFormData] = useState({
     username: "",
-    email: "",
   });
 
   // Get current user from auth service
@@ -47,49 +49,51 @@ export function ProfileSettings() {
       setUserProfile(currentUser);
       setFormData({
         username: currentUser.username || "",
-        email: currentUser.email || "",
       });
     }
     fetchProfile();
+    fetchRoleEmail();
   }, []);
 
   // Fetch user profile from API
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      const profile = await api.get('/profile');
+      const profile = await api.get("/profile");
       setUserProfile(profile);
       setFormData({
         username: profile.username || "",
-        email: profile.email || "",
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
       setMessage({
         type: "error",
-        text: "Failed to load profile information"
+        text: "Failed to load profile information",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Fetch role email from API
+  const fetchRoleEmail = async () => {
+    try {
+      const response = await getMyRoleEmail();
+      setRoleEmail(response.email || "");
+    } catch (error) {
+      console.error("Error fetching role email:", error);
+      // Don't show error message, just leave email empty
+    }
+  };
+
   // Handle form submission
   const handleSave = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.username.trim()) {
       setMessage({
         type: "error",
-        text: "Username is required"
-      });
-      return;
-    }
-
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setMessage({
-        type: "error",
-        text: "Please enter a valid email address"
+        text: "Username is required",
       });
       return;
     }
@@ -98,34 +102,33 @@ export function ProfileSettings() {
     setMessage({ type: "", text: "" });
 
     try {
-      const response = await api.put('/profile', formData);
-      
+      const response = await api.put("/profile", formData);
+
       // Update local user data
       const updatedUser = { ...userProfile, ...response.user };
       setUserProfile(updatedUser);
-      
+
       // Update localStorage to maintain session
       const currentUser = authService.getCurrentUser();
       if (currentUser) {
         const updatedUserData = { ...currentUser, ...response.user };
-        localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+        localStorage.setItem("currentUser", JSON.stringify(updatedUserData));
       }
-      
+
       setMessage({
         type: "success",
-        text: "Profile updated successfully!"
+        text: "Profile updated successfully!",
       });
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setMessage({ type: "", text: "" });
       }, 3000);
-      
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
       setMessage({
         type: "error",
-        text: error.response?.data?.message || "Failed to update profile"
+        text: error.response?.data?.message || "Failed to update profile",
       });
     } finally {
       setIsSaving(false);
@@ -134,11 +137,11 @@ export function ProfileSettings() {
 
   // Handle input changes
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Clear messages when user starts typing
     if (message.text) {
       setMessage({ type: "", text: "" });
@@ -148,15 +151,49 @@ export function ProfileSettings() {
   // Role display configuration
   const getRoleConfig = (role) => {
     const configs = {
-      liturgy: { name: "Liturgy Maker", color: "bg-blue-500", textColor: "text-blue-700" },
-      pastor: { name: "Pastor", color: "bg-purple-500", textColor: "text-purple-700" },
-      translation: { name: "Translator", color: "bg-green-500", textColor: "text-green-700" },
-      beamer: { name: "Beamer Team", color: "bg-orange-500", textColor: "text-orange-700" },
-      music: { name: "Musicians", color: "bg-pink-500", textColor: "text-pink-700" },
-      treasurer: { name: "Treasurer", color: "bg-emerald-500", textColor: "text-emerald-700" },
-      admin: { name: "Administrator", color: "bg-indigo-500", textColor: "text-indigo-700" },
+      liturgy: {
+        name: "Liturgy Maker",
+        color: "bg-blue-500",
+        textColor: "text-blue-700",
+      },
+      pastor: {
+        name: "Pastor",
+        color: "bg-purple-500",
+        textColor: "text-purple-700",
+      },
+      translation: {
+        name: "Translator",
+        color: "bg-green-500",
+        textColor: "text-green-700",
+      },
+      beamer: {
+        name: "Beamer Team",
+        color: "bg-orange-500",
+        textColor: "text-orange-700",
+      },
+      music: {
+        name: "Musicians",
+        color: "bg-pink-500",
+        textColor: "text-pink-700",
+      },
+      treasurer: {
+        name: "Treasurer",
+        color: "bg-emerald-500",
+        textColor: "text-emerald-700",
+      },
+      admin: {
+        name: "Administrator",
+        color: "bg-indigo-500",
+        textColor: "text-indigo-700",
+      },
     };
-    return configs[role] || { name: role, color: "bg-gray-500", textColor: "text-gray-700" };
+    return (
+      configs[role] || {
+        name: role,
+        color: "bg-gray-500",
+        textColor: "text-gray-700",
+      }
+    );
   };
 
   const roleConfig = getRoleConfig(userProfile.role);
@@ -169,8 +206,12 @@ export function ProfileSettings() {
             <CardContent className="pt-12">
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <span className="text-lg font-medium text-gray-700">Loading your profile...</span>
-                <span className="text-sm text-gray-500 mt-2">Please wait while we fetch your information</span>
+                <span className="text-lg font-medium text-gray-700">
+                  Loading your profile...
+                </span>
+                <span className="text-sm text-gray-500 mt-2">
+                  Please wait while we fetch your information
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -182,32 +223,32 @@ export function ProfileSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-3 sm:p-4 md:p-6">
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-        
         {/* Header with Back Button - Mobile Responsive */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <Button
             variant="outline"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             className="flex items-center gap-2 hover:bg-gray-50 border-gray-300 w-full sm:w-auto justify-center sm:justify-start"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Button>
-          
           <div className="text-center w-full sm:flex-1 sm:mx-8">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Profile Settings</h1>
-            <p className="text-gray-600 text-sm sm:text-base lg:text-lg px-2">Manage your account information and preferences</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">
+              Profile Settings
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg px-2">
+              Manage your account information and preferences
+            </p>
           </div>
-          
-          <div className="hidden sm:block w-32"></div> {/* Spacer for centering on desktop */}
+          <div className="hidden sm:block w-32"></div>{" "}
+          {/* Spacer for centering on desktop */}
         </div>
 
         {/* Main Content Grid - Responsive Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-          
           {/* Profile Info Section - Stacks on mobile, sidebar on desktop */}
           <div className="xl:col-span-1 space-y-4 sm:space-y-6">
-            
             {/* Profile Overview Card */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
               <CardHeader className="pb-3 sm:pb-4">
@@ -219,17 +260,23 @@ export function ProfileSettings() {
               <CardContent className="space-y-3 sm:space-y-4">
                 {/* Role Badge */}
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${roleConfig.color} flex items-center justify-center shadow-sm`}>
+                  <div
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${roleConfig.color} flex items-center justify-center shadow-sm`}
+                  >
                     <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-500">Role</p>
-                    <p className={`text-sm sm:text-base font-semibold ${roleConfig.textColor}`}>
+                    <p className="text-xs sm:text-sm font-medium text-gray-500">
+                      Role
+                    </p>
+                    <p
+                      className={`text-sm sm:text-base font-semibold ${roleConfig.textColor}`}
+                    >
                       {roleConfig.name}
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Member Since */}
                 {userProfile.created_at && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
@@ -237,18 +284,23 @@ export function ProfileSettings() {
                       <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-500">Member Since</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-500">
+                        Member Since
+                      </p>
                       <p className="text-sm sm:text-base font-semibold text-gray-900">
-                        {new Date(userProfile.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: window.innerWidth < 640 ? 'short' : 'long',
-                          day: 'numeric'
-                        })}
+                        {new Date(userProfile.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: window.innerWidth < 640 ? "short" : "long",
+                            day: "numeric",
+                          }
+                        )}
                       </p>
                     </div>
                   </div>
                 )}
-                
+
                 {/* Last Active */}
                 {userProfile.last_active && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
@@ -256,13 +308,18 @@ export function ProfileSettings() {
                       <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm font-medium text-gray-500">Last Active</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-500">
+                        Last Active
+                      </p>
                       <p className="text-sm sm:text-base font-semibold text-gray-900">
-                        {new Date(userProfile.last_active).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
+                        {new Date(userProfile.last_active).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
                       </p>
                     </div>
                   </div>
@@ -278,11 +335,25 @@ export function ProfileSettings() {
                     <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    <p className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">About Email Notifications</p>
+                    <p className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">
+                      About Role Email
+                    </p>
                     <p className="leading-relaxed">
-                      Your email address will be used for important notifications about assignments, 
-                      workflow updates, and system announcements. All notifications are optional and 
-                      can be managed at any time.
+                      {userProfile.role === "pastor" ? (
+                        <>
+                          Pastor emails are managed through Service Assignments,
+                          as different pastors are assigned per service date.
+                          Notifications will be sent to the assigned pastor for
+                          each specific service.
+                        </>
+                      ) : (
+                        <>
+                          Your role's email address is managed by the
+                          administrator. All users in the {roleConfig.name} role
+                          share the same email for notifications and system
+                          updates.
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -299,16 +370,15 @@ export function ProfileSettings() {
                   Personal Information
                 </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
-                  Update your username and email address for notifications
+                  Update your username. Role email is managed by administrator.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSave} className="space-y-6 sm:space-y-8">
-                  
                   {/* Username field */}
                   <div>
-                    <label 
-                      htmlFor="username" 
+                    <label
+                      htmlFor="username"
                       className="text-sm font-semibold text-gray-700 mb-2 sm:mb-3 block"
                     >
                       Username *
@@ -320,7 +390,9 @@ export function ProfileSettings() {
                         className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200 text-sm sm:text-base"
                         placeholder="Enter your username"
                         value={formData.username}
-                        onChange={(e) => handleInputChange('username', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("username", e.target.value)
+                        }
                         required
                       />
                       <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
@@ -329,22 +401,27 @@ export function ProfileSettings() {
                     </div>
                   </div>
 
-                  {/* Email field */}
+                  {/* Role Email field (Read-only) */}
                   <div>
-                    <label 
-                      htmlFor="email" 
-                      className="text-sm font-semibold text-gray-700 mb-2 sm:mb-3 block"
+                    <label
+                      htmlFor="role-email"
+                      className="text-sm font-semibold text-gray-700 mb-2 sm:mb-3 block flex items-center gap-2"
                     >
-                      Email Address
+                      Role Email Address
+                      <span className="text-xs font-normal text-gray-500 flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        Admin Managed
+                      </span>
                     </label>
                     <div className="relative">
                       <input
                         type="email"
-                        id="email"
-                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white shadow-sm transition-all duration-200 text-sm sm:text-base"
-                        placeholder="Enter your email for notifications"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        id="role-email"
+                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed shadow-sm text-sm sm:text-base"
+                        placeholder="No email set for this role"
+                        value={roleEmail}
+                        disabled
+                        readOnly
                       />
                       <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
                         <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -352,23 +429,40 @@ export function ProfileSettings() {
                     </div>
                     <p className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 flex items-start sm:items-center gap-2">
                       <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
-                      <span>This email will be used for future notifications and system updates</span>
+                      <span>
+                        {userProfile.role === "pastor" ? (
+                          <>
+                            Pastor email is determined by who is assigned as
+                            "Voorganger" in Service Assignments for each service
+                            date.
+                          </>
+                        ) : (
+                          <>
+                            All {roleConfig.name} users share this email.
+                            Contact an admin to change it.
+                          </>
+                        )}
+                      </span>
                     </p>
                   </div>
 
                   {/* Message display */}
                   {message.text && (
-                    <div className={`flex items-start sm:items-center gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-sm ${
-                      message.type === 'success' 
-                        ? 'bg-green-50 text-green-700 border border-green-200' 
-                        : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                      {message.type === 'success' ? (
+                    <div
+                      className={`flex items-start sm:items-center gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-sm ${
+                        message.type === "success"
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "bg-red-50 text-red-700 border border-red-200"
+                      }`}
+                    >
+                      {message.type === "success" ? (
                         <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5 sm:mt-0" />
                       ) : (
                         <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 mt-0.5 sm:mt-0" />
                       )}
-                      <span className="font-medium text-sm sm:text-base">{message.text}</span>
+                      <span className="font-medium text-sm sm:text-base">
+                        {message.text}
+                      </span>
                     </div>
                   )}
 
@@ -382,7 +476,9 @@ export function ProfileSettings() {
                       {isSaving ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                          <span className="hidden sm:inline">Saving Changes...</span>
+                          <span className="hidden sm:inline">
+                            Saving Changes...
+                          </span>
                           <span className="sm:hidden">Saving...</span>
                         </>
                       ) : (
@@ -392,14 +488,13 @@ export function ProfileSettings() {
                         </>
                       )}
                     </Button>
-                    
+
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => {
                         setFormData({
                           username: userProfile.username || "",
-                          email: userProfile.email || "",
                         });
                         setMessage({ type: "", text: "" });
                       }}

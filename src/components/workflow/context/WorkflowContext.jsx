@@ -1,12 +1,16 @@
 // src/components/workflow/context/WorkflowContext.jsx
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useMemo } from "react";
 import workflowService from "../../../services/workflowService";
 import lyricsService from "../../../services/lyricsService";
 import musicLinksService from "../../../services/musicLinksService";
+import emailHistoryService from "../../../services/emailHistoryService";
 
 const WorkflowContext = createContext();
 
 export const useWorkflow = () => useContext(WorkflowContext);
+
+// Define document types outside to prevent re-creation
+const EMAIL_DOCUMENT_TYPES = ["concept", "final", "sermon"];
 
 export const WorkflowProvider = ({
   children,
@@ -22,6 +26,10 @@ export const WorkflowProvider = ({
 
   // State for triggering email status refresh
   const [emailStatusRefreshTrigger, setEmailStatusRefreshTrigger] = useState(0);
+
+  // State for email send status (shared across all TaskCards)
+  const [emailSendStatus, setEmailSendStatus] = useState({});
+  const [emailStatusLoading, setEmailStatusLoading] = useState(false);
 
   // State for QR code status
   const [qrCodeStatus, setQrCodeStatus] = useState("pending");
@@ -72,6 +80,48 @@ export const WorkflowProvider = ({
   const [musicLinksToEdit, setMusicLinksToEdit] = useState(null);
   const [musicLinksToView, setMusicLinksToView] = useState(null);
   const [isFetchingMusicLinks, setIsFetchingMusicLinks] = useState(false);
+
+  // Fetch email send status once for all tasks (shared state)
+  useEffect(() => {
+    if (!dateString) return;
+
+    const fetchEmailSendStatus = async () => {
+      setEmailStatusLoading(true);
+      const statusResults = {};
+
+      try {
+        // Check for each document type and recipient type combination
+        for (const documentType of EMAIL_DOCUMENT_TYPES) {
+          statusResults[documentType] = {};
+
+          // Check pastor emails
+          const pastorStatus = await emailHistoryService.getEmailSendStatus(
+            documentType,
+            dateString,
+            "pastor"
+          );
+          statusResults[documentType].pastor = pastorStatus.data;
+
+          // Check music emails
+          const musicStatus = await emailHistoryService.getEmailSendStatus(
+            documentType,
+            dateString,
+            "music"
+          );
+          statusResults[documentType].music = musicStatus.data;
+        }
+
+        setEmailSendStatus(statusResults);
+      } catch (error) {
+        console.error("Error checking email send status:", error);
+        setEmailSendStatus({});
+      } finally {
+        setEmailStatusLoading(false);
+      }
+    };
+
+    fetchEmailSendStatus();
+  }, [dateString, emailStatusRefreshTrigger]);
 
   // Load workflow tasks for the current service
   useEffect(() => {
@@ -390,7 +440,19 @@ export const WorkflowProvider = ({
 
   // Function to trigger email status refresh
   const triggerEmailStatusRefresh = () => {
-    setEmailStatusRefreshTrigger(prev => prev + 1);
+    setEmailStatusRefreshTrigger((prev) => prev + 1);
+  };
+
+  // Helper function to get send status for a specific document type and recipient type
+  const getSendStatus = (documentType, recipientType) => {
+    return (
+      emailSendStatus[documentType]?.[recipientType] || {
+        hasSent: false,
+        lastSentBy: null,
+        lastSentAt: null,
+        emailCount: 0,
+      }
+    );
   };
 
   // Check if the current user can work on this category
@@ -416,6 +478,9 @@ export const WorkflowProvider = ({
     setQrCodeStatus,
     completedTasks,
     setCompletedTasks,
+    emailSendStatus,
+    emailStatusLoading,
+    getSendStatus,
     isDocumentModalOpen,
     setIsDocumentModalOpen,
     isSermonModalOpen,

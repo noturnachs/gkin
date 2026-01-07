@@ -62,6 +62,7 @@ const emailHistoryRoutes = require("./routes/emailHistory");
 const emailSettingsRoutes = require("./routes/emailSettings");
 const profileRoutes = require("./routes/profile");
 const assignablePeopleRoutes = require("./routes/assignablePeople");
+const roleEmailsRoutes = require("./routes/roleEmails");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -79,6 +80,7 @@ app.use("/api/music-links", musicLinksRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/assignable-people", assignablePeopleRoutes);
+app.use("/api/role-emails", roleEmailsRoutes);
 
 // Default route
 app.get("/", (req, res) => {
@@ -201,6 +203,18 @@ io.on("connection", (socket) => {
 // Initialize database before starting the server
 initializeDatabase()
   .then(() => {
+    // After database is initialized, inject the emitActivityUpdate function into controllers
+    // to avoid circular dependency during initialization
+    const workflowController = require("./controllers/workflowController");
+    const musicLinksController = require("./controllers/musicLinksController");
+
+    if (workflowController.setEmitActivityUpdate) {
+      workflowController.setEmitActivityUpdate(emitActivityUpdate);
+    }
+    if (musicLinksController.setEmitActivityUpdate) {
+      musicLinksController.setEmitActivityUpdate(emitActivityUpdate);
+    }
+
     // Start server
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
