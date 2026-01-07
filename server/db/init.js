@@ -60,6 +60,10 @@ async function initializeDatabase() {
       path.join(__dirname, "assignable_people_schema.sql"),
       "utf8"
     );
+    const roleEmailsSchemaSQL = fs.readFileSync(
+      path.join(__dirname, "role_emails_schema.sql"),
+      "utf8"
+    );
 
     // Execute schema SQL
     await db.query(schemaSQL);
@@ -117,6 +121,15 @@ async function initializeDatabase() {
       console.log("Assignable people roles migration completed successfully");
     } catch (error) {
       console.warn("Assignable people roles migration warning:", error.message);
+      // Continue execution as this might be due to existing objects
+    }
+
+    // Initialize role emails table
+    try {
+      await db.query(roleEmailsSchemaSQL);
+      console.log("Role emails table initialized successfully");
+    } catch (error) {
+      console.warn("Role emails table initialization warning:", error.message);
       // Continue execution as this might be due to existing objects
     }
 
