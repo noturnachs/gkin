@@ -197,10 +197,34 @@ const updateMultipleRoleEmails = async (req, res) => {
   }
 };
 
+/**
+ * Internal function to get role email (for use within controllers)
+ * @param {string} role - Role name
+ * @returns {Promise<Object|null>} Role email object or null
+ */
+const getRoleEmailInternal = async (role) => {
+  try {
+    const result = await db.query(
+      "SELECT role, email FROM role_emails WHERE role = $1",
+      [role]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error fetching role email internally:", error);
+    return null;
+  }
+};
+
 module.exports = {
   getAllRoleEmails,
   getRoleEmail,
   getMyRoleEmail,
   updateRoleEmail,
   updateMultipleRoleEmails,
+  getRoleEmailInternal,
 };

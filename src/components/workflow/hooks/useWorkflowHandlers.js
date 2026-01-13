@@ -828,6 +828,47 @@ export const useWorkflowHandlers = () => {
         onStartAction("lyrics-added");
       }
 
+      // Send notifications to beamer team
+      try {
+        // 1. Send in-app chat notification
+        const songTitles = lyricsData.songs
+          .map((song) => song.title)
+          .join(", ");
+        const notificationMessage = `@beamer Song lyrics have been uploaded for ${dateString}: ${songTitles}`;
+        await chatService.sendMessage(notificationMessage, [
+          {
+            type: "role",
+            value: "beamer",
+          },
+        ]);
+
+        // 2. Send email notification to beamer role
+        try {
+          const beamerEmail = await roleEmailsService.getRoleEmail("beamer");
+
+          if (beamerEmail?.email) {
+            await emailService.sendEmail({
+              to: beamerEmail.email,
+              subject: `Song Lyrics Uploaded - ${dateString}`,
+              message: `New song lyrics have been uploaded for the service on ${dateString}.\n\nSongs:\n${lyricsData.songs
+                .map((song) => `- ${song.title}`)
+                .join(
+                  "\n"
+                )}\n\nPlease prepare the slides accordingly.\n\nView on website: ${
+                window.location.origin
+              }`,
+              documentType: "lyrics",
+              serviceDate: dateString,
+              recipientType: "beamer",
+            });
+          }
+        } catch (emailError) {
+          console.warn("Failed to send email notification:", emailError);
+        }
+      } catch (notificationError) {
+        console.warn("Failed to send notifications:", notificationError);
+      }
+
       // Show a success message
       alert("Song lyrics have been saved to the database successfully!");
     } catch (error) {
