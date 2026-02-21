@@ -4,21 +4,12 @@ import chatService from "../../services/chatService";
 import { useNotifications } from "../../context/NotificationContext";
 import { ChatContainer } from "../chat/ChatContainer";
 
-// Preload chat service connection
-let chatServicePreloaded = false;
-const preloadChatService = async () => {
-  if (!chatServicePreloaded) {
-    try {
-      await chatService.connect();
-      chatServicePreloaded = true;
-    } catch (error) {
-      // Silent fail - we'll retry in the component
-    }
-  }
+// Connect lazily on first component mount instead of at module load time
+const ensureChatConnected = () => {
+  chatService.connect().catch(() => {
+    // Silent fail - app works without WebSocket
+  });
 };
-
-// Preload as soon as this module is loaded
-preloadChatService();
 
 export function GlobalChat({ defaultExpanded = false }) {
   const [isExpanded, setIsExpanded] = useState(() => {
@@ -46,6 +37,11 @@ export function GlobalChat({ defaultExpanded = false }) {
     return () => {
       window.removeEventListener("resize", checkMobileView);
     };
+  }, []);
+
+  // Connect to chat service on mount
+  useEffect(() => {
+    ensureChatConnected();
   }, []);
 
   // Update localStorage when expanded state changes

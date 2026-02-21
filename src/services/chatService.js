@@ -10,6 +10,7 @@ class ChatService {
   constructor() {
     this.socket = null;
     this.connected = false;
+    this._connectingPromise = null;
     this.messageListeners = [];
     this.mentionListeners = [];
     this.connectionListeners = [];
@@ -21,14 +22,18 @@ class ChatService {
    * @returns {Promise} Promise that resolves when connected
    */
   connect() {
-    return new Promise((resolve, reject) => {
-      // If already connected, just return the existing socket
-      if (this.connected && this.socket) {
-        resolve(this.socket);
-        return;
-      }
-      
-      // If there's an existing socket but not connected, disconnect it first
+    // If already connected, resolve immediately
+    if (this.connected && this.socket) {
+      return Promise.resolve(this.socket);
+    }
+
+    // If a connection attempt is already in progress, reuse it
+    if (this._connectingPromise) {
+      return this._connectingPromise;
+    }
+
+    this._connectingPromise = new Promise((resolve, reject) => {
+      // If there's a stale disconnected socket, clean it up
       if (this.socket) {
         this.socket.disconnect();
         this.socket = null;
@@ -66,6 +71,7 @@ class ChatService {
         this.socket.on('connect', () => {
           // console.log('Socket connected:', this.socket.id);
           this.connected = true;
+          this._connectingPromise = null;
           
           // Rooms are now auto-joined on the server side
           // No need to manually join rooms here
@@ -78,13 +84,13 @@ class ChatService {
         
         this.socket.on('connect_error', (error) => {
           console.warn('Socket connection error:', error.message);
-          // We'll continue without WebSockets - the app can still function with REST API
-          // console.log('Continuing without WebSocket connection');
           this.connected = false;
+          this._connectingPromise = null;
           resolve(null); // Resolve with null to indicate no socket connection
         });
       } else {
         console.warn('Failed to create socket - continuing without WebSockets');
+        this._connectingPromise = null;
         resolve(null);
       }
 
@@ -116,6 +122,8 @@ class ChatService {
         });
       }
     });
+
+    return this._connectingPromise;
   }
 
   /**
@@ -126,6 +134,7 @@ class ChatService {
       this.socket.disconnect();
       this.socket = null;
       this.connected = false;
+      this._connectingPromise = null;
     }
   }
 
