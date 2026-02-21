@@ -15,6 +15,58 @@ const DEFAULT_ROLES = [
   { role: "Voorzangers", person: "" },
 ];
 
+// --- Pure module-level helpers (no state dependencies) ---
+
+const isAuthenticated = () => {
+  const user = localStorage.getItem("currentUser");
+  if (!user) return false;
+  try {
+    return !!JSON.parse(user).token;
+  } catch {
+    return false;
+  }
+};
+
+const computeDaysRemaining = (dateString) => {
+  const date = new Date(dateString + "T00:00:00Z");
+  const today = new Date();
+  return Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+const createServiceObject = (dateString, assignments = [...DEFAULT_ROLES]) => {
+  const date = new Date(dateString + "T00:00:00Z");
+  const daysRemaining = computeDaysRemaining(dateString);
+  return {
+    date,
+    dateString,
+    title: date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+    daysRemaining,
+    status: daysRemaining < 0 ? "past" : "upcoming",
+    assignments,
+  };
+};
+
+const transformBackendData = (backendData) => {
+  const groupedByDate = backendData.reduce((acc, item) => {
+    if (!acc[item.dateString]) {
+      acc[item.dateString] = { dateString: item.dateString, assignments: [] };
+    }
+    if (item.assignments && Array.isArray(item.assignments)) {
+      acc[item.dateString].assignments = item.assignments;
+    }
+    return acc;
+  }, {});
+
+  return Object.values(groupedByDate)
+    .map(({ dateString, assignments }) =>
+      createServiceObject(
+        dateString,
+        assignments.length > 0 ? assignments : [...DEFAULT_ROLES]
+      )
+    )
+    .sort((a, b) => new Date(a.dateString) - new Date(b.dateString));
+};
+
 export const AssignmentsProvider = ({ children }) => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,20 +115,6 @@ export const AssignmentsProvider = ({ children }) => {
     };
   }, []);
 
-  // Helper function to check if user is authenticated
-  const isAuthenticated = () => {
-    const user = localStorage.getItem("currentUser");
-    if (user) {
-      try {
-        const parsedUser = JSON.parse(user);
-        return !!parsedUser.token;
-      } catch (err) {
-        return false;
-      }
-    }
-    return false;
-  };
-
   const loadAssignments = async () => {
     // Don't attempt to load if not authenticated
     if (!isAuthenticated()) {
@@ -108,245 +146,74 @@ export const AssignmentsProvider = ({ children }) => {
     }
   };
 
-  const transformBackendData = (backendData) => {
-    // Group assignments by date
-    const groupedByDate = backendData.reduce((acc, item) => {
-      if (!acc[item.dateString]) {
-        acc[item.dateString] = {
-          dateString: item.dateString,
-          title: item.title || "Sunday Service",
-          status: item.status || "upcoming",
-          assignments: [],
-        };
-      }
-
-      // Add assignments from the backend data
-      if (item.assignments && Array.isArray(item.assignments)) {
-        acc[item.dateString].assignments = item.assignments;
-      }
-
-      return acc;
-    }, {});
-
-    // Convert to array and add derived properties
-    return Object.values(groupedByDate)
-      .map((service) => {
-        const date = new Date(service.dateString + "T00:00:00Z");
-        const today = new Date();
-        const diffTime = date.getTime() - today.getTime();
-        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        return {
-          ...service,
-          date,
-          title: date.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          }),
-          daysRemaining,
-          status: daysRemaining < 0 ? "past" : "upcoming",
-          assignments:
-            service.assignments.length > 0
-              ? service.assignments
-              : [...DEFAULT_ROLES],
-        };
-      })
-      .sort((a, b) => new Date(a.dateString) - new Date(b.dateString));
-  };
-
   // Function to update a specific assignment (local state only, no backend save)
-  const updateAssignment = async (dateString, roleIndex, newPerson) => {
-    try {
-      // Update local state immediately for responsiveness
-      setAssignments((prevAssignments) => {
-        // Check if service exists
-        const existingService = prevAssignments.find(
-          (s) => s.dateString === dateString
-        );
+  const updateAssignment = (dateString, roleIndex, newPerson) => {
+    setAssignments((prevAssignments) => {
+      const existingService = prevAssignments.find((s) => s.dateString === dateString);
 
-        if (existingService) {
-          // Service exists, update the assignment
-          return prevAssignments.map((service) => {
-            if (service.dateString === dateString) {
-              const updatedAssignments = [...service.assignments];
-              if (updatedAssignments[roleIndex]) {
-                updatedAssignments[roleIndex] = {
-                  ...updatedAssignments[roleIndex],
-                  person: newPerson,
-                };
-              }
-
-              return {
-                ...service,
-                assignments: updatedAssignments,
-              };
-            }
-            return service;
-          });
-        } else {
-          // Service doesn't exist, create it with default roles and update the specified one
-          const date = new Date(dateString + "T00:00:00Z");
-          const today = new Date();
-          const diffTime = date.getTime() - today.getTime();
-          const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          const assignments = [...DEFAULT_ROLES];
-          if (assignments[roleIndex]) {
-            assignments[roleIndex] = {
-              ...assignments[roleIndex],
-              person: newPerson,
-            };
+      if (existingService) {
+        return prevAssignments.map((service) => {
+          if (service.dateString !== dateString) return service;
+          const updatedAssignments = [...service.assignments];
+          if (updatedAssignments[roleIndex]) {
+            updatedAssignments[roleIndex] = { ...updatedAssignments[roleIndex], person: newPerson };
           }
+          return { ...service, assignments: updatedAssignments };
+        });
+      }
 
-          const newService = {
-            date,
-            dateString,
-            title: date.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            }),
-            daysRemaining,
-            status: daysRemaining < 0 ? "past" : "upcoming",
-            assignments,
-          };
-
-          // Add new service and sort by date
-          const updated = [...prevAssignments, newService];
-          return updated.sort(
-            (a, b) => new Date(a.dateString) - new Date(b.dateString)
-          );
-        }
-      });
-
-      // Note: No backend save here - only save when "Save Changes" is clicked
-    } catch (err) {
-      console.error("Error updating assignment:", err);
-      setError("Failed to update assignment");
-    }
+      // Service doesn't exist — create it with default roles then apply the update
+      const newAssignments = [...DEFAULT_ROLES];
+      if (newAssignments[roleIndex]) {
+        newAssignments[roleIndex] = { ...newAssignments[roleIndex], person: newPerson };
+      }
+      const newService = createServiceObject(dateString, newAssignments);
+      return [...prevAssignments, newService].sort(
+        (a, b) => new Date(a.dateString) - new Date(b.dateString)
+      );
+    });
   };
 
   // Function to add a new role to a specific service (local state only)
-  const addRole = async (dateString, roleName) => {
+  const addRole = (dateString, roleName) => {
     if (!roleName.trim()) return;
 
-    try {
-      // Update local state
-      setAssignments((prevAssignments) => {
-        // Check if service exists
-        const existingService = prevAssignments.find(
-          (s) => s.dateString === dateString
+    const newEntry = { role: roleName.trim(), person: "" };
+
+    setAssignments((prevAssignments) => {
+      const existingService = prevAssignments.find((s) => s.dateString === dateString);
+
+      if (existingService) {
+        return prevAssignments.map((service) =>
+          service.dateString === dateString
+            ? { ...service, assignments: [...service.assignments, newEntry] }
+            : service
         );
+      }
 
-        if (existingService) {
-          // Service exists, just add the role
-          return prevAssignments.map((service) => {
-            if (service.dateString === dateString) {
-              return {
-                ...service,
-                assignments: [
-                  ...service.assignments,
-                  { role: roleName.trim(), person: "" },
-                ],
-              };
-            }
-            return service;
-          });
-        } else {
-          // Service doesn't exist, create it with default roles + new role
-          const date = new Date(dateString + "T00:00:00Z");
-          const today = new Date();
-          const diffTime = date.getTime() - today.getTime();
-          const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          const newService = {
-            date,
-            dateString,
-            title: date.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            }),
-            daysRemaining,
-            status: daysRemaining < 0 ? "past" : "upcoming",
-            assignments: [
-              ...DEFAULT_ROLES,
-              { role: roleName.trim(), person: "" },
-            ],
-          };
-
-          // Add new service and sort by date
-          const updated = [...prevAssignments, newService];
-          return updated.sort(
-            (a, b) => new Date(a.dateString) - new Date(b.dateString)
-          );
-        }
-      });
-
-      // Note: No backend save here - only save when "Save Changes" is clicked
-    } catch (err) {
-      console.error("Error adding role:", err);
-      setError("Failed to add role");
-    }
+      // Service doesn't exist — create it with default roles + new role
+      const newService = createServiceObject(dateString, [...DEFAULT_ROLES, newEntry]);
+      return [...prevAssignments, newService].sort(
+        (a, b) => new Date(a.dateString) - new Date(b.dateString)
+      );
+    });
   };
 
   // Function to remove a role from a specific service (local state only)
-  const removeRole = async (dateString, roleName) => {
-    try {
-      // Update local state
-      setAssignments((prevAssignments) => {
-        return prevAssignments.map((service) => {
-          if (service.dateString === dateString) {
-            return {
-              ...service,
-              assignments: service.assignments.filter(
-                (assignment) => assignment.role !== roleName
-              ),
-            };
-          }
-          return service;
-        });
-      });
-
-      // Note: No backend save here - only save when "Save Changes" is clicked
-    } catch (err) {
-      console.error("Error removing role:", err);
-      setError("Failed to remove role");
-    }
+  const removeRole = (dateString, roleName) => {
+    setAssignments((prevAssignments) =>
+      prevAssignments.map((service) =>
+        service.dateString === dateString
+          ? { ...service, assignments: service.assignments.filter((a) => a.role !== roleName) }
+          : service
+      )
+    );
   };
 
   // Function to get assignments for a specific date
   const getAssignmentsForDate = (dateString) => {
-    if (!dateString) {
-      return null;
-    }
-
-    // Try to find exact match in existing assignments
-    const exactMatch = assignments.find((s) => s.dateString === dateString);
-    if (exactMatch) {
-      return exactMatch;
-    }
-
-    // If no exact match, create a default service for this Sunday
-    // Every Sunday should have a service by default
-    const date = new Date(dateString + "T00:00:00Z");
-    const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
-    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return {
-      date,
-      dateString,
-      title: date.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
-      daysRemaining,
-      status: daysRemaining < 0 ? "past" : "upcoming",
-      assignments: [...DEFAULT_ROLES], // Always create with default roles
-    };
+    if (!dateString) return null;
+    return assignments.find((s) => s.dateString === dateString) ?? createServiceObject(dateString);
   };
 
   // Function to add more future dates
@@ -367,28 +234,8 @@ export const AssignmentsProvider = ({ children }) => {
       for (let i = 0; i < additionalCount; i++) {
         const sunday = new Date(nextDate);
         sunday.setDate(nextDate.getDate() + i * 7);
-
-        const dateString = `${sunday.getFullYear()}-${String(
-          sunday.getMonth() + 1
-        ).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
-        const today = new Date();
-        const diffTime = sunday.getTime() - today.getTime();
-        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        const newSunday = {
-          date: sunday,
-          dateString,
-          title: sunday.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          }),
-          daysRemaining,
-          status: daysRemaining < 0 ? "past" : "upcoming",
-          assignments: [...DEFAULT_ROLES],
-        };
-
-        newSundays.push(newSunday);
+        const dateString = `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+        newSundays.push(createServiceObject(dateString));
       }
 
       // Add the new services to our assignments
@@ -450,44 +297,16 @@ export const AssignmentsProvider = ({ children }) => {
   // Function to add a specific date
   const addSpecificDate = async (dateString) => {
     try {
-      // Check if the date already exists
-      const exists = assignments.some(
-        (service) => service.dateString === dateString
-      );
+      const exists = assignments.some((service) => service.dateString === dateString);
       if (exists) return;
 
-      // Create a new service for this date
-      const date = new Date(dateString + "T00:00:00Z");
-      const today = new Date();
-      const diffTime = date.getTime() - today.getTime();
-      const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const newService = createServiceObject(dateString);
 
-      const newService = {
-        date: date,
-        dateString: dateString,
-        title: date.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
-        daysRemaining: daysRemaining,
-        status: daysRemaining < 0 ? "past" : "upcoming",
-        assignments: [...DEFAULT_ROLES],
-      };
-
-      // Add the new service and sort by date
-      setAssignments((prev) => {
-        const updated = [...prev, newService];
-        return updated.sort(
-          (a, b) => new Date(a.dateString) - new Date(b.dateString)
-        );
-      });
-
-      // Save to backend
-      await assignmentsService.saveAssignments(
-        dateString,
-        newService.assignments
+      setAssignments((prev) =>
+        [...prev, newService].sort((a, b) => new Date(a.dateString) - new Date(b.dateString))
       );
+
+      await assignmentsService.saveAssignments(dateString, newService.assignments);
     } catch (err) {
       console.error("Error adding specific date:", err);
       setError("Failed to add date");
