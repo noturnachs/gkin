@@ -82,11 +82,12 @@ export const DraggableRoleManager = ({
                     <div className="space-y-2 ml-7">
                       {people.map((assignment) => {
                         const availablePeople = getPeopleForRole(roleName);
-                        // Build the set of names already used elsewhere in this service
-                        const assignedElsewhere = new Set(
-                          (currentService?.assignments ?? [])
-                            .map((a) => a.person)
-                            .filter((p) => p && p !== assignment.person)
+                        // Names already used in OTHER slots of this same role
+                        const usedInThisRole = new Set(
+                          people
+                            .filter((p) => p.originalIndex !== assignment.originalIndex)
+                            .map((p) => p.person)
+                            .filter(Boolean)
                         );
                         return (
                           <div
@@ -108,14 +109,14 @@ export const DraggableRoleManager = ({
                                 <option value="">Not assigned</option>
                                 {availablePeople.length > 0
                                   ? availablePeople.map((person) => {
-                                      const isDisabled = assignedElsewhere.has(person.name);
+                                      const isDisabled = usedInThisRole.has(person.name);
                                       return (
                                         <option
                                           key={person.id}
                                           value={person.name}
                                           disabled={isDisabled}
                                         >
-                                          {person.name} ({person.email}){isDisabled ? " — already assigned" : ""}
+                                          {person.name} ({person.email}){isDisabled ? " — already in this role" : ""}
                                         </option>
                                       );
                                     })
