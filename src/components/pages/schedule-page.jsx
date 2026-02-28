@@ -535,23 +535,23 @@ export function SchedulePage() {
                           <div>{formatSundayRow(dateStr)}</div>
                           {isToday && <div className="text-[9px] font-medium text-blue-400 mt-0.5">Today</div>}
                           {isNearest && <div className="text-[9px] font-medium text-indigo-400 mt-0.5">Next</div>}
-                          <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                          <div className="flex items-center justify-center gap-1 mt-1">
                             <button
                               onClick={() => handleOpenEdit(dateStr)}
-                              className="p-0.5 rounded hover:bg-black/10 text-inherit opacity-50 hover:opacity-100 transition-opacity"
+                              className="p-1 rounded hover:bg-black/10 text-inherit opacity-60 hover:opacity-100 transition-opacity"
                               title="Edit assignments"
                             >
-                              <Pencil className="w-2.5 h-2.5" />
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleShareDate(dateStr)}
-                              className="p-0.5 rounded hover:bg-black/10 text-inherit opacity-50 hover:opacity-100 transition-opacity"
+                              className="p-1 rounded hover:bg-black/10 text-inherit opacity-60 hover:opacity-100 transition-opacity"
                               title="Copy public link for this service"
                             >
                               {sharedDate === dateStr ? (
-                                <Check className="w-2.5 h-2.5 text-green-500" />
+                                <Check className="w-3.5 h-3.5 text-green-500" />
                               ) : (
-                                <Share2 className="w-2.5 h-2.5" />
+                                <Share2 className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
