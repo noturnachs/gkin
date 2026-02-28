@@ -7,8 +7,11 @@ import { getUpcomingSundays } from "../../lib/date-utils";
 export function WeekSelector({ selectedWeek, onWeekChange, customWeeks }) {
   const [allSundays, setAllSundays] = useState([]);
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+  // Initialise displayed month/year from the selected week (which may be in the next month)
+  const initDate = selectedWeek ? new Date(selectedWeek + 'T00:00:00') : today;
+  const [currentMonth, setCurrentMonth] = useState(initDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(initDate.getFullYear());
 
   // console.log('WeekSelector initialized with month:', currentMonth, 'year:', currentYear);
 
@@ -90,6 +93,14 @@ export function WeekSelector({ selectedWeek, onWeekChange, customWeeks }) {
       setAllSundays(comprehensiveSundays);
     }
   }, [customWeeks]);
+
+  // Sync displayed month/year when selectedWeek changes to a different month
+  useEffect(() => {
+    if (!selectedWeek) return;
+    const d = new Date(selectedWeek + 'T00:00:00');
+    setCurrentMonth(d.getMonth());
+    setCurrentYear(d.getFullYear());
+  }, [selectedWeek]);
 
   // Auto-select today's or next Sunday if no selection
   useEffect(() => {
