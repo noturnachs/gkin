@@ -390,6 +390,21 @@ export function SchedulePage() {
           </div>
         </div>
 
+        {/* ── Upcoming service banner ── */}
+        {nearest && (
+          <div className="mb-4 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+            <CalendarDays className="w-4 h-4 text-indigo-500 shrink-0" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-400">Upcoming Service</span>
+              <p className="text-sm font-bold text-indigo-800 leading-tight">
+                {new Date(nearest + "T00:00:00Z").toLocaleDateString("en-GB", {
+                  weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+                })}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ── Content ── */}
         {loading ? (
           <div className="flex items-center justify-center h-64 text-gray-400">
