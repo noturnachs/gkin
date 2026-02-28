@@ -60,16 +60,16 @@ export function PublicSundayPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-blue-600" />
-            <span className="font-bold text-gray-800 text-lg">GKIN Service Schedule</span>
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <CalendarDays className="w-5 h-5 text-blue-600 shrink-0" />
+            <span className="font-bold text-gray-800 text-base sm:text-lg truncate">GKIN Service Schedule</span>
           </div>
-          <span className="text-xs text-gray-400">Public view · read-only</span>
+          <span className="text-xs text-gray-400 shrink-0 hidden xs:block">Public view · read-only</span>
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+      <main className="flex-1 max-w-2xl mx-auto w-full px-3 sm:px-4 py-5 sm:py-8">
         {/* ── Back to full schedule ── */}
         <Link
           to="/public/schedule"
@@ -101,8 +101,8 @@ export function PublicSundayPage() {
         ) : (
           <>
             {/* ── Date heading ── */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">{formatDate(service.dateString)}</h1>
+            <div className="mb-4 sm:mb-6">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">{formatDate(service.dateString)}</h1>
               {service.title && (
                 <p className="mt-1 text-sm text-gray-500">{service.title}</p>
               )}
@@ -117,8 +117,8 @@ export function PublicSundayPage() {
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
                 {roleEntries.map(([role, people]) => (
-                  <div key={role} className="flex items-start gap-4 px-5 py-4">
-                    <div className="w-44 shrink-0 text-sm font-semibold text-gray-600 pt-0.5">
+                  <div key={role} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-500 sm:text-gray-600 sm:w-44 sm:shrink-0 sm:pt-0.5 uppercase sm:normal-case tracking-wide sm:tracking-normal">
                       {role}
                     </div>
                     <div className="flex flex-wrap gap-1.5">

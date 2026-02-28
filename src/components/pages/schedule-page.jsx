@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Share2,
   Check,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Header } from "../layout/header";
@@ -135,6 +136,7 @@ export function SchedulePage() {
   const [cursor, setCursor] = useState(() => todayUTC());
   const [emailMap, setEmailMap] = useState({});
   const [copied, setCopied] = useState(false);
+  const [layoutView, setLayoutView] = useState("table"); // "table" | "cards"
 
   const handleShareLink = () => {
     const url = `${window.location.origin}/public/schedule`;
@@ -304,6 +306,27 @@ export function SchedulePage() {
                 <><Share2 className="w-3.5 h-3.5" /> Share</>
               )}
             </Button>
+            {/* Layout toggle */}
+            <div className="flex rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+              <button
+                onClick={() => setLayoutView("table")}
+                className={`px-2 py-1.5 flex items-center transition-colors ${
+                  layoutView === "table" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-50"
+                }`}
+                title="Transposed table"
+              >
+                <Table2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setLayoutView("cards")}
+                className={`px-2 py-1.5 flex items-center transition-colors ${
+                  layoutView === "cards" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-50"
+                }`}
+                title="Cards"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -322,25 +345,21 @@ export function SchedulePage() {
               <span className="text-sm">No Sundays in this period.</span>
             </div>
           </div>
-        ) : (
-          <>
-            {/* ── Mobile: card-per-Sunday ── */}
-            <div className="md:hidden space-y-3">
+        ) : layoutView === "cards" ? (
+            /* ── Cards view (all screen sizes) ── */
+            <div className="space-y-3">
               {sundaysInWindow.map((dateStr) => {
                 const isToday = dateStr === today;
                 const isNearest = !isToday && dateStr === nearest;
                 const dayData = assignmentMap[dateStr];
-
-                // Collect only roles that have at least one person assigned, plus show key unfilled ones
                 const rolesToShow = allRoles.filter((role) => {
                   const personStr = dayData?.[role];
                   return personStr && personStr.trim().length > 0;
                 });
-
                 return (
                   <div
                     key={dateStr}
-                    className={`rounded-xl border shadow-sm overflow-hidden ${
+                    className={`rounded-xl border shadow-sm [overflow:clip] ${
                       isToday
                         ? "border-blue-300 bg-blue-50"
                         : isNearest
@@ -348,9 +367,8 @@ export function SchedulePage() {
                         : "border-gray-200 bg-white"
                     }`}
                   >
-                    {/* Card header — date */}
                     <div
-                      className={`px-4 py-2.5 flex items-center gap-2 border-b ${
+                      className={`sticky top-0 z-10 px-4 py-2.5 flex items-center gap-2 border-b ${
                         isToday
                           ? "bg-blue-100 border-blue-200"
                           : isNearest
@@ -359,11 +377,7 @@ export function SchedulePage() {
                       }`}
                     >
                       <CalendarDays className={`w-4 h-4 shrink-0 ${isToday ? "text-blue-600" : isNearest ? "text-indigo-500" : "text-gray-400"}`} />
-                      <span
-                        className={`font-bold text-sm ${
-                          isToday ? "text-blue-800" : isNearest ? "text-indigo-700" : "text-gray-800"
-                        }`}
-                      >
+                      <span className={`font-bold text-sm ${isToday ? "text-blue-800" : isNearest ? "text-indigo-700" : "text-gray-800"}`}>
                         {formatSundayRow(dateStr)}
                       </span>
                       {isToday && (
@@ -377,8 +391,6 @@ export function SchedulePage() {
                         </span>
                       )}
                     </div>
-
-                    {/* Card body — role rows */}
                     {rolesToShow.length === 0 ? (
                       <p className="px-4 py-3 text-xs text-gray-400 italic">No assignments yet</p>
                     ) : (
@@ -416,100 +428,89 @@ export function SchedulePage() {
                 );
               })}
             </div>
-
-            {/* ── Desktop: scrollable table ── */}
-            <div className="hidden md:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto">
+          ) : (
+            /* ── Transposed table: roles as rows, Sundays as columns ── */
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto max-h-[calc(100vh-260px)]">
               <table className="border-collapse min-w-full text-sm">
                 <thead>
                   <tr>
-                    <th className="sticky left-0 z-20 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 min-w-[100px]">
-                      Date
+                    <th className="sticky left-0 z-20 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 min-w-[180px]">
+                      Role
                     </th>
-                    {allRoles.length === 0 ? (
-                      <th className="bg-gray-50 border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-400">
-                        No roles configured
-                      </th>
-                    ) : (
-                      allRoles.map((role) => (
+                    {sundaysInWindow.map((dateStr) => {
+                      const isToday = dateStr === today;
+                      const isNearest = !isToday && dateStr === nearest;
+                      return (
                         <th
-                          key={role}
-                          className="bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-center text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[140px]"
+                          key={dateStr}
+                          className={`border-b border-r border-gray-200 px-4 py-3 text-center text-xs font-semibold min-w-[130px] whitespace-nowrap ${
+                            isToday
+                              ? "bg-blue-100 text-blue-700"
+                              : isNearest
+                              ? "bg-indigo-50 text-indigo-600"
+                              : "bg-gray-50 text-gray-600"
+                          }`}
                         >
-                          {role}
+                          <div>{formatSundayRow(dateStr)}</div>
+                          {isToday && <div className="text-[10px] font-medium text-blue-500 mt-0.5">Today</div>}
+                          {isNearest && <div className="text-[10px] font-medium text-indigo-400 mt-0.5">Next</div>}
                         </th>
-                      ))
-                    )}
+                      );
+                    })}
                   </tr>
                 </thead>
-
                 <tbody>
-                  {sundaysInWindow.map((dateStr, rowIdx) => {
-                    const isToday = dateStr === today;
-                    const isNearest = !isToday && dateStr === nearest;
-
-                    const rowBg = isToday
-                      ? "bg-blue-50"
-                      : isNearest
-                      ? "bg-indigo-50/40"
-                      : rowIdx % 2 === 0
-                      ? "bg-white"
-                      : "bg-gray-50/60";
-
-                    const stickyBg = isToday
-                      ? "bg-blue-50"
-                      : isNearest
-                      ? "bg-indigo-50/40"
-                      : rowIdx % 2 === 0
-                      ? "bg-white"
-                      : "bg-gray-50";
-
-                    return (
-                      <tr key={dateStr} className={rowBg}>
-                        <td className={`sticky left-0 z-10 border-r border-b border-gray-100 px-4 py-2.5 ${stickyBg}`}>
-                          <div className={`font-semibold text-sm leading-tight ${isToday ? "text-blue-700" : isNearest ? "text-indigo-600" : "text-gray-800"}`}>
-                            {formatSundayRow(dateStr)}
-                          </div>
-                          {isToday && <div className="text-[10px] text-blue-500 font-medium mt-0.5">Today</div>}
-                          {isNearest && <div className="text-[10px] text-indigo-400 font-medium mt-0.5">Next</div>}
-                        </td>
-
-                        {allRoles.map((role) => {
-                          const personStr = assignmentMap[dateStr]?.[role];
-                          const people = personStr
-                            ? personStr.split(",").map((p) => p.trim()).filter(Boolean)
-                            : [];
-                          return (
-                            <td key={role} className="border-r border-b border-gray-100 px-4 py-2.5 text-center">
-                              {people.length > 0 ? (
-                                <div className="flex flex-col items-center gap-1.5">
-                                  {people.map((name, i) => (
-                                    <div key={i} className="flex flex-col items-center gap-0.5">
-                                      <span className="text-gray-800 font-medium">{name}</span>
-                                      {emailMap[name.toLowerCase()] && (
-                                        <a
-                                          href={`mailto:${emailMap[name.toLowerCase()]}`}
-                                          className="text-[11px] text-blue-500 hover:underline"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          {emailMap[name.toLowerCase()]}
-                                        </a>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="text-gray-300 select-none">—</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
+                  {allRoles.map((role, rowIdx) => (
+                    <tr key={role} className={rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
+                      <td
+                        className={`sticky left-0 z-10 border-r border-b border-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-700 ${
+                          rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        }`}
+                      >
+                        {role}
+                      </td>
+                      {sundaysInWindow.map((dateStr) => {
+                        const isToday = dateStr === today;
+                        const isNearest = !isToday && dateStr === nearest;
+                        const personStr = assignmentMap[dateStr]?.[role];
+                        const people = personStr
+                          ? personStr.split(",").map((p) => p.trim()).filter(Boolean)
+                          : [];
+                        return (
+                          <td
+                            key={dateStr}
+                            className={`border-r border-b border-gray-100 px-3 py-2 text-center ${
+                              isToday ? "bg-blue-50/50" : isNearest ? "bg-indigo-50/20" : ""
+                            }`}
+                          >
+                            {people.length > 0 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                {people.map((name, i) => (
+                                  <div key={i} className="flex flex-col items-center gap-0.5">
+                                    <span className="text-gray-800 font-medium text-sm">{name}</span>
+                                    {emailMap[name.toLowerCase()] && (
+                                      <a
+                                        href={`mailto:${emailMap[name.toLowerCase()]}`}
+                                        className="text-[11px] text-blue-500 hover:underline"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {emailMap[name.toLowerCase()]}
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-300 select-none">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          </>
         )}
 
         {/* ── Legend ── */}
