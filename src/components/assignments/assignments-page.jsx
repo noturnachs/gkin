@@ -14,6 +14,8 @@ import {
   ArrowLeft,
   CheckCircle,
   RefreshCw,
+  Share2,
+  ExternalLink,
 } from "lucide-react";
 import { Header } from "../layout/header";
 import { Footer } from "../ui/footer";
@@ -52,6 +54,7 @@ export function AssignmentsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [assignablePeople, setAssignablePeople] = useState([]);
 
   const {
@@ -222,6 +225,26 @@ export function AssignmentsPage() {
     updateAssignmentsForDate(selectedWeek, reorderedAssignments);
   };
 
+  // Copy public share link to clipboard
+  const handleShare = async () => {
+    const url = `${window.location.origin}/public/schedule/${selectedWeek}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleOpenPublic = () => {
+    window.open(
+      `${window.location.origin}/public/schedule/${selectedWeek}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
   // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString + "T00:00:00Z");
@@ -346,6 +369,25 @@ export function AssignmentsPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-2">
+            {/* Share public link */}
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              className="flex items-center justify-center gap-1.5 h-9 px-3 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 text-sm font-medium"
+              title={`Copy public link for ${selectedWeek}`}
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">{shareCopied ? "Copied!" : "Share"}</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleOpenPublic}
+              className="flex items-center justify-center gap-1.5 h-9 px-3 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 text-sm font-medium"
+              title="Open public view in new tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span className="hidden sm:inline">Public view</span>
+            </Button>
             <Button
               variant="outline"
               onClick={handleResetAssignments}

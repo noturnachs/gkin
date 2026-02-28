@@ -13,6 +13,7 @@ import { AllUpdatesPage } from "./components/pages/all-updates-page";
 import { ProfileSettings } from "./components/pages/profile-settings";
 import { SchedulePage } from "./components/pages/schedule-page";
 import { PublicSchedulePage } from "./components/pages/public-schedule-page";
+import { PublicSundayPage } from "./components/pages/public-sunday-page";
 
 // Routes configuration
 export const router = createBrowserRouter([
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
   {
     path: "/public/schedule",
     element: <PublicSchedulePage />,
+  },
+  {
+    path: "/public/schedule/:date",
+    element: <PublicSundayPage />,
   },
   // ── Authenticated app ─────────────────────────────────────────────────────
   {

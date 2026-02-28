@@ -58,4 +58,55 @@ router.get("/", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/public/schedule/:date
+ * Returns assignments for a single specific date (YYYY-MM-DD).
+ * No authentication required.
+ */
+router.get("/:date", async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD." });
+    }
+
+    const query = `
+      SELECT
+        sa.date_string,
+        sa.title,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'role', ar.role,
+              'person', ar.person
+            ) ORDER BY ar.role_order, ar.id
+          ) FILTER (WHERE ar.id IS NOT NULL),
+          '[]'::json
+        ) AS assignments
+      FROM service_assignments sa
+      LEFT JOIN assignment_roles ar ON sa.id = ar.service_assignment_id
+      WHERE sa.date_string = $1
+      GROUP BY sa.id, sa.date_string, sa.title
+    `;
+
+    const result = await db.query(query, [date]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No service found for this date." });
+    }
+
+    const row = result.rows[0];
+    res.json({
+      dateString: row.date_string,
+      title: row.title,
+      assignments: row.assignments,
+    });
+  } catch (error) {
+    console.error("Error fetching public schedule for date:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;
