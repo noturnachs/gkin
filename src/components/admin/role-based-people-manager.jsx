@@ -25,14 +25,18 @@ import {
 const DEFAULT_ROLES = [
   "Voorganger",
   "Ouderling van dienst",
+  "Collecte",
+  "Preekvertaling",
   "Muzikale begeleiding",
+  "Muzikale bijdrage",
   "Voorzangers",
   "Lector",
   "Beamer",
-  "Sound",
-  "Guest Reception Team",
-  "Coffee Service",
-  "Sunday School Teacher",
+  "Streaming",
+  "Geluid",
+  "Kindernevendienst",
+  "Ontvangstteam",
+  "Koffiedienst",
 ];
 
 export const RoleBasedPeopleManager = () => {

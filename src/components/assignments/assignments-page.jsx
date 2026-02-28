@@ -28,14 +28,18 @@ import { DraggableRoleManagerMobile } from "./DraggableRoleManagerMobile";
 const DEFAULT_ROLE_NAMES = new Set([
   "Voorganger",
   "Ouderling van dienst",
+  "Collecte",
+  "Preekvertaling",
   "Muzikale begeleiding",
+  "Muzikale bijdrage",
   "Voorzangers",
   "Lector",
   "Beamer",
-  "Sound",
-  "Guest Reception Team",
-  "Coffee Service",
-  "Sunday School Teacher",
+  "Streaming",
+  "Geluid",
+  "Kindernevendienst",
+  "Ontvangstteam",
+  "Koffiedienst",
 ]);
 
 export function AssignmentsPage() {

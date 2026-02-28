@@ -10,14 +10,18 @@ import { useAssignments } from "../assignments/context/AssignmentsContext";
 const DEFAULT_ROLE_ORDER = [
   "Voorganger",
   "Ouderling van dienst",
+  "Collecte",
+  "Preekvertaling",
   "Muzikale begeleiding",
+  "Muzikale bijdrage",
   "Voorzangers",
   "Lector",
   "Beamer",
-  "Sound",
-  "Guest Reception Team",
-  "Coffee Service",
-  "Sunday School Teacher",
+  "Streaming",
+  "Geluid",
+  "Kindernevendienst",
+  "Ontvangstteam",
+  "Koffiedienst",
 ];
 
 function formatDaysRemaining(days) {

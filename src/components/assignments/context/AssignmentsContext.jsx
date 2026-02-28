@@ -11,14 +11,18 @@ export const useAssignments = () => useContext(AssignmentsContext);
 const DEFAULT_ROLES = [
   { role: "Voorganger", person: "" },
   { role: "Ouderling van dienst", person: "" },
+  { role: "Collecte", person: "" },
+  { role: "Preekvertaling", person: "" },
   { role: "Muzikale begeleiding", person: "" },
+  { role: "Muzikale bijdrage", person: "" },
   { role: "Voorzangers", person: "" },
   { role: "Lector", person: "" },
   { role: "Beamer", person: "" },
-  { role: "Sound", person: "" },
-  { role: "Guest Reception Team", person: "" },
-  { role: "Coffee Service", person: "" },
-  { role: "Sunday School Teacher", person: "" },
+  { role: "Streaming", person: "" },
+  { role: "Geluid", person: "" },
+  { role: "Kindernevendienst", person: "" },
+  { role: "Ontvangstteam", person: "" },
+  { role: "Koffiedienst", person: "" },
 ];
 
 // --- Pure module-level helpers (no state dependencies) ---
