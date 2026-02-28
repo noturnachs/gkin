@@ -132,14 +132,23 @@ export function PublicSchedulePage() {
 
   // Ref attached to the nearest/today Sunday element; scrolled into view after load
   const nearestRef = useRef(null);
+  const tableContainerRef = useRef(null);
   useEffect(() => {
     if (loading) return;
-    const el = nearestRef.current;
-    if (!el) return;
-    // Small delay so the DOM has painted
     const id = setTimeout(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-    }, 120);
+      if (layoutView === "cards") {
+        nearestRef.current?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      } else {
+        const container = tableContainerRef.current;
+        const el = nearestRef.current;
+        if (!container || !el) return;
+        const stickyWidth = 140; // matches min-w-[140px] of sticky role column
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const offset = elRect.left - containerRect.left - stickyWidth;
+        container.scrollBy({ left: offset, behavior: "smooth" });
+      }
+    }, 150);
     return () => clearTimeout(id);
   }, [loading, layoutView, year]);
 
@@ -253,7 +262,7 @@ export function PublicSchedulePage() {
                     }`}
                   >
                     <CalendarDays className={`w-4 h-4 shrink-0 ${isToday ? "text-blue-600" : isNearest ? "text-indigo-500" : "text-gray-400"}`} />
-                    <span className={`font-bold text-sm ${isToday ? "text-blue-800" : isNearest ? "text-indigo-700" : "text-gray-800"}`}>
+                    <span className={`font-bold text-[15px] tracking-tight ${isToday ? "text-blue-800" : isNearest ? "text-indigo-700" : "text-gray-800"}`}>
                       {formatSundayRow(dateStr)}
                     </span>
                     {isToday && (
@@ -277,13 +286,15 @@ export function PublicSchedulePage() {
                           .map((p) => p.trim())
                           .filter(Boolean);
                         return (
-                          <div key={role} className="px-3 sm:px-4 py-2 sm:py-2.5 flex gap-2 sm:gap-3">
-                            <span className="text-xs font-semibold text-gray-500 w-28 sm:w-40 shrink-0 pt-0.5 leading-tight">
+                          <div key={role} className="px-4 py-2 flex items-baseline gap-2">
+                            <span className="text-[11px] font-semibold text-gray-400 w-28 shrink-0 leading-tight pt-0.5">
                               {role}
                             </span>
-                            <span className="text-sm font-medium text-gray-800">
-                              {people.join(", ")}
-                            </span>
+                            <div className="flex flex-col gap-0 min-w-0">
+                              {people.map((name, i) => (
+                                <span key={i} className="text-[13px] font-semibold text-gray-800 leading-snug">{name}</span>
+                              ))}
+                            </div>
                           </div>
                         );
                       })}
@@ -295,11 +306,11 @@ export function PublicSchedulePage() {
           </div>
         ) : (
           /* ── Transposed table: roles as rows, Sundays as columns ── */
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto max-h-[calc(100vh-220px)]">
-            <table className="border-collapse min-w-full text-sm">
+          <div ref={tableContainerRef} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-scroll overflow-y-auto max-h-[calc(100vh-220px)] scrollbar-always-x">
+            <table className="border-collapse min-w-full">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-20 bg-gray-50 border-b border-r border-gray-200 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 min-w-[180px]">
+                  <th className="sticky left-0 z-20 bg-gray-50 border-b border-r border-gray-200 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-400 min-w-[140px]">
                     Role
                   </th>
                   {sundaysInWindow.map((dateStr) => {
@@ -309,7 +320,7 @@ export function PublicSchedulePage() {
                       <th
                         key={dateStr}
                         ref={isToday || isNearest ? nearestRef : null}
-                        className={`border-b border-r border-gray-200 px-4 py-3 text-center text-xs font-semibold min-w-[130px] whitespace-nowrap ${
+                        className={`border-b border-r border-gray-200 px-2 py-1.5 text-center text-[11px] font-semibold min-w-[110px] whitespace-nowrap ${
                           isToday
                             ? "bg-blue-100 text-blue-700"
                             : isNearest
@@ -318,8 +329,8 @@ export function PublicSchedulePage() {
                         }`}
                       >
                         <div>{formatSundayRow(dateStr)}</div>
-                        {isToday && <div className="text-[10px] font-medium text-blue-500 mt-0.5">Today</div>}
-                        {isNearest && <div className="text-[10px] font-medium text-indigo-400 mt-0.5">Next</div>}
+                        {isToday && <div className="text-[9px] font-medium text-blue-400 mt-0.5">Today</div>}
+                        {isNearest && <div className="text-[9px] font-medium text-indigo-400 mt-0.5">Next</div>}
                       </th>
                     );
                   })}
@@ -329,7 +340,7 @@ export function PublicSchedulePage() {
                 {allRoles.map((role, rowIdx) => (
                   <tr key={role} className={rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
                     <td
-                      className={`sticky left-0 z-10 border-r border-b border-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-700 ${
+                      className={`sticky left-0 z-10 border-r border-b border-gray-100 px-3 py-1.5 text-[11px] font-semibold text-gray-600 ${
                         rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50"
                       }`}
                     >
@@ -345,12 +356,12 @@ export function PublicSchedulePage() {
                       return (
                         <td
                           key={dateStr}
-                          className={`border-r border-b border-gray-100 px-3 py-2.5 text-center ${
+                          className={`border-r border-b border-gray-100 px-2 py-1.5 text-center text-[12px] ${
                             isToday ? "bg-blue-50/50" : isNearest ? "bg-indigo-50/20" : ""
                           }`}
                         >
                           {people.length > 0 ? (
-                            <span className="text-gray-800 font-medium">
+                            <span className="text-gray-800 font-semibold">
                               {people.join(", ")}
                             </span>
                           ) : (

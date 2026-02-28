@@ -93,6 +93,7 @@ export function SchedulePage() {
 
   const [emailMap, setEmailMap] = useState({});
   const [copied, setCopied] = useState(false);
+  const [sharedDate, setSharedDate] = useState(null);
   const [layoutView, setLayoutView] = useState("table"); // "table" | "cards"
   const [year, setYear] = useState(() => todayUTC().getUTCFullYear());
 
@@ -119,6 +120,17 @@ export function SchedulePage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const handleShareDate = async (dateStr) => {
+    const url = `${window.location.origin}/public/schedule/${dateStr}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setSharedDate(dateStr);
+      setTimeout(() => setSharedDate(null), 2000);
+    } catch {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   }; // name (lowercase) → email
 
   useEffect(() => {
@@ -447,6 +459,17 @@ export function SchedulePage() {
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
+                        <button
+                          onClick={() => handleShareDate(dateStr)}
+                          className="p-1 rounded hover:bg-black/10 text-gray-500 hover:text-green-600 transition-colors"
+                          title="Copy public link for this service"
+                        >
+                          {sharedDate === dateStr ? (
+                            <Check className="w-3.5 h-3.5 text-green-500" />
+                          ) : (
+                            <Share2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
                       </div>
                     </div>
                     {rolesToShow.length === 0 ? (
@@ -487,7 +510,7 @@ export function SchedulePage() {
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto max-h-[calc(100vh-260px)] pb-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-scroll overflow-y-auto max-h-[calc(100vh-260px)] pb-4 scrollbar-always-x">
               <table className="border-collapse min-w-full">
                 <thead>
                   <tr>
@@ -512,13 +535,26 @@ export function SchedulePage() {
                           <div>{formatSundayRow(dateStr)}</div>
                           {isToday && <div className="text-[9px] font-medium text-blue-400 mt-0.5">Today</div>}
                           {isNearest && <div className="text-[9px] font-medium text-indigo-400 mt-0.5">Next</div>}
-                          <button
-                            onClick={() => handleOpenEdit(dateStr)}
-                            className="mt-0.5 p-0.5 rounded hover:bg-black/10 text-inherit opacity-50 hover:opacity-100 transition-opacity"
-                            title="Edit assignments"
-                          >
-                            <Pencil className="w-2.5 h-2.5" />
-                          </button>
+                          <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                            <button
+                              onClick={() => handleOpenEdit(dateStr)}
+                              className="p-0.5 rounded hover:bg-black/10 text-inherit opacity-50 hover:opacity-100 transition-opacity"
+                              title="Edit assignments"
+                            >
+                              <Pencil className="w-2.5 h-2.5" />
+                            </button>
+                            <button
+                              onClick={() => handleShareDate(dateStr)}
+                              className="p-0.5 rounded hover:bg-black/10 text-inherit opacity-50 hover:opacity-100 transition-opacity"
+                              title="Copy public link for this service"
+                            >
+                              {sharedDate === dateStr ? (
+                                <Check className="w-2.5 h-2.5 text-green-500" />
+                              ) : (
+                                <Share2 className="w-2.5 h-2.5" />
+                              )}
+                            </button>
+                          </div>
                         </th>
                       );
                     })}
@@ -609,9 +645,14 @@ export function SchedulePage() {
             }`}>
               <div className="flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-blue-600" />
-                <h2 className="font-bold text-gray-800 text-sm">
-                  Edit — {formatSundayRow(editingDate)}
-                </h2>
+                <div className="flex flex-col">
+                  <span className="text-xs text-gray-500 font-medium leading-tight">
+                    You are editing the service for
+                  </span>
+                  <h2 className="font-bold text-gray-800 text-sm leading-tight">
+                    {formatSundayRow(editingDate)}
+                  </h2>
+                </div>
               </div>
               <button
                 onClick={handleCloseEdit}
