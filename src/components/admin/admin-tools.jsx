@@ -769,33 +769,6 @@ export function AdminTools() {
           </div>
         </div>
 
-        {/* Advanced Configuration (Coming Soon) */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-slate-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-slate-800">Advanced Configuration</h3>
-              <p className="text-xs text-slate-400">System-wide settings and controls</p>
-            </div>
-          </div>
-
-          <div className="p-6 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-              <Settings className="w-6 h-6 text-slate-400" />
-            </div>
-            <p className="text-sm font-semibold text-slate-700 mb-1">Coming Soon</p>
-            <p className="text-xs text-slate-400 mb-4 max-w-xs mx-auto">
-              Advanced settings and controls will be available in a future update.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {["User Management", "Security Settings", "System Preferences", "API Configuration"].map((tag) => (
-                <span key={tag} className="text-xs font-medium px-3 py-1 bg-slate-100 text-slate-500 rounded-full">{tag}</span>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     );
   };
