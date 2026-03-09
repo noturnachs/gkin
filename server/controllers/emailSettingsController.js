@@ -1,47 +1,97 @@
 const db = require('../config/db');
 const crypto = require('crypto');
 
-// Simple encryption for sensitive data (in production, use better encryption)
 const ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY || 'gkin_email_settings_key_change_in_production';
 const ALGORITHM = 'aes-256-cbc';
-const IV_LENGTH = 16; // For AES, this is always 16
+const SALT_BYTES = 16;
+const IV_LENGTH = 16;
+const KEY_LENGTH = 32;
 
-// Create a consistent key from the password
-const createKey = (password) => {
-  return crypto.scryptSync(password, 'salt', 32);
-};
+// Derive a 32-byte AES key from the master key + a per-ciphertext random salt (secure)
+const deriveKey = (masterKey, salt) => crypto.scryptSync(masterKey, salt, KEY_LENGTH);
 
+/**
+ * Encrypt plaintext. Stores a fresh random salt alongside the IV so each
+ * ciphertext uses a unique key-derivation input.
+ * Format: s2:{salt_hex}:{iv_hex}:{ciphertext_hex}
+ */
 const encrypt = (text) => {
-  try {
-    const key = createKey(ENCRYPTION_KEY);
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + encrypted;
-  } catch (error) {
-    console.error('Encryption error:', error);
-    return text; // Return as-is if encryption fails
-  }
+  const salt = crypto.randomBytes(SALT_BYTES);
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const key = deriveKey(ENCRYPTION_KEY, salt);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return `s2:${salt.toString('hex')}:${iv.toString('hex')}:${encrypted}`;
 };
 
+/**
+ * Decrypt a ciphertext produced by encrypt().
+ * Supports both the new s2 format and the legacy format (static salt 'salt')
+ * so that existing rows can be read and then re-encrypted on the fly.
+ */
 const decrypt = (encryptedText) => {
-  try {
-    if (!encryptedText || !encryptedText.includes(':')) {
-      return encryptedText; // Return as-is if not properly encrypted
-    }
-    
-    const textParts = encryptedText.split(':');
-    const iv = Buffer.from(textParts.shift(), 'hex');
-    const encryptedData = textParts.join(':');
-    const key = createKey(ENCRYPTION_KEY);
+  if (!encryptedText) return encryptedText;
+
+  // New format: s2:{salt_hex}:{iv_hex}:{ciphertext_hex}
+  if (encryptedText.startsWith('s2:')) {
+    const parts = encryptedText.slice(3).split(':');
+    if (parts.length < 3) throw new Error('Invalid s2 encrypted format');
+    const salt = Buffer.from(parts[0], 'hex');
+    const iv = Buffer.from(parts[1], 'hex');
+    const ciphertext = parts.slice(2).join(':');
+    const key = deriveKey(ENCRYPTION_KEY, salt);
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+  }
+
+  // Legacy format: {iv_hex}:{ciphertext_hex} (scrypt with hardcoded static salt 'salt')
+  if (encryptedText.includes(':')) {
+    const textParts = encryptedText.split(':');
+    const iv = Buffer.from(textParts.shift(), 'hex');
+    const ciphertext = textParts.join(':');
+    const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', KEY_LENGTH);
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  }
+
+  return encryptedText; // unencrypted plain text
+};
+
+/**
+ * One-time idempotent migration: find all encrypted email settings stored in
+ * the legacy format (no s2: prefix) and re-encrypt them with per-value random
+ * salts. Safe to run on every startup — already-migrated rows are skipped.
+ */
+const migrateEmailEncryption = async () => {
+  try {
+    const result = await db.query(
+      'SELECT id, setting_name, setting_value FROM email_settings WHERE is_encrypted = true'
+    );
+    let migrated = 0;
+    for (const row of result.rows) {
+      if (!row.setting_value.startsWith('s2:')) {
+        const plaintext = decrypt(row.setting_value); // uses legacy path
+        const newValue = encrypt(plaintext);            // uses new s2 format
+        await db.query(
+          'UPDATE email_settings SET setting_value = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+          [newValue, row.id]
+        );
+        migrated++;
+      }
+    }
+    if (migrated > 0) {
+      console.log(`✓ Re-encrypted ${migrated} email setting(s) with per-value random salts.`);
+    } else {
+      console.log('Email settings encryption already up to date — nothing to migrate.');
+    }
   } catch (error) {
-    console.error('Decryption error:', error);
-    return encryptedText; // Return as-is if decryption fails
+    // Non-fatal: log and continue. The old format still decrypts fine.
+    console.warn('Email encryption migration warning:', error.message);
   }
 };
 
@@ -255,18 +305,12 @@ const emailSettingsController = {
       return settings;
     } catch (error) {
       console.error('Error fetching internal email settings:', error);
-      // Return defaults if database fails
-      return {
-        smtp_host: 'smtp.privateemail.com',
-        smtp_port: '465',
-        smtp_secure: 'true',
-        smtp_user: 'user2003@andrewscreem.com',
-        smtp_password: '$DANdan2003$',
-        from_name: 'GKIN System',
-        from_email: 'user2003@andrewscreem.com'
-      };
+      return {};
     }
   }
 };
 
 module.exports = emailSettingsController;
+module.exports.migrateEmailEncryption = migrateEmailEncryption;
+module.exports.encrypt = encrypt;
+module.exports.decrypt = decrypt;

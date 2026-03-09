@@ -1,4 +1,7 @@
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
+
+const BCRYPT_ROUNDS = 12;
 
 /**
  * Get all role passcodes
@@ -46,9 +49,12 @@ const updatePasscode = async (req, res) => {
       return res.status(404).json({ message: 'Role not found' });
     }
     
+    // Hash the new passcode before storing
+    const hashedPasscode = await bcrypt.hash(passcode, BCRYPT_ROUNDS);
+
     // Update passcode
     await db.query('UPDATE role_passcodes SET passcode = $1, updated_at = CURRENT_TIMESTAMP WHERE role = $2', 
-      [passcode, role]);
+      [hashedPasscode, role]);
     
     res.status(200).json({ message: 'Passcode updated successfully' });
   } catch (error) {

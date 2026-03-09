@@ -2,13 +2,19 @@ const { Pool } = require("pg");
 const config = require("./config");
 
 // Create a connection pool
+const isProduction = process.env.NODE_ENV === "production";
+const isRenderDb = process.env.DATABASE_URL?.includes("render.com");
+// Render-hosted PostgreSQL does not expose its CA cert for verification;
+// for all other production databases, reject untrusted certificates.
+const sslConfig = (() => {
+  if (!isProduction && !isRenderDb) return false; // local dev without SSL
+  if (isRenderDb) return { rejectUnauthorized: false }; // Render PG limitation
+  return { rejectUnauthorized: true }; // secure default for non-Render production
+})();
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production" ||
-    process.env.DATABASE_URL?.includes("render.com")
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: sslConfig,
   connectionTimeoutMillis: 60000, // 60 second timeout
   idleTimeoutMillis: 10000, // Shorter idle timeout
   query_timeout: 60000, // Query timeout

@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const http = require("http");
 const socketIo = require("socket.io");
+const rateLimit = require("express-rate-limit");
 const config = require("./config/config");
 
 // Load environment variables
@@ -40,8 +42,9 @@ const corsOptions = {
 };
 
 // Middleware
+app.use(helmet()); // Security headers (X-Frame-Options, CSP, X-Content-Type-Options, etc.)
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 // Import database initialization
 const { initializeDatabase } = require("./db/init");
@@ -66,7 +69,7 @@ const roleEmailsRoutes = require("./routes/roleEmails");
 const publicScheduleRoutes = require("./routes/publicSchedule");
 
 // Use routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // loginLimiter is applied inside the auth router
 app.use("/api/chat", chatRoutes);
 app.use("/api/passcodes", passcodeRoutes);
 app.use("/api/admin", adminRoutes);
@@ -118,43 +121,47 @@ io.on("connection", (socket) => {
 
   // Handle authentication
   const token = socket.handshake.auth.token;
-  if (token) {
-    try {
-      // Verify the token
-      const decoded = jwt.verify(token, config.jwtSecret);
-      const userId = decoded.id;
+  if (!token) {
+    console.warn("Socket connection rejected: no token provided", socket.id);
+    socket.disconnect(true);
+    return;
+  }
 
-      // Store user info in socket
-      socket.userId = userId;
-      socket.userRole = decoded.role;
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, config.jwtSecret);
+    const userId = decoded.id;
 
-      // Check for existing connections from this user
-      if (activeConnections.has(userId)) {
-        const existingSocket = io.sockets.sockets.get(
-          activeConnections.get(userId)
-        );
-        if (existingSocket) {
-          console.log(
-            `User ${userId} already has an active connection. Disconnecting previous socket.`
-          );
-          existingSocket.disconnect();
-        }
-      }
+    // Store user info in socket
+    socket.userId = userId;
+    socket.userRole = decoded.role;
 
-      // Store this as the active connection for this user
-      activeConnections.set(userId, socket.id);
-
-      // Auto-join rooms for user ID and role
-      socket.join(`user-${userId}`);
-      socket.join(decoded.role);
-      console.log(
-        `Socket ${socket.id} auto-joined rooms: user-${userId}, ${decoded.role}`
+    // Check for existing connections from this user
+    if (activeConnections.has(userId)) {
+      const existingSocket = io.sockets.sockets.get(
+        activeConnections.get(userId)
       );
-    } catch (error) {
-      console.error("Socket authentication error:", error);
-      socket.disconnect();
-      return;
+      if (existingSocket) {
+        console.log(
+          `User ${userId} already has an active connection. Disconnecting previous socket.`
+        );
+        existingSocket.disconnect();
+      }
     }
+
+    // Store this as the active connection for this user
+    activeConnections.set(userId, socket.id);
+
+    // Auto-join rooms for user ID and role
+    socket.join(`user-${userId}`);
+    socket.join(decoded.role);
+    console.log(
+      `Socket ${socket.id} auto-joined rooms: user-${userId}, ${decoded.role}`
+    );
+  } catch (error) {
+    console.error("Socket authentication error:", error);
+    socket.disconnect();
+    return;
   }
 
   // Join a room (for private messaging if needed later)

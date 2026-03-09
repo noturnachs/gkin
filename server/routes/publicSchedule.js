@@ -9,9 +9,19 @@ const db = require("../config/db");
  *   ?from=YYYY-MM-DD  (default: 3 months ago)
  *   ?to=YYYY-MM-DD    (default: 6 months from now)
  */
+const DATE_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+
 router.get("/", async (req, res) => {
   try {
     const { from, to } = req.query;
+
+    // Validate optional date parameters before using them
+    if (from !== undefined && !DATE_RE.test(from)) {
+      return res.status(400).json({ message: "Invalid 'from' date. Expected YYYY-MM-DD." });
+    }
+    if (to !== undefined && !DATE_RE.test(to)) {
+      return res.status(400).json({ message: "Invalid 'to' date. Expected YYYY-MM-DD." });
+    }
 
     // Default window: 3 months back → 6 months forward from today
     const today = new Date();

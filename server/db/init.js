@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const db = require("../config/db");
+const bcrypt = require("bcrypt");
 const config = require("../config/config");
 const { migrateEmailHistory } = require("./migrate_email_history");
 const {
@@ -10,6 +11,8 @@ const { optimizeChatQueries } = require("./optimize_chat");
 const {
   migrateAssignablePeopleRoles,
 } = require("./migrate_assignable_people_roles");
+const { migrateHashPasscodes } = require("./migrate_hash_passcodes");
+const { migrateEmailEncryption } = require("../controllers/emailSettingsController");
 
 async function initializeDatabase() {
   const client = await db.getClient();
@@ -167,6 +170,20 @@ async function initializeDatabase() {
       // Continue execution as this might be due to existing objects
     }
 
+    // Hash any plain-text passcodes (idempotent migration)
+    try {
+      await migrateHashPasscodes();
+    } catch (error) {
+      console.warn("Passcode hashing migration warning:", error.message);
+    }
+
+    // Re-encrypt email settings with per-value random salts (idempotent)
+    try {
+      await migrateEmailEncryption();
+    } catch (error) {
+      console.warn("Email encryption migration warning:", error.message);
+    }
+
     console.log("Database schema created successfully");
 
     // Check if role_passcodes table is empty
@@ -174,11 +191,10 @@ async function initializeDatabase() {
       "SELECT COUNT(*) FROM role_passcodes"
     );
 
-    // If no passcodes exist, add default passcodes
+    // If no passcodes exist, add default passcodes (hashed)
     if (parseInt(passcodesCount.rows[0].count) === 0) {
       console.log("Adding default passcodes to database...");
 
-      // Insert default passcodes
       const defaultPasscodes = {
         liturgy: "liturgy123",
         pastor: "pastor123",
@@ -190,9 +206,10 @@ async function initializeDatabase() {
       };
 
       for (const [role, passcode] of Object.entries(defaultPasscodes)) {
+        const hashed = await bcrypt.hash(passcode, 12);
         await client.query(
           "INSERT INTO role_passcodes (role, passcode) VALUES ($1, $2)",
-          [role, passcode]
+          [role, hashed]
         );
         console.log(`Added default passcode for role: ${role}`);
       }

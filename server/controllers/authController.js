@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const config = require('../config/config');
 const db = require('../config/db');
 
@@ -17,14 +18,20 @@ const login = async (req, res) => {
     }
 
     // Check if role exists and passcode is correct
-    const roleResult = await db.query('SELECT * FROM role_passcodes WHERE role = $1', [role]);
+    const roleResult = await db.query('SELECT passcode FROM role_passcodes WHERE role = $1', [role]);
     
     if (roleResult.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid role' });
     }
     
-    // Check if passcode is correct for the role
-    if (passcode !== roleResult.rows[0].passcode) {
+    // Check if passcode is correct for the role (bcrypt hash comparison)
+    const storedPasscode = roleResult.rows[0].passcode;
+    const isHashed = storedPasscode.startsWith('$2b$') || storedPasscode.startsWith('$2a$');
+    const passcodeMatch = isHashed
+      ? await bcrypt.compare(passcode, storedPasscode)
+      : passcode === storedPasscode; // fallback for unmigrated plain-text passcodes
+
+    if (!passcodeMatch) {
       return res.status(401).json({ message: 'Invalid passcode for this role' });
     }
     
