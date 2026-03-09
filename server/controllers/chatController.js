@@ -1,4 +1,8 @@
 const db = require('../config/db');
+const { sendEmailInternal } = require('./emailController');
+const roleEmailsController = require('./roleEmailsController');
+const { buildMentionEmail } = require('../utils/emailTemplates');
+const config = require('../config/config');
 
 const MENTIONABLE_ROLES = new Set(['liturgy', 'translation', 'beamer', 'music', 'treasurer', 'admin']);
 
@@ -82,57 +86,65 @@ const createMessage = async (req, res) => {
     // Note: message_mentions rows are created automatically by the DB trigger
     // trigger_create_message_mentions on messages INSERT.
 
-    if (mentionedRoles.length > 0 && !noEmailNotification) {
-      // Fetch up to 3 messages before this one for context
-      const contextResult = await db.query(
-        `SELECT m.content, m.created_at,
-          json_build_object('id', u.id, 'username', u.username, 'role', u.role) as sender
-        FROM messages m
-        JOIN users u ON m.sender_id = u.id
-        WHERE m.id < $1
-        ORDER BY m.id DESC
-        LIMIT 3`,
-        [messageId]
-      );
-      const contextMessages = contextResult.rows.reverse();
+    // Capture sender info before the response closes the request context
+    const sender = { id: req.user.id, username: req.user.username, role: req.user.role };
 
-      const { sendEmailInternal } = require('./emailController');
-      const roleEmailsController = require('./roleEmailsController');
-      const { buildMentionEmail } = require('../utils/emailTemplates');
-      const config = require('../config/config');
-
-      for (const role of mentionedRoles) {
-        try {
-          const roleEmailResult = await roleEmailsController.getRoleEmailInternal(role);
-          if (!roleEmailResult?.email) continue;
-
-          const { subject, html } = buildMentionEmail({
-            senderUsername: req.user.username,
-            senderRole: req.user.role,
-            mentionedRole: role,
-            contextMessages,
-            mentionMessage: message,
-            appUrl: config.frontendUrl,
-          });
-
-          await sendEmailInternal({
-            user: req.user,
-            body: {
-              to: roleEmailResult.email,
-              subject,
-              message: `${req.user.username} mentioned @${role} in GKIN chat.`,
-              html,
-              documentType: 'mention',
-              recipientType: role,
-            },
-          });
-        } catch (emailError) {
-          console.warn(`Failed to send mention email to @${role}:`, emailError.message);
-        }
-      }
-    }
-
+    // Respond immediately so the sender sees their message without waiting for emails
     res.status(201).json(message);
+
+    // Fire-and-forget: send mention emails in the background
+    if (mentionedRoles.length > 0 && !noEmailNotification) {
+      setImmediate(async () => {
+        try {
+          // Fetch up to 3 messages before this one for context
+          const contextResult = await db.query(
+            `SELECT m.content, m.created_at,
+              json_build_object('id', u.id, 'username', u.username, 'role', u.role) as sender
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.id < $1
+            ORDER BY m.id DESC
+            LIMIT 3`,
+            [messageId]
+          );
+          const contextMessages = contextResult.rows.reverse();
+
+          await Promise.all(
+            mentionedRoles.map(async (role) => {
+              try {
+                const roleEmailResult = await roleEmailsController.getRoleEmailInternal(role);
+                if (!roleEmailResult?.email) return;
+
+                const { subject, html } = buildMentionEmail({
+                  senderUsername: sender.username,
+                  senderRole: sender.role,
+                  mentionedRole: role,
+                  contextMessages,
+                  mentionMessage: message,
+                  appUrl: config.frontendUrl,
+                });
+
+                await sendEmailInternal({
+                  user: sender,
+                  body: {
+                    to: roleEmailResult.email,
+                    subject,
+                    message: `${sender.username} mentioned @${role} in GKIN chat.`,
+                    html,
+                    documentType: 'mention',
+                    recipientType: role,
+                  },
+                });
+              } catch (emailError) {
+                console.warn(`Failed to send mention email to @${role}:`, emailError.message);
+              }
+            })
+          );
+        } catch (err) {
+          console.warn('Mention email background task failed:', err.message);
+        }
+      });
+    }
   } catch (error) {
     console.error('Error creating message:', error);
     res.status(500).json({ message: 'Error creating message' });
